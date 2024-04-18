@@ -1,0 +1,58 @@
+<style>@import url("styles.css");</style>
+<script src="jquery-3.7.0.min.js"></script>
+
+<body>
+	<table id="center_tb">
+		<tr><td></td><td style="width:40%">
+			<p class="w1">Connection status</p>
+			<p class="w2">Status: <span id="wifi_network_status"></span></p>
+			<p class="w2">SSID: <span id="ssid"></span></p>
+			<p class="w2">Signal: <span id="main-wifi-signal" ></span><span id="rssi_percentage"></span>% / <span id="rssi"></span>dBm</p>
+			<p class="w2">IP Address: <span id="ip"></span></p>
+			<p class="w2">mDNS: https://<span id="mdns"></span>.local</p>
+		</td><td></td></tr>
+
+		<tr><td></td><td style="width:40%">
+			<br>
+			<p class="w1">Available networks</p>
+			</td><td></td></tr>
+
+			<tr><td></td><td style="width:40%">
+			<table id="wifi_ntw">
+				<colgroup>
+					<col style="width: 30%;">
+					<col style="width: 35%;">
+					<col style="width: 15%;">
+					<col style="width: 20%;">
+				</colgroup>
+				<tr>
+					<th>Network name (SSID)</th>
+					<th>Signal strength (RSSI)</th>
+					<th>Channel</th>
+					<th>Encryption</th>
+				</tr>
+			</table>
+		</td><td></td></tr>
+
+		<tr><td></td><td style="width:40%" align="right">
+			<button class="btn" onclick="scanWifi()">Scan Wi-Fi networks</button>
+			<br>
+		</td><td></td></tr>
+
+		<tr><td></td><td style="width:40%">
+			<br>
+			<table>
+				<tr><td class="w1">Connect to Wi-Fi network</td></tr>
+				<tr><td class="w2"  align="right">Wi-Fi network name (SSID) </td><td><input type="text" name="wifi_ssid" id=wifi_ssid_id ></td></tr>
+				<tr><td class="w2"  align="right">Password </td><td><input type="text" name="wifi_pass" id=wifi_pass_id></td></tr>
+				<tr><td></td><td align="center"><button class="btn_save_w" onclick="setWifi(document.getElementById('wifi_ssid_id').value, document.getElementById('wifi_pass_id').value)">Save & Connect</button></td></tr>
+			</table>
+		</td><td></td></tr>
+	</table>
+</body>
+
+<script src="scripts.js"></script>
+<script>
+	setTimeout(function(){GetDataAndPrintTableWiFi();}, 500);
+	get_data("wifi");
+</script>

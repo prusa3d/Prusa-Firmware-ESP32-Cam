@@ -1,0 +1,462 @@
+/**
+   @file connnect.cpp
+
+   @brief library for communication with prusa connect backend
+
+   @author Miroslav Pivovarsky
+   Contact: miroslav.pivovarsky@gmail.com
+
+   @bug: no know bug
+*/
+
+#include "connect.h"
+
+PrusaConnect Connect(&SystemConfig, &SystemLog, &SystemCamera);
+
+/**
+ * @brief Constructor for PrusaConnect class
+ *
+ * @param Configuration*  - pointer to Configuration class
+ * @param Logs*           - pointer to Logs class
+ * @param Camera*         - pointer to Camera class
+ */
+PrusaConnect::PrusaConnect(Configuration *i_conf, Logs *i_log, Camera *i_camera) {
+  config = i_conf;
+  log = i_log;
+  camera = i_camera;
+  BackendAvailability = WaitForFirstConnection;
+  SendDeviceInformationToBackend = true;
+}
+
+/**
+ * @brief init library PrusaConnect
+ *
+ * @param none
+ * @return none
+ */
+void PrusaConnect::Init() {
+  log->AddEvent(LogLevel_Info, "Init PrusaConnect lib");
+  TakePicture();
+}
+
+/**
+ * @brief Load configuration from EEPROM
+ *
+ * @param none
+ * @return none
+ */
+void PrusaConnect::LoadCfgFromEeprom() {
+  log->AddEvent(LogLevel_Info, "Load PrusaConnect CFG from EEPROM");
+  Token = config->LoadToken();
+  Fingerprint = config->LoadFingerprint();
+  RefreshInterval = config->LoadRefreshInterval();
+  PrusaConnectHostname = config->LoadPrusaConnectHostname();
+}
+
+/**
+ * @brief take picture
+ *
+ * @param none
+ * @return none
+ */
+void PrusaConnect::TakePicture() {
+  camera->CapturePhoto();
+}
+
+/**
+ * @brief Sending data to prusa connect backend
+ * 
+ * @param i_data  - data to send
+ * @param i_content_type - data content type
+ * @param i_type - type of data for log message
+ * @param i_url_path - url path for backend
+ * @param i_fragmentation - flag for enable/disable data fragmentation
+ * @return true - if data was sent successfully
+ * @return false - if data was not sent successfully
+ */
+bool PrusaConnect::SendDataToBackend(String *i_data, String i_content_type, String i_type, String i_url_path, bool i_fragmentation) { 
+  WiFiClientSecure client;
+  BackendReceivedStatus = "";
+  bool ret = false;
+  log->AddEvent(LogLevel_Info, "Sending " + i_type + " to PrusaConnect");
+
+  /* check fingerprint and token length */
+  if ((Fingerprint.length() > 0) && (Token.length() > 0)) {
+    client.setCACert(root_CAs);
+    log->AddEvent(LogLevel_Verbose, "Connecting to server...");
+
+    /* connecting to server */
+    if (!client.connect(PrusaConnectHostname.c_str(), 443)) {
+      char err_buf[200];
+      int last_error = client.lastError(err_buf, sizeof(err_buf));
+      int error = client.getWriteError();
+      if (BackendAvailability != WaitForFirstConnection) {
+        BackendAvailability = BackendUnavailable;
+      }
+
+      BackendReceivedStatus = "Connetion failed to domain! Error: " + String(last_error) + " - " + String(err_buf) + " : " + String(error);
+      log->AddEvent(LogLevel_Info, BackendReceivedStatus + " ,BA:" + CovertBackendAvailabilitStatusToString(BackendAvailability));
+      return false;
+
+    } else {
+      /* send data to server */
+      log->AddEvent(LogLevel_Verbose, "Connected to server!");
+      client.println("PUT https://" + PrusaConnectHostname + i_url_path + " HTTP/1.0");
+      client.println("Host: " + PrusaConnectHostname);
+      client.println("User-Agent: ESP32-CAM");
+      client.println("Connection: close");
+
+      client.println("Content-Type: " + i_content_type);
+      client.println("fingerprint: " + Fingerprint);
+      client.println("token: " + Token);
+      client.print("Content-Length: ");
+      client.println(i_data->length());
+      client.println();
+
+      esp_task_wdt_reset();
+      if (true == i_fragmentation) {
+        log->AddEvent(LogLevel_Verbose, "Send data fragmented");
+        for (int index = 0; index < i_data->length(); index = index + PHOTO_FRAGMENT_SIZE) {
+          client.print(i_data->substring(index, index + PHOTO_FRAGMENT_SIZE));
+          log->AddEvent(LogLevel_Verbose, String(index));
+        }
+      } else {
+        log->AddEvent(LogLevel_Verbose, "Send data");
+        client.print(*i_data);
+      }
+
+      log->AddEvent(LogLevel_Info, "Send done");
+      esp_task_wdt_reset();
+
+      String response = "";
+      String fullResponse = "";
+      log->AddEvent(LogLevel_Verbose, "Response:");
+      while (client.connected()) {
+        if (client.available()) {
+          response = client.readStringUntil('\n');
+          fullResponse += response;
+          log->AddEvent(LogLevel_Verbose, response.c_str());
+
+          if (response.startsWith("HTTP/1.1")) {
+            int httpCode = response.substring(9, 12).toInt();
+            BackendReceivedStatus = i_type;
+            BackendReceivedStatus += ": ";
+            BackendReceivedStatus += ProcessHttpResponseCode(httpCode);
+            if (true == ProcessHttpResponseCodeBool(httpCode)) {
+              ret = true;
+            }
+          }
+        }
+      }
+      log->AddEvent(LogLevel_Verbose, "Full response: " + fullResponse); 
+
+      BackendAvailability = BackendAvailable;
+      client.stop();
+    }
+  } else {
+    /* err message */
+    log->AddEvent(LogLevel_Verbose, "ERROR SEND DATA TO SERVER! INVALID DATA!");
+    log->AddEvent(LogLevel_Verbose, "Fingerprint: " + Fingerprint);
+    log->AddEvent(LogLevel_Verbose, "Token: " + Token);
+
+    if (Fingerprint.length() == 0) {
+      BackendReceivedStatus = "Missing fingerprint";
+    } else if (Token.length() == 0) {
+      BackendReceivedStatus = "Missing token";
+    }
+  }
+
+  log->AddEvent(LogLevel_Info, "Upload done. Response code: " + BackendReceivedStatus + " ,BA:" + CovertBackendAvailabilitStatusToString(BackendAvailability));
+  return ret;
+}
+
+/**
+ * @brief Send photo to prusa connect backend
+ *
+ * @param none
+ * @return none
+ */
+void PrusaConnect::SendPhotoToBackend() {
+  log->AddEvent(LogLevel_Info, "Start sending photo to prusaconnect");
+  camera->CopyPhoto(&Photo);
+  SendDataToBackend(&Photo, "image/jpg", "Photo", HOST_URL_CAM_PATH, true);
+}
+
+/**
+ * @brief seding device info to prusaconnect backend
+ * 
+ */
+void PrusaConnect::SendInfoToBackend() {
+  if (false == SendDeviceInformationToBackend) {
+    return;
+
+  } else {
+    log->AddEvent(LogLevel_Info, "Start sending device information to prusaconnect");
+
+    JsonDocument json_data;
+    String json_string = "";
+
+    JsonObject config = json_data["config"].to<JsonObject>();
+    config["name"] = "ESP32-CAM";
+
+    JsonObject resolution = config["resolution"].to<JsonObject>();
+    resolution["width"] = SystemCamera.GetFrameSizeWidth();
+    resolution["height"] = SystemCamera.GetFrameSizeHeight();
+
+    JsonObject network_info = config["network_info"].to<JsonObject>();
+    network_info["wifi_mac"] = SystemWifiMngt.GetWifiMac();
+    network_info["wifi_ipv4"] = SystemWifiMngt.GetStaIp();
+    network_info["wifi_ssid"] = SystemWifiMngt.GetStaSsid();
+
+    serializeJson(json_data, json_string);
+    log->AddEvent(LogLevel_Info, "Data: " + json_string);
+    bool response = SendDataToBackend(&json_string, "application/json", "Info", HOST_URL_INFO_PATH, false);
+
+    if (true == response) {
+      SendDeviceInformationToBackend = false;
+    }
+  }
+}
+
+/**
+ * @brief Take picture and send to backend
+ *
+ * @param none
+ * @return none
+ */
+void PrusaConnect::TakePictureAndSendToBackend() {
+  TakePicture();
+  SendPhotoToBackend();
+}
+
+/**
+   @brief Function for processing http response code from prusa backend
+   @param int - http response code
+   @return none
+*/
+String PrusaConnect::ProcessHttpResponseCode(int code) {
+  String ret = "";
+  switch (code) {
+  case 200:
+    ret = "200 - OK";
+    break;
+  case 201:
+    ret = "201 - OK entry created";
+    break;
+  case 204:
+    ret = "204 - Upload OK";
+    break;
+  case 304:
+    ret = "304 - Response has not been modified";
+    break;
+  case 400:
+    ret = "400 - Some data received is not valid";
+    break;
+  case 401:
+    ret = "401 - Missing security toker or it is not valid";
+    break;
+  case 403:
+    ret = "403 - Security toke is not valid or is outdated";
+    break;
+  case 404:
+    ret = "404 - Entity not found or invalid auth token";
+    break;
+  case 409:
+    ret = "409 - Conflict with the state of target resource (user error)";
+    break;
+  case 503:
+    ret += "503 - Service is unavailable at this moment. Try again later";
+    break;
+  default:
+    ret = String(code);
+    ret += " - unknown error code";
+    break;
+  }
+
+  return ret;
+}
+/**
+ * @brief Translate http response code to boolean
+ * 
+ * @param code - http response code
+ * @return true - if response code is OK
+ * @return false - if response code is not OK
+ */
+bool PrusaConnect::ProcessHttpResponseCodeBool(int code) {
+  bool ret = false;
+  switch (code) {
+  case 200:
+    ret = true;
+    break;
+  case 201:
+    ret = true;
+    break;
+  case 204:
+    ret = true;
+    break;
+  case 304:
+    ret = false;
+    break;
+  case 400:
+    ret = false;
+    break;
+  case 401:
+    ret = false;
+    break;
+  case 403:
+    ret = false;
+    break;
+  case 404:
+    ret = false;
+    break;
+  case 409:
+    ret = false;
+    break;
+  case 503:
+    ret = false;
+    break;
+  default:
+    ret = false;
+    break;
+  }
+
+  return ret;
+}
+
+/**
+ * @brief Update device information
+ *
+ * @param none
+ * @return none
+ */
+void PrusaConnect::UpdateDeviceInformation() {
+  SendDeviceInformationToBackend = true;
+}
+
+/**
+ * @brief Set refresh interval
+ *
+ * @param uint8_t i_data - refresh interval
+ * @return none
+ */
+void PrusaConnect::SetRefreshInterval(uint8_t i_data) {
+  RefreshInterval = i_data;
+  config->SaveRefreshInterval(RefreshInterval);
+}
+
+/**
+ * @brief Set token
+ *
+ * @param String i_data - token
+ * @return none
+ */
+void PrusaConnect::SetToken(String i_data) {
+  Token = i_data;
+  config->SaveToken(Token);
+}
+
+/**
+ * @brief Set backend availability status
+ *
+ * @param BackendAvailabilitStatus - backend status
+ * @return none
+ */
+void PrusaConnect::SetBackendAvailabilitStatus(BackendAvailabilitStatus i_data) {
+  BackendAvailability = i_data;
+}
+
+/**
+ * @brief set prusa connect hostname
+ * 
+ * @param String i_data - hostname
+ */
+void PrusaConnect::SetPrusaConnectHostname(String i_data) {
+  PrusaConnectHostname = i_data;
+  config->SavePrusaConnectHostname(PrusaConnectHostname);
+}
+
+/**
+ * @brief Get refresh interval
+ *
+ * @param none
+ * @return uint8_t - refresh interval
+ */
+uint8_t PrusaConnect::GetRefreshInterval() {
+  return RefreshInterval;
+}
+
+/**
+ * @brief get backend received status
+ *
+ * @param none
+ * @return String - backend received status
+ */
+String PrusaConnect::GetBackendReceivedStatus() {
+  return BackendReceivedStatus;
+}
+
+/**
+ * @brief get token
+ *
+ * @param none
+ * @return String - token
+ */
+String PrusaConnect::GetToken() {
+  return Token;
+}
+
+/**
+ * @brief get fingerprint
+ *
+ * @param none
+ * @return String - fingerprint
+ */
+String PrusaConnect::GetFingerprint() {
+  return Fingerprint;
+}
+
+/**
+ * @brief get prusa connect hostname
+ * 
+ * @return String - hostanme
+ */
+String PrusaConnect::GetPrusaConnectHostname() {
+  return PrusaConnectHostname;
+}
+
+/**
+ * @brief Get backend availability status
+ *
+ * @param none
+ * @return BackendAvailabilitStatus - backend status
+ */
+BackendAvailabilitStatus PrusaConnect::GetBackendAvailabilitStatus() {
+  return BackendAvailability;
+}
+
+/** 
+ * @brief Convert backend availability status to string
+ * @param BackendAvailabilitStatus - backend status
+ * @return String - backend status as string
+*/
+String PrusaConnect::CovertBackendAvailabilitStatusToString(BackendAvailabilitStatus i_data) {
+  String ret = "";
+  switch (i_data) {
+  case WaitForFirstConnection:
+    ret = "Wait for first connection";
+    break;
+  case BackendAvailable:
+    ret = "Backend available";
+    break;
+  case BackendUnavailable:
+    ret = "Backend unavailable";
+    break;
+  default:
+    ret = "Unknown";
+    break;
+  }
+
+  return ret;
+}
+
+/* EOF */

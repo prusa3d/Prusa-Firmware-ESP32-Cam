@@ -1,0 +1,23 @@
+<style>@import url("styles.css");</style>
+<script src="jquery-3.7.0.min.js"></script>
+
+<body>
+	<center>
+		<table>
+			<tr><td class=pa3>Set web authentication</td><td></td></tr>
+			<tr><td class=pa1 align="right">WEB authentication </td><td><label class="switch"><input type="checkbox" name="basicauth_enable" id="authid" onchange="changeValue(this.checked, 'basicauth_cfg?basicauth_enable=', 'auth')"><span class="checkbox_slider round"></span></label></label> <span class=pa1 id="status_auth"></span></td></tr>
+			<tr><td class=pa1 align="right">Username </td><td><input type="text" name="auth_username" id="auth_username"></td></tr>
+			<tr><td class=pa1 align="right">Password </td><td><input type="password" name="auth_password" id="auth_password"><span class="toggle-password" onclick="togglePasswordVisibility()"><img id="eye-icon" src="eye.svg" alt="Show Password"></span></td></tr>
+			<tr><td class=pa1 align="right">Confirm Password </td><td><input type="password" name="auth_password_confirm" id="auth_password_confirm"><span class="toggle-password" onclick="togglePasswordVisibility()"><img id="eye-icon-confirm" src="eye.svg" alt="Show Password"></span><span id="pass_match"></span></td></tr>
+			<tr><td></td><td><button class="btn_save_a" onclick="setAuth( document.getElementById('auth_username').value, document.getElementById('auth_password').value)">Save</button></td></tr>
+		</table>
+	</center>
+</body>
+
+<script src="scripts.js"></script>
+<script>
+	get_data("auth");
+	document.getElementById("auth_password").addEventListener("input", validatePasswords);
+    document.getElementById("auth_password_confirm").addEventListener("input", validatePasswords);
+    validatePasswords();
+</script>

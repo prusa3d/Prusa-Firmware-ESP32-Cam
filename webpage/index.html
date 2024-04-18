@@ -1,0 +1,90 @@
+<!DOCTYPE HTML><html lang="en">
+<head>
+	<meta name="Prusa ESP32-cam" content="width=device-width, initial-scale=1">
+	<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+	<title>Prusa ESP32-cam</title>
+
+	<link rel="stylesheet" type="text/css" href="styles.css">
+	<script src="jquery-3.7.0.min.js"></script>
+	<script>
+		$(document).ready(function () {
+			$("a").click(function (e) {
+				e.preventDefault();
+				var page = $(this).attr("href");
+				$("#content").load(page);
+				setActive(this);
+			});
+
+			$("#content").load("page_config.html", function() {
+				var defaultLink = document.querySelector('a[href="page_config.html"]');
+				setActive(defaultLink);
+			});
+		});
+	</script>
+</head>
+
+<body>
+    <nav>
+    <img src="esp32_cam.svg" id=logo alt="Logo image" style="margin-left: 10px;" />
+      <ul class="top_bar" style="justify-content:flex-start;">
+        <li><a class=p5 href="https://forum.prusa3d.com/forum/prusa-connect-prusalink" id="forum-link">Forum</a></li>
+        <li><a class=p5 href="https://help.prusa3d.com" id="help-link">Help</a></li>
+      </ul>
+      <ul class="top_bar" style="justify-content:flex-end;">
+		<li><a class=p4 href="#" onclick="javascript:actionButton('/action_led',true,'')"><div id="light-icon"></div> Light </a></li>
+		<li><a class=p4 href="#" onclick="location.reload();"><svg height="25" width="25"><image href="refresh-icon.svg"></svg> Refresh </a></li>
+		<li><a class=p4 href="#" onclick="javascript:actionButton('/action_reboot',false,'Reboot process started, wait several seconds for mcu to boot up. You can close this window now.')"><svg height="25" width="25"><image href="reboot-icon.svg"></svg> Reboot </a></li>
+      </ul>
+    </nav>
+	<hr>
+	
+	<section class="container">
+		<div  class="container_left-half">
+			<article>
+				<img src="saved-photo.jpg" id="photo"  width="60%" onclick="openImage()"/>
+			</article>
+		</div>
+		<div class="container_right-half">
+			<article>
+				<p class="p1">Trigger interval: <b><span id="refreshInterval"></span><b>s</p><br><br>
+				<button class="btn" onclick="actionButton('/action_capture',true,'')">Refresh Snapshot</button> <br><br>
+				<button class="btn" onclick="actionButton('/action_send',false,'')">Send snapshot</button><br><br><br>
+				<button class="btn" onclick="window.open('saved-photo.jpg')">Download snapshot</button><br><br>
+			</article>
+		</div>
+	</section>
+	
+	<br>
+		<cfg>
+			<cfg_bar>
+			<div id="links">
+				<li ><a href="page_config.html">Camera configuration</a></li>
+				<li ><a href="page_wifi.html">Wi-Fi configuration</a></li>
+				<li ><a href="page_auth.html">Autentification</a></li>
+				<li ><a href="page_system.html">System</a></li>
+				</div>
+			</cfg_bar>
+		</cfg>
+	<hr>
+	
+	<div id="content">
+	</div>
+
+	<br><br><br><br>
+	<table id=botton><tr>
+		<td><p class=p2>Prusa Connect ESP32 cam</p> </td>
+		<td><p class=p3>Author</p> <p class=p2>Miroslav Pivovarsky</p> </td>
+		<td><a href="license.html" class=p3>Licence</a> | <a href="gtac.html" class=p3>General Terms and Conditions</a> | <a href="privacypolicy.html" class=p3>Privacy Policy</a> | <a href="cookie.html" class=p3>Cookie Preferences</a> </td>
+		<td><a href="https://github.com/Prusa-Development/Prusa-Firmware-ESP32-Cam/" id="github-link"><svg height="25"><image href="github-icon.svg"></svg></a></td>
+	</tr></table>
+</body>
+
+<script src="scripts.js"></script>
+<script>
+	sliderCheck();
+	get_data();
+	addClickListener('github-link');
+	addClickListener('help-link');
+	addClickListener('forum-link');
+</script>
+</html>

@@ -1,0 +1,26 @@
+/**
+   @file variable.cpp
+
+   @brief Library with global variables
+
+   @author Miroslav Pivovarsky
+   Contact: miroslav.pivovarsky@gmail.com
+
+   @bug: no know bug
+*/
+
+#include "var.h"
+
+WebBasicAuth_struct WebBasicAuth = { false, "", "" };
+struct FirmwareUpdate_struct FirmwareUpdate = { "Ready", false, 0, 0, 0, false, false, "", "", "", false };
+
+TaskHandle_t Task_CapturePhotoAndSend;
+TaskHandle_t Task_WiFiManagement;
+TaskHandle_t Task_SystemMain;
+TaskHandle_t Task_SdCardCheck;
+TaskHandle_t Task_SerialCfg;
+TaskHandle_t Task_StreamTelemetry;
+TaskHandle_t Task_SysLed;
+TaskHandle_t Task_WiFiWatchdog;
+
+/* EOF */
