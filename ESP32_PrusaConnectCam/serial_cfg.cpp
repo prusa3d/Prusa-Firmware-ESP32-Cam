@@ -39,13 +39,18 @@ void SerialCfg::ProcessIncommingData() {
 
   while (Serial.available() > 0) {
     char incomingChar = Serial.read();
+#if (CONSOLE_VERBOSE_DEBUG == true)
+    Serial.print("0x");
+    Serial.print(incomingChar, HEX);
+    Serial.print(" ");
+#endif
 
-    if (incomingChar == '\n') {
-      // Ak nájdeme nový riadok, spracujeme prikaz
-      ParseIncommingData(inputBuffer);
-      inputBuffer = "";  // Vynulujeme buffer pre ďalší príkaz
+    if ((incomingChar == '\n') || (incomingChar == '\r')) {
+      if (inputBuffer.length() > 1) {
+        ParseIncommingData(inputBuffer);
+      }
+      inputBuffer = "";
     } else {
-      // Inak pridáme znak do bufferu
       inputBuffer += incomingChar;
     }
   }
@@ -57,23 +62,30 @@ void SerialCfg::ProcessIncommingData() {
    @return none
 */
 void SerialCfg::ParseIncommingData(String command) {
-  /* check command */
 
+String lastTwoChars = command.substring(command.length() - 2);
+
+  /* remove end of line symbol */
+  while (!command.isEmpty() && ((command.endsWith("\r") || command.endsWith("\n")))) {
+    command.remove(command.length() - 1);
+  }
+
+  /* check command */
   if (command.startsWith("setwifissid:") && command.endsWith(";")) {
     /* remove prefix "setwifissid:" and end of command symbol ";" */
-    wifi_ssid = command.substring(12, command.length() - 1);
+    wifi_ssid = command.substring(12, command.length() -1);
     log->AddEvent(LogLevel_Info, "--> Console set WiFi SSID: " + wifi_ssid);
     wifim->SetStaSsid(wifi_ssid);
 
   } else if (command.startsWith("setwifipass:") && command.endsWith(";")) {
     /* remove prefix "setwifipass:" and end of command symbol ";" */
-    wifi_pass = command.substring(12, command.length() - 1);
+    wifi_pass = command.substring(12, command.length() -1);
     log->AddEvent(LogLevel_Info, "--> Console set WiFi password: " + wifi_pass);
     wifim->SetStaPassword(wifi_pass);
   
   } else if (command.startsWith("setauthtoken:") && command.endsWith(";")) {
     /* remove prefix "setauthtoken:" and end of command symbol ";" */
-    auth_token = command.substring(13, command.length() - 1);
+    auth_token = command.substring(13, command.length() -1);
     log->AddEvent(LogLevel_Info, "--> Console set auth TOKEN for backend: " + auth_token);
     connect->SetToken(auth_token);
 

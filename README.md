@@ -25,6 +25,7 @@ What we need for functionality
 - Power supply [here](#power_supply)
 - Debug logs [here](#logs)
 - Serial console configuration [here](#serial_cfg)
+- Potential issue [here](#issue)
 
 <a name="esp32"></a>
 ## ESP32-CAM AI-thinker board 
@@ -106,10 +107,22 @@ After the initial firmware upload to the MCU, it's necessary to disable this opt
 
 To upload the firmware on the MAC or Linux platform, you must use the console. First, ensure you have installed esptool for Python. You can find it on the manufacturer's website, ESPRESSIF, [here](https://docs.espressif.com/projects/esp-at/en/latest/esp32/Get_Started/Downloading_guide.html).
 
-And command for FLASH FW is here, where **/dev/ttya0** is your serial interface for communication with the ESP32-cam board.
+And command for FLASH FW is here, where **/dev/ttya0** is your serial interface for communication with the ESP32-cam board. This is command for first flash FW to MCU.
+
 ```
 python3 -m esptool -p /dev/ttya0 -b 460800 --before default_reset --after hard_reset --chip
 esp32 write_flash --erase-all --flash_mode dio --flash_size 4MB --flash_freq 80m 0x1000
+ESP32_PrusaConnectCam_web.ino.bootloader.bin 0x8000
+ESP32_PrusaConnectCam_web.ino.partitions.bin 0x10000 ESP32_PrusaConnectCam_web.ino.bin
+```
+
+This command contains the parameter **--eras-all**, which erases the entire flash in the MCU. So, for just updating the firmware, it is necessary to remove the parameter **--eras-all**; otherwise, the MCU configuration will also be deleted. The basic command list can be found [here](https://docs.espressif.com/projects/esptool/en/latest/esp32s3/esptool/basic-commands.html)
+
+Here is the command for updating the firmware in the MCU without erasing the MCU configuration
+
+```
+python3 -m esptool -p /dev/ttya0 -b 460800 --before default_reset --after hard_reset --chip
+esp32 write_flash --flash_mode dio --flash_size 4MB --flash_freq 80m 0x1000
 ESP32_PrusaConnectCam_web.ino.bootloader.bin 0x8000
 ESP32_PrusaConnectCam_web.ino.partitions.bin 0x10000 ESP32_PrusaConnectCam_web.ino.bin
 ```
@@ -227,9 +240,9 @@ Currently is possible set the basicaly camera configuration during serial consol
 
 Commands for configuration have simple syntax
 
-|   command    | separator | variable  | termination | line terminator |
-|--------------|-----------|-----------|-------------|-----------------|
-| setwifissid  |     :     |   SSID    |     ;       |       \n        | 
+|   command    | separator | variable  | termination | line terminator          |
+|--------------|-----------|-----------|-------------|--------------------------|
+| setwifissid  |     :     |   SSID    |     ;       | \n or \r or \n\r or \r\n | 
 
 Currently available commands are listed in the table below:
 
@@ -253,3 +266,8 @@ Standard commands sequence for camera basic settings is
 - wificonnect;
 - setauthtoken:TOKEN;
 - mcureboot;
+
+<a name="issue"></a>
+## Potential issue
+
+- A potential issue may arise with connecting to the service AP. If the connection fails and an authentication error occurs, it is necessary to clear the FLASH memory of the processor, and FLASH FW again. This can be done either through the Arduino IDE or using official software.
