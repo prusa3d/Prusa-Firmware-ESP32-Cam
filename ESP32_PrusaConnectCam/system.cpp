@@ -95,7 +95,9 @@ void System_UpdateInit() {
 void System_Main() {
   /* check new FW version */
   if (false == FirmwareUpdate.CheckNewVersionAfterBoot) {
+    Server_pause();
     System_CheckNewVersion();
+    Server_resume();
   }
 
   /* task for download and flash FW from server */
@@ -494,11 +496,10 @@ void System_TaskMain(void *pvParameters) {
 void System_TaskCaptureAndSendPhoto(void *pvParameters) {
   SystemLog.AddEvent(LogLevel_Info, "Task photo processing. core: " + String(xPortGetCoreID()));
   TickType_t xLastWakeTime = xTaskGetTickCount();
-  uint16_t SendingIntervalCounter = 0;  ///< counter for sending interval
 
   while (1) {
-    if (Connect.GetRefreshInterval() <= SendingIntervalCounter) {
-      SendingIntervalCounter = 0;
+    if (Connect.CheckSendingIntervalExpired()) {
+      Connect.SetSendingIntervalCounter(0);
       /* send network information to backend */
       if ((WL_CONNECTED == WiFi.status()) && (false == FirmwareUpdate.Processing)) {
         esp_task_wdt_reset();
@@ -513,7 +514,7 @@ void System_TaskCaptureAndSendPhoto(void *pvParameters) {
 
     } else {
       /* update counter */
-      SendingIntervalCounter++;
+      Connect.IncreaseSendingIntervalCounter();
     }
     
     SystemLog.AddEvent(LogLevel_Verbose, "Photo processing task. Stack free size: " + String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");

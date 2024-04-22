@@ -25,6 +25,7 @@
 #include "camera.h"
 #include "cfg.h"
 #include "Certificate.h"
+#include "server.h"
 
 /**
  * @brief BackendAvailabilitStatus enum
@@ -42,6 +43,7 @@ private:
   String BackendReceivedStatus;                   ///< status of backend response
   BackendAvailabilitStatus BackendAvailability;   ///< status of backend availability
   bool SendDeviceInformationToBackend;           ///< flag for sending device information to backend
+  uint8_t SendingIntervalCounter;                 ///< counter for sending interval, represents seconds
 
   String Token;                                   ///< token for backend communication
   String Fingerprint;                             ///< fingerprint for backend communication
@@ -81,6 +83,12 @@ public:
   String GetPrusaConnectHostname();
   BackendAvailabilitStatus GetBackendAvailabilitStatus();
   String CovertBackendAvailabilitStatusToString(BackendAvailabilitStatus);
+
+  void IncreaseSendingIntervalCounter();
+  void SetSendingIntervalCounter(uint8_t);
+  void SetSendingIntervalExpired();
+  uint8_t GetSendingIntervalCounter();
+  bool CheckSendingIntervalExpired();
 };
 
 extern PrusaConnect Connect;  ///< PrusaConnect object

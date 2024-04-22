@@ -271,3 +271,4 @@ Standard commands sequence for camera basic settings is
 ## Potential issue
 
 - A potential issue may arise with connecting to the service AP. If the connection fails and an authentication error occurs, it is necessary to clear the FLASH memory of the processor, and FLASH FW again. This can be done either through the Arduino IDE or using official software.
+- While sending the photo to the backend, the WEB server is temporarily disabled for this short interval. After the photo is sent to the backend, the WEB server is re-enabled. This may cause short unavailability in the WEB server on the camera, lasting several seconds, depending on the internet connection and the quality of the WiFi connection

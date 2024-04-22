@@ -76,6 +76,7 @@ void PrusaConnect::TakePicture() {
  */
 bool PrusaConnect::SendDataToBackend(String *i_data, String i_content_type, String i_type, String i_url_path, bool i_fragmentation) { 
   WiFiClientSecure client;
+  Server_pause();
   BackendReceivedStatus = "";
   bool ret = false;
   log->AddEvent(LogLevel_Info, "Sending " + i_type + " to PrusaConnect");
@@ -83,6 +84,7 @@ bool PrusaConnect::SendDataToBackend(String *i_data, String i_content_type, Stri
   /* check fingerprint and token length */
   if ((Fingerprint.length() > 0) && (Token.length() > 0)) {
     client.setCACert(root_CAs);
+    client.setTimeout(1000);
     log->AddEvent(LogLevel_Verbose, "Connecting to server...");
 
     /* connecting to server */
@@ -167,6 +169,7 @@ bool PrusaConnect::SendDataToBackend(String *i_data, String i_content_type, Stri
   }
 
   log->AddEvent(LogLevel_Info, "Upload done. Response code: " + BackendReceivedStatus + " ,BA:" + CovertBackendAvailabilitStatusToString(BackendAvailability));
+  Server_resume();
   return ret;
 }
 
@@ -454,6 +457,54 @@ String PrusaConnect::CovertBackendAvailabilitStatusToString(BackendAvailabilitSt
   default:
     ret = "Unknown";
     break;
+  }
+
+  return ret;
+}
+
+/**
+ * @brief Increase sending interval counter
+ *
+ * @param none
+ * @return none
+ */
+void PrusaConnect::IncreaseSendingIntervalCounter() {
+  SendingIntervalCounter++;
+}
+
+/**
+ * @brief Set sending interval counter
+ *
+ * @param uint8_t i_data - counter
+ * @return none
+ */
+void PrusaConnect::SetSendingIntervalCounter(uint8_t i_data) { 
+  SendingIntervalCounter = i_data;
+}
+
+void PrusaConnect::SetSendingIntervalExpired() {
+  SendingIntervalCounter = RefreshInterval;
+}
+
+/**
+ * @brief Get sending interval counter
+ * 
+ * @return uint8_t - counter
+ */
+uint8_t PrusaConnect::GetSendingIntervalCounter() {
+  return SendingIntervalCounter;
+}
+
+/**
+ * @brief Check if sending interval is expired. and can I send the data to the backend. [seconds]
+ * 
+ * @return true 
+ * @return false 
+ */
+bool PrusaConnect::CheckSendingIntervalExpired() {
+  bool ret = false;
+  if (SendingIntervalCounter >= RefreshInterval) {
+    ret = true;
   }
 
   return ret;

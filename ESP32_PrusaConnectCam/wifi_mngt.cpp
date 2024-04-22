@@ -88,6 +88,8 @@ void WiFiMngt::Init() {
     } else {
       log->AddEvent(LogLevel_Warning, "Wifi unavailable. Skip connecting to WiFi: " + WifiSsid);
     }
+  } else {
+    ScanWiFiNetwork();
   }
   TaskAp_previousMillis = millis();
 

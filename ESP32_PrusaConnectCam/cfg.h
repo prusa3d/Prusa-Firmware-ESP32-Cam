@@ -97,6 +97,7 @@ public:
   uint16_t LoadAecValue();
   bool LoadGainCtrl();
   uint8_t LoadAgcGain();
+  LogLevel_enum LoadLogLevel();
   String LoadPrusaConnectHostname();
 
 private:

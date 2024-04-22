@@ -387,7 +387,7 @@ void Server_InitWebServer_Actions() {
     SystemLog.AddEvent(LogLevel_Verbose, "WEB server: /action_send send photo to cloud");
     if (Server_CheckBasicAuth(request) == false)
       return;
-    Connect.SendPhotoToBackend();
+    Connect.SetSendingIntervalExpired();
     request->send_P(200, "text/plain", "Send Photo");
   });
 
@@ -882,8 +882,33 @@ void Server_InitWebServer_Update() {
   });
 }
 
+/**
+   @brief Init WEB server stream
+   @param none
+   @return none
+*/
 void Server_InitWebServer_Stream() {
   server.on("/stream.mjpg", HTTP_GET, Server_streamJpg);
+}
+
+/**
+   @brief Pause WEB server
+   @param none
+   @return none
+*/
+void Server_pause() {
+  server.end();
+  SystemLog.AddEvent(LogLevel_Verbose, "WEB server: pause");
+}
+
+/**
+   @brief Resume WEB server
+   @param none
+   @return none
+*/
+void Server_resume() {
+  server.begin();
+  SystemLog.AddEvent(LogLevel_Verbose, "WEB server: resume");
 }
 
 /**

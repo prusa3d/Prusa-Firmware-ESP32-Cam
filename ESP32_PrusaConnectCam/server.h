@@ -50,6 +50,9 @@ void Server_InitWebServer_Sets();
 void Server_InitWebServer_Update();
 void Server_InitWebServer_Stream();
 
+void Server_pause();
+void Server_resume();
+
 void Server_handleCacheRequest(AsyncWebServerRequest*, const char*, const char*);
 void Server_handleNotFound(AsyncWebServerRequest *);
 String Server_GetJsonData();

@@ -37,6 +37,7 @@ void Configuration::Init() {
     Log->AddEvent(LogLevel_Warning, "First MCU start! Set factory cfg");
     DefaultCfg();
     SaveFirstMcuStartFlag(CFG_FIRST_MCU_START_NAK);
+    Log->SetLogLevel(LoadLogLevel());
   }
 
   /* set reset pin */
@@ -1062,6 +1063,23 @@ uint8_t Configuration::LoadAgcGain() {
   return ret;
 }
 
+/**
+ * @brief Load log level from EEPROM
+ * 
+ * @return LogLevel_enum - log level
+ */
+LogLevel_enum Configuration::LoadLogLevel() {
+  LogLevel_enum ret = (LogLevel_enum) EEPROM.read(EEPROM_ADDR_LOG_LEVEL);
+  Log->AddEvent(LogLevel_Info, "LogLevel: " + String(ret));
+  
+  return ret;
+}
+
+/**
+ * @brief Load PrusaConnect hostname from EEPROM
+ * 
+ * @return String - hostname
+ */
 String Configuration::LoadPrusaConnectHostname() {
   Log->AddEvent(LogLevel_Info, "PrusaConnect hostname: ", false);
   String ret = LoadString(EEPROM_ADDR_HOSTNAME_START, EEPROM_ADDR_HOSTNAME_LENGTH, true);
