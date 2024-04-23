@@ -156,7 +156,7 @@ const char page_wifi_html[] PROGMEM = R"rawliteral(
 			<p class="w2">SSID: <span id="ssid"></span></p>
 			<p class="w2">Signal: <span id="main-wifi-signal" ></span><span id="rssi_percentage"></span>% / <span id="rssi"></span>dBm</p>
 			<p class="w2">IP Address: <span id="ip"></span></p>
-			<p class="w2">mDNS: https://<span id="mdns"></span>.local</p>
+			<p class="w2">mDNS: http://<span id="mdns"></span>.local</p>
 		</td><td></td></tr>
 
 		<tr><td></td><td style="width:40%">
