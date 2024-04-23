@@ -17,6 +17,7 @@ What we need for functionality
 - Arduino IDE configuration [ here ](#arduino_cfg)
 - How to flash firmware to ESP32-cam and connect to PrusaConnect [ here ](https://help.prusa3d.com/preview/guide/esp32-cam-for-prusa-connect_673528)
 - How to flash binary files to ESP32-cam board from Linux/MAC/Windows [ here ](#flash_fw)
+- Service AP [here](#service_ap)
 - How to reset the configuration to factory settings [here](#factory_cfg)
 - Status LED [ here ](#status_led)
 - Schematic main board is [here](#schematic)
@@ -152,6 +153,16 @@ It's necessary to erase the FLASH using the **ERASE** button before the first fi
 
 <img src="doc/how to flash.jpg" width=25% height=25%>
 
+<a name="service_ap"></a>
+## Service AP
+
+After powering on and booting up the camera, it enters **AP mode**, which serves as a configuration mode for the camera. Essentially, it starts its own Wi-Fi network. The network name (SSID) is **ESP32_camera_UID**, where **UID** is the first three numbers from the **MCU ID**, serving as a unique identifier for the camera. The password for connecting to the AP is **12345678**. The camera's IP address is **192.168.0.1**. To configure the camera via **AP mode**, you need to connect to this IP address using a web browser: **http://192.168.0.1**. Alternatively, you can also use the **http://prusa-esp32cam.local** hostname (**mDNS**) instead of the IP Address.
+
+After establishing a successful connection, your computer might display a "**No Internet**" warning for the given network. **This is normal**.
+
+If you have set up a Wi-Fi network name (SSID) and password in the camera for it to connect to, then upon powering on, the camera will automatically connect to the configured Wi-Fi network and simultaneously activate AP mode for **5 minutes**. AP mode is always enabled after powering on and booting up the camera for **5 minutes**. The service Wi-Fi AP is **automatically deactivates** itself after **5 minutes** following each camera startup if no device is connected to the camera.
+
+
 <a name="factory_cfg"></a>
 ## How to reset configuration to factory settings
 To reset the settings to factory defaults, follow these instructions:
@@ -180,6 +191,8 @@ Upon module activation, the LED illuminates. After processor initialization, the
 - **Connecting to WiFi AP:** While connecting to a WiFi Access Point, the LED blinks at intervals of **800 ms**.
 - **Connected to WiFi Network:** Upon successful connection to a WiFi network, the LED blinks at intervals of **4000 ms**, signaling a stable connection.
 - **Problematic State:** If an issue or error occurs, the LED accelerates its blinking to every **100 ms**.
+
+The approximate boot time of the device is 15-20 seconds.
 
 <a name="schematic"></a>
 ## Schematic for ESP32-cam board
