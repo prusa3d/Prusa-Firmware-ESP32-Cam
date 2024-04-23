@@ -103,7 +103,7 @@ This can be found under **Tools** -> **Erase all Flash Before Sketch Upload** ->
 After the initial firmware upload to the MCU, it's necessary to disable this option. If you do not disable this option, your camera configuration will continue to be erased from the flash memory after uploading new firmware from the Arduino IDE.
 
 <a name="flash_fw"></a>
-## How to flash binnary files to ESP32-cam board from Linux/MAC/Windows
+## How to flash binary files to ESP32-cam board from Linux/MAC/Windows
 
 You must use the console to upload the firmware on the MAC or Linux platform. First, ensure you have installed esptool for Python. You can find it on the manufacturer's website, ESPRESSIF, [here](https://docs.espressif.com/projects/esp-at/en/latest/esp32/Get_Started/Downloading_guide.html).
 
@@ -163,7 +163,7 @@ To reset the settings to factory defaults, follow these instructions:
 - Wait for **10 seconds**.
 - After 10 seconds, the **FLASH LED will start flashing**.
 - **Disconnect** PIN **IO12** from **ground** (but don't disconnect the power supply).
-- After disconnecting **IO12** from **ground**, the **FLASH LED** will **stop flashing**, and the MCU will **automatically rebooted**.
+- After disconnecting **IO12** from **ground**, the **FLASH LED** will **stop flashing**, and the MCU will **automatically reboot**.
 - Now the MCU is in the factory settings.
 
 <a name="status_led"></a>
@@ -176,7 +176,7 @@ through blinking at defined intervals.
 
 Upon module activation, the LED illuminates. After processor initialization, the LED exhibits different blinking intervals based on the current mode of the module
 
-- **Just service AP Mode:** The LED blinks every **400 ms**, indicating the module's availability in service AP mode.
+- **Service AP Mode only:** The LED blinks every **400 ms**, indicating the module's availability in service AP mode.
 - **Connecting to WiFi AP:** While connecting to a WiFi Access Point, the LED blinks at intervals of **800 ms**.
 - **Connected to WiFi Network:** Upon successful connection to a WiFi network, the LED blinks at intervals of **4000 ms**, signaling a stable connection.
 - **Problematic State:** If an issue or error occurs, the LED accelerates its blinking to every **100 ms**.
@@ -186,7 +186,7 @@ Upon module activation, the LED illuminates. After processor initialization, the
 
 <img src="doc/ESP32-CAM-AI-Thinker-schematic-diagram.png" width=70% height=70%>
 
-Parts description
+Board description
 
 <img src="doc/esp32-cam_parts.jpg" width=50% height=50%>
 
@@ -196,7 +196,7 @@ Pinout
 
 <a name="led_issue"></a>
 ## FLASH LED issue
-The board has a problem with the FLASH LED, as it lacks any current limitation for the LED. Consequently, frequent use of the FLASH LED can lead to corruption, due to excessive current flow.
+The board has a problem with the FLASH LED, as it lacks any current limitation for the LED. Consequently, frequent use of the FLASH LED can lead to malfunction, due to excessive current flow.
 
 One simple solution is to connect an external LED via a relay, transistor, or MOSFET to the board, as shown in the next picture. Using a relay is not ideal, but it provides a simple solution.
 
