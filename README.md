@@ -2,7 +2,7 @@
 
 This repository includes source code and firmware releases for the ESP32-cam module programmed in the Arduino IDE
 
-This project uses other libraries. It is necessary to install them in the arduino IDE.
+This project uses other libraries. It is necessary to install them in the Arduino IDE.
 - App [Arduino IDE 2.3.2](https://www.arduino.cc/en/software)
 - MCU support [ESP32 2.0.15](https://github.com/espressif/arduino-esp32)
 - Library [ESPAsyncWebSrv 1.2.7](https://github.com/dvarrel/ESPAsyncWebSrv)
@@ -16,12 +16,12 @@ What we need for functionality
 - Install the necessary libraries in the Arduino IDE [ here ](#arduino_lib)
 - Arduino IDE configuration [ here ](#arduino_cfg)
 - How to flash firmware to ESP32-cam and connect to PrusaConnect [ here ](https://help.prusa3d.com/preview/guide/esp32-cam-for-prusa-connect_673528)
-- How to flash binnary files to ESP32-cam board from Linux/MAC/Windows [ here ](#flash_fw)
-- How to reset configuration to factory settings [here](#factory_cfg)
+- How to flash binary files to ESP32-cam board from Linux/MAC/Windows [ here ](#flash_fw)
+- How to reset the configuration to factory settings [here](#factory_cfg)
 - Status LED [ here ](#status_led)
 - Schematic main board is [here](#schematic)
 - Issue with FLASH LED on the main board [here](#led_issue)
-- External WiFi antena [here](#ext_wifi)
+- External WiFi antenna [here](#ext_wifi)
 - Power supply [here](#power_supply)
 - Debug logs [here](#logs)
 - Serial console configuration [here](#serial_cfg)
@@ -29,15 +29,15 @@ What we need for functionality
 
 <a name="esp32"></a>
 ## ESP32-CAM AI-thinker board 
-It's a few dolars board with **ESP32** MCU and Camera. It's neccesary to buy a board with **camera module OV2640**. The board is sold without a programmer by default. It is possible to program it using the FTDI USB to UART converter, or purchase an official programmer for the board. We recommend purchasing a official programmer. It can save a lot of trouble with connecting and programming the board. There are currently [2 different board version](#different_mcu) but only one is compatible with the official programmer.
+It's a few dollars board with **ESP32** MCU and Camera. It's necessary to buy a board with **camera module OV2640**. The board is sold without a programmer by default. It is possible to program it using the FTDI USB to UART converter, or purchase an official programmer for the board. We recommend purchasing an official programmer. It can save a lot of trouble with connecting and programming the board. There are currently [2 different board versions](#different_mcu), but only one is compatible with the official programmer.
 
 <img src="doc/esp32-cam.jpg" width=30% height=30%>
 
-In the next picture we can see **ESP32-CAM** board and programator for board. 
+In the following picture, we can see the **ESP32-CAM** board and the programator for the board. 
 
 <img src="doc/esp32_and_prog.jpg" width=30% height=30%>
 
-It's neccesary use a camera version **OV2640**. If using a different camera, then it may be necessary to modify the camera's pinout, or some camera settings may not work correctly. We recommend using a camera module with a viewing angle of 120° or 160°.
+It's necessary to use a camera version **OV2640**. If using a different camera, modification of the camera's pinout can be needed, or some camera settings may not work correctly. We recommend to use a camera module with a viewing angle of 120° or 160°.
 
 These are currently known or tested camera modules:
 
@@ -45,9 +45,9 @@ These are currently known or tested camera modules:
 |-------------|------|------------|--------|-------|------------------------------------------|
 | OV2640      | 30°  |    2MP     |   No   |  N/A  |                                          |
 | OV2640      | 44°  |    2MP     |   No   |  N/A  |                                          |
-| OV2640      | 66°  |    2MP     |   Yes  |  Yes  | Recomended. Standard camera module       |
-| OV2640      | 120° |    2MP     |   Yes  |  Yes  | Recomended                               |
-| OV2640      | 160° |    2MP     |   Yes  |  Yes  | Recomended                               |
+| OV2640      | 66°  |    2MP     |   Yes  |  Yes  | Recommended. Standard camera module      |
+| OV2640      | 120° |    2MP     |   Yes  |  Yes  | Recommended                              |
+| OV2640      | 160° |    2MP     |   Yes  |  Yes  | Recommended                              |
 | OV2640      | 200° |    2MP     |   No   |  N/A  |                                          |
 | OV2640      | 222° |    2MP     |   No   |  N/A  |                                          |
 | OV2640IR    | 160° |    2MP     |   Yes  |  Yes  |                                          |
@@ -78,7 +78,7 @@ At the first step we need to install support for **ESP32 board**.
 
 then go to **Tools** -> **Board** -> **Boards Manager...** and install module **ESP32** by **Espressif Systems**, version **2.0.15**
 
-Next step is to install the necessary libraries. Go to **Sketch** -> **Include Library** -> **Manage Libraries...** or you can use **Ctrl+Shift+I**. Then you can search for the necessary libraries and install them.
+The next step is to install the necessary libraries. Go to **Sketch** -> **Include Library** -> **Manage Libraries...** or you can use **Ctrl+Shift+I**. Then you can search for the necessary libraries and install them.
 
 - Library [ESPAsyncWebSrv by dvarrel 1.2.7](https://github.com/dvarrel/ESPAsyncWebSrv)
 - Library [AsyncTCP by dvarrel 1.1.4](https://github.com/dvarrel/AsyncTCP)
@@ -88,7 +88,7 @@ Next step is to install the necessary libraries. Go to **Sketch** -> **Include L
 <a name="arduino_cfg"></a>
 ## Arduino IDE configuration
 
-Board configuration in the arduino IDE 2.3.2
+Board configuration in the Arduino IDE 2.3.2
 - Tools -> Board -> ESP32 Arduino -> AI Thinker ESP32
 - Tools -> Flash frequency -> 80MHz
 - Tools -> Core Debug Level -> None
@@ -105,9 +105,9 @@ After the initial firmware upload to the MCU, it's necessary to disable this opt
 <a name="flash_fw"></a>
 ## How to flash binnary files to ESP32-cam board from Linux/MAC/Windows
 
-To upload the firmware on the MAC or Linux platform, you must use the console. First, ensure you have installed esptool for Python. You can find it on the manufacturer's website, ESPRESSIF, [here](https://docs.espressif.com/projects/esp-at/en/latest/esp32/Get_Started/Downloading_guide.html).
+You must use the console to upload the firmware on the MAC or Linux platform. First, ensure you have installed esptool for Python. You can find it on the manufacturer's website, ESPRESSIF, [here](https://docs.espressif.com/projects/esp-at/en/latest/esp32/Get_Started/Downloading_guide.html).
 
-And command for FLASH FW is here, where **/dev/ttya0** is your serial interface for communication with the ESP32-cam board. This is command for first flash FW to MCU.
+And command for FLASH FW is here, where **/dev/ttya0** is your serial interface for communication with the ESP32-cam board. This is the command for the first flash FW to MCU.
 
 ```
 python3 -m esptool -p /dev/ttya0 -b 460800 --before default_reset --after hard_reset --chip
@@ -144,7 +144,7 @@ However, for uploading the firmware, it's important to use this configuration of
 - address **0x8000** - **ESP32_PrusaConnectCam.ino.partitions.bin**
 - address **0x10000** - **ESP32_PrusaConnectCam.ino.bin**
 
-Here is tool and configuration for [windows platform](https://www.espressif.com/en/support/download/other-tools) 
+Here is the tool and configuration for [windows platform](https://www.espressif.com/en/support/download/other-tools) 
 
 <img src="doc/how to flash chip select.jpg" width=15% height=15%>
 
@@ -162,7 +162,7 @@ To reset the settings to factory defaults, follow these instructions:
 - **Plug in** the power supply.
 - Wait for **10 seconds**.
 - After 10 seconds, the **FLASH LED will start flashing**.
-- **Disconnect** PIN **IO12** from **ground** (but do't disconnect the power supply).
+- **Disconnect** PIN **IO12** from **ground** (but don't disconnect the power supply).
 - After disconnecting **IO12** from **ground**, the **FLASH LED** will **stop flashing**, and the MCU will **automatically rebooted**.
 - Now the MCU is in the factory settings.
 
@@ -202,7 +202,7 @@ One simple solution is to connect an external LED via a relay, transistor, or MO
 
 <img src="doc/relay_flash_bb.png" width=40% height=40%>
 
-Another solution is to use a LED COB or a USB LED lamp. I utilized a board from a simple USB LED lamp. The transistor has a current limitation of 500mA, and my USB lamp has a current consumption of 180mA. The original LED has a current consumption of 60-80mA, and the USB lamp has a current consumption of approximately 180mA. After calculation, the total current consumption is approximately 260mA, which falls within the current limitation of the transistor. Therefore, it is possible to solder the negative wire from the COB LED or the USB LED lamp to the transistor. The positive wire needs to be soldered to +5V.
+Another solution is to use an LED COB or a USB LED lamp. I utilized a board from a simple USB LED lamp. The transistor has a current limitation of 500mA, and my USB lamp has a current consumption of approximately 180mA. The original LED has a current consumption of 60-80mA. After calculation, the total current consumption is approximately 260mA, which falls within the current limitation of the transistor. Therefore, it is possible to solder the negative wire from the COB LED or the USB LED lamp to the transistor. The positive wire needs to be soldered to +5V.
 
 This is my USB LED lamp
 
@@ -226,7 +226,7 @@ The standard ESP32-CAM board utilizes an internal antenna on the PCB. However, t
 <a name="power_supply"></a>
 ## Power Supply
 
-The device requires a 5V power supply, with a maximum current consumption of 2A. When using the original programmer, power is supplied via a micro USB connector.
+The device requires a 5V power supply, with a maximum current consumption of 2A. Power is supplied via a micro USB connector when using the original programmer.
 
 <a name="logs"></a>
 ## Debug logs
@@ -236,7 +236,7 @@ It is possible to save debug logs to a microSD card, but the card must be format
 <a name="serial_cfg"></a>
 ## Serial console configuration
 
-Currently is possible set the basicaly camera configuration during serial console. Baud speed for communication with MCU is **115200 8N1**
+Currently, it is possible to set the basic camera configuration using the serial console. Baud speed for communication with MCU is **115200 8N1**
 
 Commands for configuration have simple syntax
 
@@ -244,7 +244,7 @@ Commands for configuration have simple syntax
 |--------------|-----------|-----------|-------------|--------------------------|
 | setwifissid  |     :     |   SSID    |     ;       | \n or \r or \n\r or \r\n | 
 
-Currently available commands are listed in the table below:
+Currently, available commands are listed in the table below:
 
 | Command           | Description                                                         |
 |-------------------|---------------------------------------------------------------------|
@@ -253,13 +253,13 @@ Currently available commands are listed in the table below:
 | wificonnect       | Connecting to WiFi network                                          |
 | mcureboot         | Rebooting the MCU                                                   |
 | commandslist      | Listing currently supported commands via serial console             |
-| getwifimode       | Print currently WiFi mode. STA/AP/AP+STA                            |
+| getwifimode       | Print current WiFi mode. STA/AP/AP+STA                              |
 | getwifistastatus  | Print WiFi STA status. Connected/Disconnected/Connecting....        |
 | getwifistaip      | Print IP address for WiFi STA                                       |
 | getserviceapssid  | Print service AP SSID name                                          |
 | setauthtoken:     | Set authentication token for Prusa Connect                          |
 
-Standard commands sequence for camera basic settings is
+The standard command sequence for camera basic settings is
 
 - setwifissid:SSID;
 - setwifipass:PASSWORD;
