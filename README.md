@@ -15,7 +15,6 @@ What we need for functionality
 - Module board version [here](#different_mcu)
 - Install the necessary libraries in the Arduino IDE [ here ](#arduino_lib)
 - Arduino IDE configuration [ here ](#arduino_cfg)
-- How to flash firmware to ESP32-cam and connect to PrusaConnect [ here ](https://help.prusa3d.com/preview/guide/esp32-cam-for-prusa-connect_673528)
 - How to flash binary files to ESP32-cam board from Linux/MAC/Windows [ here ](#flash_fw)
 - Service AP [here](#service_ap)
 - How to reset the configuration to factory settings [here](#factory_cfg)
@@ -106,6 +105,8 @@ After the initial firmware upload to the MCU, it's necessary to disable this opt
 <a name="flash_fw"></a>
 ## How to flash binary files to ESP32-cam board from Linux/MAC/Windows
 
+#### Linux/MAC
+
 You must use the console to upload the firmware on the MAC or Linux platform. First, ensure you have installed esptool for Python. You can find it on the manufacturer's website, ESPRESSIF, [here](https://docs.espressif.com/projects/esp-at/en/latest/esp32/Get_Started/Downloading_guide.html).
 
 And command for FLASH FW is here, where **/dev/ttya0** is your serial interface for communication with the ESP32-cam board. This is the command for the first flash FW to MCU.
@@ -128,6 +129,18 @@ ESP32_PrusaConnectCam_web.ino.bootloader.bin 0x8000
 ESP32_PrusaConnectCam_web.ino.partitions.bin 0x10000 ESP32_PrusaConnectCam_web.ino.bin
 ```
 
+#### Windows
+
+Here is the tool and configuration for [windows platform](https://www.espressif.com/en/support/download/other-tools) 
+
+<img src="doc/how to flash chip select.jpg" width=15% height=15%>
+
+It's necessary to erase the FLASH using the **ERASE** button before the first firmware flash.
+
+<img src="doc/how to flash.jpg" width=25% height=25%>
+
+#### Partitions table
+
 Here is the partitions table:
 
 | Name    | Type    | SubType | Offset   | Size     | Flags |
@@ -145,14 +158,6 @@ However, for uploading the firmware, it's important to use this configuration of
 - address **0x8000** - **ESP32_PrusaConnectCam.ino.partitions.bin**
 - address **0x10000** - **ESP32_PrusaConnectCam.ino.bin**
 
-Here is the tool and configuration for [windows platform](https://www.espressif.com/en/support/download/other-tools) 
-
-<img src="doc/how to flash chip select.jpg" width=15% height=15%>
-
-It's necessary to erase the FLASH using the **ERASE** button before the first firmware flash.
-
-<img src="doc/how to flash.jpg" width=25% height=25%>
-
 <a name="service_ap"></a>
 ## Service AP
 
@@ -162,6 +167,7 @@ After establishing a successful connection, your computer might display a "**No 
 
 If you have set up a Wi-Fi network name (SSID) and password in the camera for it to connect to, then upon powering on, the camera will automatically connect to the configured Wi-Fi network and simultaneously activate AP mode for **5 minutes**. AP mode is always enabled after powering on and booting up the camera for **5 minutes**. The service Wi-Fi AP is **automatically deactivates** itself after **5 minutes** following each camera startup if no device is connected to the camera.
 
+Service AP is for for the first camera configuration. If the camera is connected to a WiFi network, it is possible to configure it from the local network.
 
 <a name="factory_cfg"></a>
 ## How to reset configuration to factory settings
