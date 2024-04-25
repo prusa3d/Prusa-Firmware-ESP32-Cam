@@ -57,11 +57,14 @@ These are currently known or tested camera modules:
 
 <a name="different_mcu"></a>
 ## Different MCU version
+
 There are currently 2 versions of the board, but only one version is possible programming via CH340. The blue rectangle shows the differences between the HW versions.
 
 <img src="doc/cam_versions.jpg" width=50% height=50%>
 
 The red arrow points to a pin that differs between these boards. In version 1, this pin is used for MCU RESET (GND/R). In version 2, this pin serves as ground (GND). Version 1 can be programmed via CH340, whereas version 2 cannot be programmed via CH340. For version 2, we tested programming via FT232RL or CP2102,  and the programming process worked successfully.
+
+The recommended version includes the MCU ESP32 (ESP32-S) with 520 KB of SRAM and external 4M PSRAM
 
 <a name="arduino_lib"></a>
 ## Necessary libraries in the Arduino IDE
