@@ -54,7 +54,6 @@ const char index_html[] PROGMEM = R"rawliteral(
     <img src="esp32_cam.svg" id=logo alt="Logo image" style="margin-left: 10px;" />
       <ul class="top_bar" style="justify-content:flex-start;">
         <li><a class=p5 href="https://forum.prusa3d.com/forum/prusa-connect-prusalink" id="forum-link">Forum</a></li>
-        <li><a class=p5 href="https://help.prusa3d.com" id="help-link">Help</a></li>
       </ul>
       <ul class="top_bar" style="justify-content:flex-end;">
 		<li><a class=p4 href="#" onclick="javascript:actionButton('/action_led',true,'')"><div id="light-icon"></div> Light </a></li>
@@ -110,7 +109,6 @@ const char index_html[] PROGMEM = R"rawliteral(
 	sliderCheck();
 	get_data();
 	addClickListener('github-link');
-	addClickListener('help-link');
 	addClickListener('forum-link');
 </script>
 </html>

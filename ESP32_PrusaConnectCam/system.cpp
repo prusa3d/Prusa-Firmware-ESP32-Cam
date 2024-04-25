@@ -118,6 +118,7 @@ void System_CheckNewVersion() {
     FirmwareUpdate.CheckNewVersionAfterBoot = true;
     WiFiClientSecure client;
     client.setCACert(root_CAs_ota);
+    //client.setInsecure();
     FirmwareUpdate.CheckNewVersionFwStatus = "N/A";
     FirmwareUpdate.NewVersionFw = "Unknown";
     FirmwareUpdate.OtaUpdateFwUrl = "";

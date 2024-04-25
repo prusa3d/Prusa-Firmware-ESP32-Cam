@@ -37,6 +37,15 @@ enum BackendAvailabilitStatus {
   BackendUnavailable = 2,         ///< backend is unavailable
 };
 
+/**
+ * @brief SendDataToBackendType enum
+ * type of data to send to backend
+ */
+enum SendDataToBackendType {
+  SendPhoto = 0,                  ///< send photo to backend
+  SendInfo = 1,                   ///< send device information to backend
+};
+
 class PrusaConnect {
 private:
   uint8_t RefreshInterval;                        ///< interval for sending photo to backend
@@ -54,7 +63,7 @@ private:
   Logs *log;                                      ///< pointer to logs object
   Camera *camera;                                 ///< pointer to camera object
 
-  bool SendDataToBackend(String *, String, String, String, bool);
+  bool SendDataToBackend(String *,int, String, String, String, SendDataToBackendType);
 
 public:
   PrusaConnect(Configuration*, Logs*, Camera*);

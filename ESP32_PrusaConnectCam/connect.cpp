@@ -74,7 +74,7 @@ void PrusaConnect::TakePicture() {
  * @return true - if data was sent successfully
  * @return false - if data was not sent successfully
  */
-bool PrusaConnect::SendDataToBackend(String *i_data, String i_content_type, String i_type, String i_url_path, bool i_fragmentation) { 
+bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i_content_type, String i_type, String i_url_path, SendDataToBackendType i_data_type) { 
   WiFiClientSecure client;
   Server_pause();
   BackendReceivedStatus = "";
@@ -112,24 +112,37 @@ bool PrusaConnect::SendDataToBackend(String *i_data, String i_content_type, Stri
       client.println("fingerprint: " + Fingerprint);
       client.println("token: " + Token);
       client.print("Content-Length: ");
-      client.println(i_data->length());
+      client.println(i_data_length);
       client.println();
 
       esp_task_wdt_reset();
-      if (true == i_fragmentation) {
-        log->AddEvent(LogLevel_Verbose, "Send data fragmented");
-        for (int index = 0; index < i_data->length(); index = index + PHOTO_FRAGMENT_SIZE) {
-          client.print(i_data->substring(index, index + PHOTO_FRAGMENT_SIZE));
-          log->AddEvent(LogLevel_Verbose, String(index));
+      if (SendPhoto == i_data_type) {
+        log->AddEvent(LogLevel_Verbose, "Send data photo");
+        int index;
+        /* send data in fragments */
+        for (index = 0; index < i_data_length; index = index + PHOTO_FRAGMENT_SIZE) {
+          camera->CopyPhoto(i_data, index, index + PHOTO_FRAGMENT_SIZE);
+          client.print(*i_data);
+          log->AddEvent(LogLevel_Verbose, String(i_data_length) + "/" + String(index));
         }
-      } else {
-        log->AddEvent(LogLevel_Verbose, "Send data");
+
+        /* send rest of data */
+        index -= PHOTO_FRAGMENT_SIZE;
+        if((i_data_length > index) && ((i_data_length - index) > 0)) {
+          camera->CopyPhoto(i_data, index, i_data_length);
+          client.print(*i_data);
+          log->AddEvent(LogLevel_Verbose, String(i_data_length) + "/" + String(i_data_length));
+        }
+
+      } else if (SendInfo == i_data_type) {
+        log->AddEvent(LogLevel_Verbose, "Send data info");
         client.print(*i_data);
       }
 
-      log->AddEvent(LogLevel_Info, "Send done");
+      log->AddEvent(LogLevel_Info, "Send done: " + String(i_data_length) + " bytes");
       esp_task_wdt_reset();
 
+      /* read response from server */
       String response = "";
       String fullResponse = "";
       log->AddEvent(LogLevel_Verbose, "Response:");
@@ -181,8 +194,8 @@ bool PrusaConnect::SendDataToBackend(String *i_data, String i_content_type, Stri
  */
 void PrusaConnect::SendPhotoToBackend() {
   log->AddEvent(LogLevel_Info, "Start sending photo to prusaconnect");
-  camera->CopyPhoto(&Photo);
-  SendDataToBackend(&Photo, "image/jpg", "Photo", HOST_URL_CAM_PATH, true);
+  SendDataToBackend(&Photo, camera->GetPhotoSize(), "image/jpg", "Photo", HOST_URL_CAM_PATH, SendPhoto);
+  SystemLog.AddEvent(LogLevel_Info, "Free RAM: " + String(ESP.getFreeHeap()) + " bytes");
 }
 
 /**
@@ -213,7 +226,7 @@ void PrusaConnect::SendInfoToBackend() {
 
     serializeJson(json_data, json_string);
     log->AddEvent(LogLevel_Info, "Data: " + json_string);
-    bool response = SendDataToBackend(&json_string, "application/json", "Info", HOST_URL_INFO_PATH, false);
+    bool response = SendDataToBackend(&json_string, json_string.length(), "application/json", "Info", HOST_URL_INFO_PATH, SendInfo);
 
     if (true == response) {
       SendDeviceInformationToBackend = false;

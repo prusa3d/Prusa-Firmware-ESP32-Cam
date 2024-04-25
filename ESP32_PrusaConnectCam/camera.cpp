@@ -456,6 +456,30 @@ void Camera::CopyPhoto(String* i_data) {
 }
 
 /**
+ * @brief Copy photo from frame buffer to string array with range
+ * 
+ * @param i_data - pointer to string 
+ * @param i_from - start index
+ * @param i_to - end index
+ */
+void Camera::CopyPhoto(String* i_data, int i_from, int i_to) {
+  Photo = "";
+  for (size_t i = i_from; i < i_to; i++) {
+    Photo += (char)FrameBuffer->buf[i];
+  }
+  *i_data = Photo;
+}
+
+/**
+ * @brief Get Photo Size
+ * 
+ * @return int - photo size
+ */
+int Camera::GetPhotoSize() {
+  return FrameBuffer->len;
+}
+
+/**
    @brief Set Photo Quality
    @param uint8_t - photo quality
    @return none

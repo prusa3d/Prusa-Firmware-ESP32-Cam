@@ -27,7 +27,7 @@
 #include "var.h"
 #include "cfg.h"
 #include "log.h"
-#include "Certificate.h"
+#include "Certificate_ota.h"
 #include "wifi_mngt.h"
 #include "connect.h"
 #include "serial_cfg.h"
