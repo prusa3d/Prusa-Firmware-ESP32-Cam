@@ -110,15 +110,12 @@ After the initial firmware upload to the MCU, it's necessary to disable this opt
 
 #### Linux/MAC
 
-You must use the console to upload the firmware on the MAC or Linux platform. First, ensure you have installed esptool for Python. You can find it on the manufacturer's website, ESPRESSIF, [here](https://docs.espressif.com/projects/esp-at/en/latest/esp32/Get_Started/Downloading_guide.html).
+You must use the console to upload the firmware on the MAC or Linux platform. First, ensure you have installed esptool for Python. You can find it on the manufacturer's website, ESPRESSIF, [here](https://docs.espressif.com/projects/esp-at/en/latest/esp32/Get_Started/Downloading_guide.html#linux-or-macos).
 
 And command for FLASH FW is here, where **/dev/ttya0** is your serial interface for communication with the ESP32-cam board. This is the command for the first flash FW to MCU.
 
 ```
-python3 -m esptool -p /dev/ttya0 -b 460800 --before default_reset --after hard_reset --chip
-esp32 write_flash --erase-all --flash_mode dio --flash_size 4MB --flash_freq 80m 0x1000
-ESP32_PrusaConnectCam_web.ino.bootloader.bin 0x8000
-ESP32_PrusaConnectCam_web.ino.partitions.bin 0x10000 ESP32_PrusaConnectCam_web.ino.bin
+./esptool -p /dev/ttya0 -b 460800 --before default_reset --after hard_reset --chip esp32 write_flash --erase-all --flash_mode dio --flash_size 4MB --flash_freq 80m 0x1000 ESP32_PrusaConnectCam.ino.bootloader.bin 0x8000 ESP32_PrusaConnectCam.ino.partitions.bin 0x10000 ESP32_PrusaConnectCam.ino.bin
 ```
 
 This command contains the parameter **--eras-all**, which erases the entire flash in the MCU. So, for just updating the firmware, it is necessary to remove the parameter **--eras-all**; otherwise, the MCU configuration will also be deleted. The basic command list can be found [here](https://docs.espressif.com/projects/esptool/en/latest/esp32s3/esptool/basic-commands.html)
@@ -126,11 +123,10 @@ This command contains the parameter **--eras-all**, which erases the entire flas
 Here is the command for updating the firmware in the MCU without erasing the MCU configuration
 
 ```
-python3 -m esptool -p /dev/ttya0 -b 460800 --before default_reset --after hard_reset --chip
-esp32 write_flash --flash_mode dio --flash_size 4MB --flash_freq 80m 0x1000
-ESP32_PrusaConnectCam_web.ino.bootloader.bin 0x8000
-ESP32_PrusaConnectCam_web.ino.partitions.bin 0x10000 ESP32_PrusaConnectCam_web.ino.bin
+./esptool -p /dev/ttya0 -b 460800 --before default_reset --after hard_reset --chip esp32 write_flash --flash_mode dio --flash_size 4MB --flash_freq 80m 0x1000 ESP32_PrusaConnectCam.ino.bootloader.bin 0x8000 ESP32_PrusaConnectCam.ino.partitions.bin 0x10000 ESP32_PrusaConnectCam.ino.bin
 ```
+
+Launching the esptool application may be different in different operating systems
 
 #### Windows
 
@@ -294,3 +290,4 @@ The standard command sequence for camera basic settings is
 
 - A potential issue may arise with connecting to the service AP. If the connection fails and an authentication error occurs, it is necessary to clear the FLASH memory of the processor, and FLASH FW again. This can be done either through the Arduino IDE or using official software.
 - While sending the photo to the backend, the WEB server is temporarily disabled for this short interval. After the photo is sent to the backend, the WEB server is re-enabled. This may cause short unavailability in the WEB server on the camera, lasting several seconds, depending on the internet connection and the quality of the WiFi connection
+- After the initial firmware upload to the new camera, there may be an issue when connecting to the IP address, where the camera prompts for a username and password to access the web page. Even when entering the username "admin" and the password "admin", the login still doesn't work. In such cases, it's necessary to reset the camera configuration to factory settings. The procedure is outlined in the readme file [here](#factory_cfg)
