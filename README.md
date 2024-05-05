@@ -132,6 +132,8 @@ Launching the esptool application may be different in different operating system
 
 Here is the tool and configuration for [windows platform](https://www.espressif.com/en/support/download/other-tools) 
 
+You can find the driver for CH340 for Windows for example [here](https://www.wch-ic.com/search?q=CH340&t=downloads) . An older version of the driver is for example [here](https://blog.laskakit.cz/wp-content/uploads/2020/03/CH341SER.zip)
+
 <img src="doc/how to flash chip select.jpg" width=15% height=15%>
 
 It's necessary to erase the FLASH using the **ERASE** button before the first firmware flash.
