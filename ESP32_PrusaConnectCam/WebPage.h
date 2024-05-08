@@ -85,7 +85,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 			<div id="links">
 				<li ><a href="page_config.html">Camera configuration</a></li>
 				<li ><a href="page_wifi.html">Wi-Fi configuration</a></li>
-				<li ><a href="page_auth.html">Autentification</a></li>
+				<li ><a href="page_auth.html">Authentication</a></li>
 				<li ><a href="page_system.html">System</a></li>
 				</div>
 			</cfg_bar>
