@@ -193,13 +193,28 @@ const char page_wifi_html[] PROGMEM = R"rawliteral(
 				<tr><td></td><td align="center"><button class="btn_save_w" onclick="setWifi(document.getElementById('wifi_ssid_id').value, document.getElementById('wifi_pass_id').value)">Save & Connect</button></td></tr>
 			</table>
 		</td><td></td></tr>
+
 	</table>
+
+	<br>
+	<center>
+		<button class="btn_collapsible_wifi">Advanced Wi-Fi settings</button>
+	</center>
+	<div class="content_wifi">
+		<br>
+		<table id="wificfg_tb">
+			<tr><td class="w1">Advanced Wi-Fi settings</td></tr>
+			<tr><td class="w2" align="right">Enable service AP </td><td><label class="switch"><input type="checkbox" name="serviceap_enable" id="serviceapid" onchange="changeValue(this.checked, 'set_bool?serviceap_enable=', 'serviceap')"><span class="checkbox_slider round"></span></label></label> <span class="w1" id="status_serviceap"></span></td></tr>
+		</table>
+	</div>
+		
 </body>
 
 <script src="scripts.js"></script>
 <script>
 	setTimeout(function(){GetDataAndPrintTableWiFi();}, 500);
 	get_data("wifi");
+	setupCollapsibleButtonsWiFi();
 </script>
 )rawliteral";
 
@@ -629,6 +644,9 @@ cfg_bar li a:hover {
      table-layout: fixed;
      text-align: left;
 }
+#wificfg_tb {
+    margin-left: 30%;
+}
 /* wifi_ntw table */
  #wifi_ntw {
      font: normal normal normal 12px/5px sans-serif;
@@ -840,6 +858,26 @@ cfg_bar li a:hover {
     background-color: #FA6831;
     color: white;
 }
+
+/* advanced wifi cfg */
+.content_wifi {
+    display: none;
+}
+
+.btn_collapsible_wifi {
+    width: 300px;
+    height: 24px;
+    text-align: center;
+    font: normal normal bold 14px/5px sans-serif;
+    color: #000000;
+    background-color: white;
+    border-radius: 5px;
+    border: 1px solid #343a40;
+}
+.btn_collapsible_wifi:hover {
+    background-color: #FA6831;
+    color: white;
+}
 )rawliteral";
 
 /* ------------------------------------------------------------------------------------------------------------ */
@@ -914,6 +952,8 @@ function get_data(val) {
 			}
 
 			if (val == "wifi") {
+				document.getElementById('serviceapid').checked = obj.serviceap;
+				$("#status_serviceap").text((obj.serviceap == "true") ? "On" : "Off");
 				$("#ssid").text(obj.ssid);
 				$("#rssi").text(obj.rssi);
 				$("#rssi_percentage").text(obj.rssi_percentage);
@@ -1289,6 +1329,18 @@ function setupCollapsibleButtons() {
             content.css("display", "none");
         } else {
             content.css("display", "block");
+        }
+    });
+}
+
+function setupCollapsibleButtonsWiFi() {
+    $(".btn_collapsible_wifi").click(function(){
+        $(this).toggleClass("active");
+        var content_wifi = $(this).parent().next();
+        if (content_wifi.css("display") === "block") {
+            content_wifi.css("display", "none");
+        } else {
+            content_wifi.css("display", "block");
         }
     });
 }

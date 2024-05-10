@@ -287,6 +287,9 @@ cfg_bar li a:hover {
      table-layout: fixed;
      text-align: left;
 }
+#wificfg_tb {
+    margin-left: 30%;
+}
 /* wifi_ntw table */
  #wifi_ntw {
      font: normal normal normal 12px/5px sans-serif;
@@ -495,6 +498,26 @@ cfg_bar li a:hover {
     border: 1px solid #343a40;
 }
 .btn_collapsible:hover {
+    background-color: #FA6831;
+    color: white;
+}
+
+/* advanced wifi cfg */
+.content_wifi {
+    display: none;
+}
+
+.btn_collapsible_wifi {
+    width: 300px;
+    height: 24px;
+    text-align: center;
+    font: normal normal bold 14px/5px sans-serif;
+    color: #000000;
+    background-color: white;
+    border-radius: 5px;
+    border: 1px solid #343a40;
+}
+.btn_collapsible_wifi:hover {
     background-color: #FA6831;
     color: white;
 }

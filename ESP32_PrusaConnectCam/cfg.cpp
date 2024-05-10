@@ -147,6 +147,7 @@ void Configuration::DefaultCfg() {
   SaveWifiCfgFlag(CFG_WIFI_SETTINGS_NOT_SAVED);
   SaveWifiPassword("");
   SaveWifiSsid("");
+  SaveEnableServiceAp(FACTORY_CFG_ENABLE_SERVICE_AP);
   SaveBasicAuthUsername(FACTORY_CFG_WEB_AUTH_USERNAME);
   SaveBasicAuthPassword(FACTORY_CFG_WEB_AUTH_PASSWORD);
   SaveBasicAuthFlag(FACTORY_CFG_WEB_AUTH_ENABLE);
@@ -560,6 +561,17 @@ void Configuration::SaveWifiCfgFlag(uint8_t i_data) {
   Log->AddEvent(LogLevel_Verbose, "Save active wifi cfg flag: " + String(i_data));
   SaveUint8(EEPROM_ADDR_WIFI_ACTIVE_FLAG_START, i_data);
 }
+
+/**
+   @info save enable/disable service AP to EEPROM
+   @param bool - status
+   @return none
+*/
+void Configuration::SaveEnableServiceAp(bool i_data) {
+  Log->AddEvent(LogLevel_Verbose, "Save Enable/disable service AP: " + String(i_data));
+  SaveBool(EEPROM_ADDR_SERVICE_AP_ENABLE_START, i_data);
+}
+
 /*
    @info save username fof BasicAuth to EEPROM
    @param string - username
@@ -928,6 +940,23 @@ String Configuration::LoadWifiPassowrd() {
   Log->AddEvent(LogLevel_Info, "WiFi password: ", false);
   String ret = LoadString(EEPROM_ADDR_WIFI_PASSWORD_START, EEPROM_ADDR_WIFI_PASSWORD_LENGTH, CONSOLE_VERBOSE_DEBUG);
   
+  return ret;
+}
+
+/**
+   @info Load flag for enable/disable service AP from eeprom
+   @param none
+   @return bool - status
+*/
+bool Configuration::LoadEnableServiceAp() {
+  bool ret = false;
+  int tmp = EEPROM.read(EEPROM_ADDR_SERVICE_AP_ENABLE_START);
+  
+  if ((255 == tmp) || (1 == tmp)) {
+    ret = true;
+  } 
+  Log->AddEvent(LogLevel_Info, "Enable Service AP: " + String(ret));
+
   return ret;
 }
 

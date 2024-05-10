@@ -51,6 +51,7 @@ private:
   String SericeApSsid;                ///< Service AP SSID
   bool FirstConnected;                ///< flag about first connecting to WiFi network status
   bool NtpFirstSync;                  ///< flag about first NTP sync status
+  bool EnableServiceAp;               ///< flag about enable service AP mode
 
   uint8_t WiFiStaNetworkBssid[6];     ///< BSSID of the network
 
@@ -104,6 +105,7 @@ public:
   String GetWiFiMode();
   String GetWifiMac();
   String GetMdns();
+  bool GetEnableServiceAp();
   bool GetkActifeWifiCfgFlag();
   bool GetNtpFirstTimeSync();
   bool GetFirstConnection();
@@ -111,6 +113,7 @@ public:
   void SetStaCredentials(String, String);
   void SetStaSsid(String);
   void SetStaPassword(String);
+  void SetEnableServiceAp(bool);
   void ConnectToSta();
   void SetMdns(String);
   void SetFirstConnection(bool);

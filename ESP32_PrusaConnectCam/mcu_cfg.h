@@ -14,7 +14,7 @@
 #define _MCU_CFG_H_
 
 /* ---------------- BASIC MCU CFG  --------------*/
-#define SW_VERSION                  "1.0.2-beta"                 ///< SW version
+#define SW_VERSION                  "1.0.2-rc1"             ///< SW version
 #define SW_BUILD                    __DATE__ " " __TIME__   ///< build number
 #define CONSOLE_VERBOSE_DEBUG       false                   ///< enable/disable verbose debug log level for console
 #define DEVICE_HOSTNAME             "Prusa-ESP32cam"        ///< device hostname
@@ -125,6 +125,7 @@
 #define FACTORY_CFG_GAIN_CTRL                 1                 ///< enable automatic gain
 #define FACTORY_CFG_AGC_GAIN                  0                 ///< automatic gain controll gain
 #define FACTORY_CFG_HOSTNAME                  "connect.prusa3d.com"  ///< hostname for Prusa Connect
+#define FACTORY_CFG_ENABLE_SERVICE_AP         1                 ///< enable service AP mode
 
 /* ---------------- CFG FLAGS  ------------------*/
 #define CFG_WIFI_SETTINGS_SAVED               0x0A              ///< flag saved config
@@ -239,6 +240,9 @@
 #define EEPROM_ADDR_HOSTNAME_START                (EEPROM_ADDR_LOG_LEVEL + EEPROM_ADDR_LOG_LEVEL_LENGTH)
 #define EEPROM_ADDR_HOSTNAME_LENGTH               51
 
+#define EEPROM_ADDR_SERVICE_AP_ENABLE_START       (EEPROM_ADDR_HOSTNAME_START + EEPROM_ADDR_HOSTNAME_LENGTH)
+#define EEPROM_ADDR_SERVICE_AP_ENABLE_LENGTH      1
+
 #define EEPROM_SIZE (EEPROM_ADDR_REFRESH_INTERVAL_LENGTH + EEPROM_ADDR_FINGERPRINT_LENGTH + EEPROM_ADDR_TOKEN_LENGTH + \
                      EEPROM_ADDR_FRAMESIZE_LENGTH + EEPROM_ADDR_BRIGHTNESS_LENGTH + EEPROM_ADDR_CONTRAST_LENGTH + \
                      EEPROM_ADDR_SATURATION_LENGTH + EEPROM_ADDR_HMIRROR_LENGTH + EEPROM_ADDR_VFLIP_LENGTH + \
@@ -251,7 +255,7 @@
                      EEPROM_ADDR_AWB_MODE_ENABLE_LENGTH + EEPROM_ADDR_BPC_ENABLE_LENGTH + EEPROM_ADDR_WPC_ENABLE_LENGTH + \
                      EEPROM_ADDR_RAW_GAMA_ENABLE_LENGTH + EEPROM_ADDR_AEC2_LENGTH + EEPROM_ADDR_AE_LEVEL_LENGTH + \
                      EEPROM_ADDR_AEC_VALUE_LENGTH + EEPROM_ADDR_GAIN_CTRL_LENGTH + EEPROM_ADDR_AGC_GAIN_LENGTH + EEPROM_ADDR_LOG_LEVEL_LENGTH + \
-                     EEPROM_ADDR_HOSTNAME_LENGTH )    ///< how many bits do we need for eeprom memory
+                     EEPROM_ADDR_HOSTNAME_LENGTH + EEPROM_ADDR_SERVICE_AP_ENABLE_LENGTH)    ///< how many bits do we need for eeprom memory
 
 #endif
 

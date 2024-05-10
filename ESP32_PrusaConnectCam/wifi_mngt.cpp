@@ -43,6 +43,7 @@ void WiFiMngt::LoadCfgFromEeprom() {
   WifiSsid = config->LoadWifiSsid();
   WifiPassword = config->LoadWifiPassowrd();
   mDNS_record = config->LoadMdnsRecord();
+  EnableServiceAp = config->LoadEnableServiceAp();
 }
 
 /**
@@ -53,20 +54,30 @@ void WiFiMngt::LoadCfgFromEeprom() {
 void WiFiMngt::Init() {
   /* check WI-FI mode */
   system_led.setTimer(STATUS_LED_WIFI_AP);
-  ServiceMode = true;
   log->AddEvent(LogLevel_Info, "WiFi MAC: " + WiFi.macAddress());
 
   /* Set Wi-Fi networks */
   SetWifiEvents();
   CreateApSsid();
-  log->AddEvent(LogLevel_Warning, F("Set WiFi AP mode"));
-  WiFi.mode(WIFI_AP_STA);
+
+  if (true == GetEnableServiceAp()) {
+    log->AddEvent(LogLevel_Info, F("Service AP mode enabled"));
+    WiFi.mode(WIFI_AP_STA);
+    ServiceMode = true;
+    WiFi.softAPConfig(Service_LocalIp, Service_Gateway, Service_Subnet);
+    WiFi.softAP(SericeApSsid.c_str(), SERVICE_WIFI_PASS, SERVICE_WIFI_CHANNEL);
+    WiFiMode = "AP + Client";
+    log->AddEvent(LogLevel_Info, "Service IP Address: http://" + WiFi.softAPIP().toString());
+    
+  } else {
+    log->AddEvent(LogLevel_Warning, F("Service AP mode disabled!"));
+    WiFi.mode(WIFI_STA);
+    ServiceMode = false;
+    WiFiMode = "Client";
+  }
+
   esp_wifi_set_ps(WIFI_PS_NONE);
-  WiFi.softAPConfig(Service_LocalIp, Service_Gateway, Service_Subnet);
-  WiFi.softAP(SericeApSsid.c_str(), SERVICE_WIFI_PASS, SERVICE_WIFI_CHANNEL);
   WiFi.setHostname(DEVICE_HOSTNAME);
-  WiFiMode = "AP + Client";
-  log->AddEvent(LogLevel_Info, "Service IP Address: http://" + WiFi.softAPIP().toString());
   FirstConnected = false;
   //WiFi.setTxPower(WIFI_POWER_18_5dBm);
 
@@ -640,6 +651,16 @@ String WiFiMngt::GetMdns() {
 }
 
 /**
+ * @brief function for get status about enable service AP mode
+ * 
+ * @return true 
+ * @return false 
+ */
+bool WiFiMngt::GetEnableServiceAp() {
+  return EnableServiceAp;
+}
+
+/**
    @brief function for get first time NTP sync status
    @param none
    @return bool - value
@@ -691,6 +712,16 @@ void WiFiMngt::SetStaSsid(String i_ssid) {
 void WiFiMngt::SetStaPassword(String i_pass) {
   WifiPassword = i_pass;
   config->SaveWifiPassword(WifiPassword);
+}
+
+/**
+ * @brief Set enable service AP mode after MCU boot
+ * 
+ * @param i_data 
+ */
+void WiFiMngt::SetEnableServiceAp(bool i_data) {
+  EnableServiceAp = i_data;
+  config->SaveEnableServiceAp(EnableServiceAp);
 }
 
 /**

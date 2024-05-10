@@ -448,7 +448,9 @@ void System_TaskWifiManagement(void *pvParameters) {
 
     /* wifi reconnect after signal lost */
     SystemWifiMngt.WiFiReconnect();
-
+    SystemLog.AddEvent(LogLevel_Info, "Free RAM: " + String(ESP.getFreeHeap()) + " bytes");
+    SystemLog.AddEvent(LogLevel_Info, "Free SPIRAM: " + String(ESP.getFreePsram()) + " bytes");
+    SystemLog.AddEvent(LogLevel_Info, "Temperature: " + String(temperatureRead()) + " *C");
     SystemLog.AddEvent(LogLevel_Verbose, "WiFiManagement task. Stack free size: " + String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
 
     /* reset wdg */
@@ -473,9 +475,6 @@ void System_TaskMain(void *pvParameters) {
     /* for ota update */
     esp_task_wdt_reset();
     System_Main();
-    SystemLog.AddEvent(LogLevel_Info, "Free RAM: " + String(ESP.getFreeHeap()) + " bytes");
-    SystemLog.AddEvent(LogLevel_Info, "Free SPIRAM: " + String(ESP.getFreePsram()) + " bytes");
-    SystemLog.AddEvent(LogLevel_Info, "Temperature: " + String(temperatureRead()) + " *C");
     SystemLog.AddEvent(LogLevel_Verbose, "System task. Stack free size: " + String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
 
     /* reset wdg */

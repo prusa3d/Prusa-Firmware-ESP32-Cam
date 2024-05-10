@@ -52,6 +52,7 @@ public:
   void SaveWifiSsid(String);
   void SaveWifiPassword(String);
   void SaveWifiCfgFlag(uint8_t);
+  void SaveEnableServiceAp(bool);
   void SaveBasicAuthUsername(String);
   void SaveBasicAuthPassword(String);
   void SaveBasicAuthFlag(bool);
@@ -86,6 +87,7 @@ public:
   bool LoadRawGama();
   String LoadWifiSsid();
   String LoadWifiPassowrd();
+  bool LoadEnableServiceAp();
   String LoadBasicAuthUsername();
   String LoadBasicAuthPassword();
   bool LoadBasicAuthFlag();

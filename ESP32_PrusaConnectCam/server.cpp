@@ -635,6 +635,12 @@ void Server_InitWebServer_Sets() {
       response = true;
     }
 
+    if (request->hasParam("serviceap_enable")) {
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set service AP enable"));
+      SystemWifiMngt.SetEnableServiceAp(Server_TransfeStringToBool(request->getParam("serviceap_enable")->value()));
+      response = true;
+    }
+
     if (true == response) {
       request->send_P(200, F("text/html"), MSG_SAVE_OK);
     }
@@ -982,6 +988,7 @@ String Server_GetJsonData() {
   doc_json["wifi_mode"] = SystemWifiMngt.GetWiFiMode();
   doc_json["mdns"] = SystemWifiMngt.GetMdns();
   doc_json["service_ap_ssid"] = SystemWifiMngt.GetServiceApSsid();
+  doc_json["serviceap"] = (SystemWifiMngt.GetEnableServiceAp() == true) ? "true" : "";
   doc_json["auth"] = (WebBasicAuth.EnableAuth == true) ? "true" : "";
   doc_json["auth_username"] = WebBasicAuth.UserName;
   doc_json["last_upload_status"] = Connect.GetBackendReceivedStatus();

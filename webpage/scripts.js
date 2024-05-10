@@ -68,6 +68,8 @@ function get_data(val) {
 			}
 
 			if (val == "wifi") {
+				document.getElementById('serviceapid').checked = obj.serviceap;
+				$("#status_serviceap").text((obj.serviceap == "true") ? "On" : "Off");
 				$("#ssid").text(obj.ssid);
 				$("#rssi").text(obj.rssi);
 				$("#rssi_percentage").text(obj.rssi_percentage);
@@ -443,6 +445,18 @@ function setupCollapsibleButtons() {
             content.css("display", "none");
         } else {
             content.css("display", "block");
+        }
+    });
+}
+
+function setupCollapsibleButtonsWiFi() {
+    $(".btn_collapsible_wifi").click(function(){
+        $(this).toggleClass("active");
+        var content_wifi = $(this).parent().next();
+        if (content_wifi.css("display") === "block") {
+            content_wifi.css("display", "none");
+        } else {
+            content_wifi.css("display", "block");
         }
     });
 }

@@ -48,11 +48,26 @@
 				<tr><td></td><td align="center"><button class="btn_save_w" onclick="setWifi(document.getElementById('wifi_ssid_id').value, document.getElementById('wifi_pass_id').value)">Save & Connect</button></td></tr>
 			</table>
 		</td><td></td></tr>
+
 	</table>
+
+	<br>
+	<center>
+		<button class="btn_collapsible_wifi">Advanced Wi-Fi settings</button>
+	</center>
+	<div class="content_wifi">
+		<br>
+		<table id="wificfg_tb">
+			<tr><td class="w1">Advanced Wi-Fi settings</td></tr>
+			<tr><td class="w2" align="right">Enable service AP </td><td><label class="switch"><input type="checkbox" name="serviceap_enable" id="serviceapid" onchange="changeValue(this.checked, 'set_bool?serviceap_enable=', 'serviceap')"><span class="checkbox_slider round"></span></label></label> <span class="w1" id="status_serviceap"></span></td></tr>
+		</table>
+	</div>
+		
 </body>
 
 <script src="scripts.js"></script>
 <script>
 	setTimeout(function(){GetDataAndPrintTableWiFi();}, 500);
 	get_data("wifi");
+	setupCollapsibleButtonsWiFi();
 </script>
