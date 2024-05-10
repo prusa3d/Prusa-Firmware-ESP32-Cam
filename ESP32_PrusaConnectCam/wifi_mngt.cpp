@@ -42,8 +42,15 @@ WiFiMngt::WiFiMngt(Configuration *i_conf, Logs *i_log, Camera *i_cam) {
 void WiFiMngt::LoadCfgFromEeprom() {
   WifiSsid = config->LoadWifiSsid();
   WifiPassword = config->LoadWifiPassowrd();
+  
   mDNS_record = config->LoadMdnsRecord();
   EnableServiceAp = config->LoadEnableServiceAp();
+
+  NetIpMethod = config->LoadNetworkIpMethod();
+  NetStaticIp.fromString(config->LoadNetworkIp());
+  NetStaticMask.fromString(config->LoadNetworkMask());
+  NetStaticGateway.fromString(config->LoadNetworkGateway());
+  NetStaticDns.fromString(config->LoadNetworkDns());
 }
 
 /**
@@ -60,6 +67,7 @@ void WiFiMngt::Init() {
   SetWifiEvents();
   CreateApSsid();
 
+  /* check enable service AP mode */
   if (true == GetEnableServiceAp()) {
     log->AddEvent(LogLevel_Info, F("Service AP mode enabled"));
     WiFi.mode(WIFI_AP_STA);
@@ -74,6 +82,16 @@ void WiFiMngt::Init() {
     WiFi.mode(WIFI_STA);
     ServiceMode = false;
     WiFiMode = "Client";
+  }
+
+  /* Set STA IP method. Static or DHCP */
+  if (NetIpMethod == NetworkIpMethodStatic) {
+    log->AddEvent(LogLevel_Info, F("STA IP Method: Static IP"));
+    if (!WiFi.config(NetStaticIp, NetStaticGateway, NetStaticMask, NetStaticDns)) {
+      log->AddEvent(LogLevel_Error, F("STA Failed to configure static IP"));
+    }
+  } else {
+    log->AddEvent(LogLevel_Info, F("STA IP Method: DHCP"));
   }
 
   esp_wifi_set_ps(WIFI_PS_NONE);
@@ -679,6 +697,51 @@ bool WiFiMngt::GetFirstConnection() {
 }
 
 /**
+   @brief function for get STA IP method
+   @param none
+   @return uint8_t - value. 0 - DHCP, 1 - Static
+*/
+uint8_t WiFiMngt::GetNetIpMethod() {
+  return NetIpMethod;
+}
+
+/**
+   @brief function for get static IP configuration
+   @param none
+   @return String - value
+*/
+String WiFiMngt::GetNetStaticIp() {
+  return NetStaticIp.toString();
+}
+
+/**
+ * @brief function for get static mask configuration
+ * 
+ * @return String 
+ */
+String WiFiMngt::GetNetStaticMask() {
+  return NetStaticMask.toString();;
+}
+
+/**
+ * @brief function for get static gateway configuration
+ * 
+ * @return String 
+ */
+String WiFiMngt::GetNetStaticGateway() {
+  return NetStaticGateway.toString();;
+}
+
+/**
+ * @brief function for get static DNS configuration
+ * 
+ * @return String 
+ */
+String WiFiMngt::GetNetStaticDns() {
+  return NetStaticDns.toString();;
+}
+
+/**
    @brief function for set STA credentials
    @param String - ssid
    @param String - password
@@ -759,6 +822,33 @@ void WiFiMngt::SetMdns(String i_data) {
 */
 void WiFiMngt::SetFirstConnection(bool i_data) {
   FirstConnected = i_data;
+}
+
+/**
+   @brief function for set static IP configuration
+   @param bool - data
+   @return none
+*/
+void WiFiMngt::SetNetworkConfig(String i_ip, String i_mask, String i_gw, String i_dns) {
+  NetStaticIp.fromString(i_ip);
+  NetStaticMask.fromString(i_mask);
+  NetStaticGateway.fromString(i_gw);
+  NetStaticDns.fromString(i_dns);
+
+  config->SaveNetworkIp(NetStaticIp.toString());
+  config->SaveNetworkMask(NetStaticMask.toString());
+  config->SaveNetworkGateway(NetStaticGateway.toString());
+  config->SaveNetworkDns(NetStaticDns.toString());
+}
+
+/**
+   @brief function for set STA IP method. 0 - DHCP, 1 - Static
+   @param uint8_t - data
+   @return none
+*/
+void WiFiMngt::SetNetIpMethod(uint8_t i_data) {
+  NetIpMethod = i_data;
+  config->SaveNetworkIpMethod(NetIpMethod);
 }
 
 /* ----------------------- Static function ----------------------- */

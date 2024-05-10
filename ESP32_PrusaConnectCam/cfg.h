@@ -66,6 +66,11 @@ public:
   void SaveAgcGain(uint8_t);
   void SaveLogLevel(LogLevel_enum);
   void SavePrusaConnectHostname(String);
+  void SaveNetworkIpMethod(uint8_t);
+  void SaveNetworkIp(String);
+  void SaveNetworkMask(String);
+  void SaveNetworkGateway(String);
+  void SaveNetworkDns(String);
 
   uint8_t LoadRefreshInterval();
   String LoadToken();
@@ -101,6 +106,11 @@ public:
   uint8_t LoadAgcGain();
   LogLevel_enum LoadLogLevel();
   String LoadPrusaConnectHostname();
+  uint8_t LoadNetworkIpMethod();
+  String LoadNetworkIp();
+  String LoadNetworkMask();
+  String LoadNetworkGateway();
+  String LoadNetworkDns();
 
 private:
   Logs *Log;              ///< Pointer to Logs object
@@ -117,8 +127,10 @@ private:
   void SaveBool(uint16_t, bool);
   void SaveUint16(uint16_t, uint16_t);
   void SaveString(uint16_t, uint16_t, String);
+  void SaveIpAddress(uint16_t, String);
   uint16_t LoadUint16(uint16_t);
   String LoadString(uint16_t, uint16_t, bool);
+  String LoadIpAddress(uint16_t);
 };
 
 extern Configuration SystemConfig;  ///< Configuration object

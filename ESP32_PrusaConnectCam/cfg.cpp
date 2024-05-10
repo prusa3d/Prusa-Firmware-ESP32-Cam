@@ -161,6 +161,11 @@ void Configuration::DefaultCfg() {
   SaveAgcGain(FACTORY_CFG_AGC_GAIN);
   SaveLogLevel(LogLevel_Info);
   SavePrusaConnectHostname(FACTORY_CFG_HOSTNAME);
+  SaveNetworkIpMethod(FACTORY_CFG_NETWORK_IP_METHOD);
+  SaveNetworkIp(FACTORY_CFG_NETWORK_STATIC_IP);
+  SaveNetworkMask(FACTORY_CFG_NETWORK_STATIC_MASK);
+  SaveNetworkGateway(FACTORY_CFG_NETWORK_STATIC_GATEWAY);
+  SaveNetworkDns(FACTORY_CFG_NETWORK_STATIC_DNS);
   Log->AddEvent(LogLevel_Warning, F("+++++++++++++++++++++++++++"));
 }
 
@@ -312,6 +317,24 @@ void Configuration::SaveString(uint16_t address, uint16_t max_length, String dat
     Log->AddEvent(LogLevel_Verbose, F("Skip write string"));
   }
 }
+
+/**
+   @info Function for save IP address to EEPROM
+   @param uint16_t data address
+   @param String data
+   @return none
+*/
+void Configuration::SaveIpAddress(uint16_t address, String data) {
+  IPAddress ip;
+  if (ip.fromString(data)) {
+    EEPROM.write(address, ip[0]);
+    EEPROM.write(address + 1, ip[1]);
+    EEPROM.write(address + 2, ip[2]);
+    EEPROM.write(address + 3, ip[3]);
+    EEPROM.commit();
+  }
+}
+
 /**
    @info Function for read uint16_t data from EEPROM
    @param uint16_t fist byte address
@@ -321,6 +344,7 @@ uint16_t Configuration::LoadUint16(uint16_t address) {
   uint16_t tmp = uint16_t(EEPROM.read(address) << 8) | (EEPROM.read(address + 1));
   return tmp;
 }
+
 /**
    @info Function for load string from EEPROM
    @param uint16_t data address
@@ -349,6 +373,16 @@ String Configuration::LoadString(uint16_t address, uint16_t max_length, bool sho
   Log->AddEvent(LogLevel_Info, LogMsg, true, false);
   
   return tmp;
+}
+
+String Configuration::LoadIpAddress(uint16_t address) {
+  IPAddress ip;
+  ip[0] = EEPROM.read(address);
+  ip[1] = EEPROM.read(address + 1);
+  ip[2] = EEPROM.read(address + 2);
+  ip[3] = EEPROM.read(address + 3);
+
+  return ip.toString();
 }
 
 /**
@@ -702,6 +736,57 @@ void Configuration::SaveLogLevel(LogLevel_enum i_data) {
 void Configuration::SavePrusaConnectHostname(String i_data) {
   Log->AddEvent(LogLevel_Verbose, "Save PrusaConnectHostanme[" + String(i_data.length()) + "]: " + i_data);
   SaveString(EEPROM_ADDR_HOSTNAME_START, EEPROM_ADDR_HOSTNAME_LENGTH, i_data);
+}
+
+/**
+   @info Save network ip method
+   @param uint8_t - value. 0 - DHCP, 1 - static
+   @return none
+*/
+void Configuration::SaveNetworkIpMethod(uint8_t i_data) {
+  Log->AddEvent(LogLevel_Verbose, "Save network ip method: " + (i_data == 0) ? "DHCP" : "Static");
+  SaveUint8(EEPROM_ADDR_NETWORK_IP_METHOD_START, i_data);
+}
+
+/**
+   @info Save network static ip
+   @param String - ip address
+   @return none
+*/
+void Configuration::SaveNetworkIp(String i_data) {
+  Log->AddEvent(LogLevel_Verbose, "Save network static ip: " + i_data);
+  SaveIpAddress(EEPROM_ADDR_NETWORK_STATIC_IP_START, i_data);
+
+}
+
+/**
+   @info Save network static mask
+   @param String - mask
+   @return none
+*/
+void Configuration::SaveNetworkMask(String i_data) {
+  Log->AddEvent(LogLevel_Verbose, "Save network static mask: " + i_data);
+  SaveIpAddress(EEPROM_ADDR_NETWORK_STATIC_MASK_START, i_data);
+}
+
+/**
+   @info Save network static gateway
+   @param String - gateway
+   @return none
+*/
+void Configuration::SaveNetworkGateway(String i_data) {
+  Log->AddEvent(LogLevel_Verbose, "Save network static gateway: " + i_data);
+  SaveIpAddress(EEPROM_ADDR_NETWORK_STATIC_GATEWAY_START, i_data);
+}
+
+/**
+   @info Save network static dns
+   @param String - dns
+   @return none
+*/
+void Configuration::SaveNetworkDns(String i_data) {
+  Log->AddEvent(LogLevel_Verbose, "Save network static dns: " + i_data);
+  SaveIpAddress(EEPROM_ADDR_NETWORK_STATIC_DNS_START, i_data);
 }
 
 /**
@@ -1112,6 +1197,71 @@ LogLevel_enum Configuration::LoadLogLevel() {
 String Configuration::LoadPrusaConnectHostname() {
   Log->AddEvent(LogLevel_Info, "PrusaConnect hostname: ", false);
   String ret = LoadString(EEPROM_ADDR_HOSTNAME_START, EEPROM_ADDR_HOSTNAME_LENGTH, true);
+
+  return ret;
+}
+
+/**
+ * @brief Load network ip method from EEPROM
+ * 
+ * @return uint8_t - ip method. 0 - DHCP, 1 - static
+ */
+uint8_t Configuration::LoadNetworkIpMethod() {
+  uint8_t ret = EEPROM.read(EEPROM_ADDR_NETWORK_IP_METHOD_START);
+
+  if (255 == ret) {
+    ret = 0;
+  }
+
+  Log->AddEvent(LogLevel_Info, String("Network IP method: ") + ((ret == 0) ? "DHCP" : "Static"));
+
+  return ret;
+}
+
+/**
+ * @brief Load network static ip from EEPROM
+ * 
+ * @return String - ip address
+ */
+String Configuration::LoadNetworkIp() {
+  String ret = LoadIpAddress(EEPROM_ADDR_NETWORK_STATIC_IP_START);
+  Log->AddEvent(LogLevel_Info, "Network static IP: " + ret);
+
+  return ret;
+}
+
+/**
+ * @brief Load network static mask from EEPROM
+ * 
+ * @return String - mask
+ */
+String Configuration::LoadNetworkMask() {
+  String ret = LoadIpAddress(EEPROM_ADDR_NETWORK_STATIC_MASK_START);
+  Log->AddEvent(LogLevel_Info, "Network static mask: " + ret);
+
+  return ret;
+}
+
+/**
+ * @brief Load network static gateway from EEPROM
+ * 
+ * @return String - gateway
+ */
+String Configuration::LoadNetworkGateway() {
+  String ret = LoadIpAddress(EEPROM_ADDR_NETWORK_STATIC_GATEWAY_START);
+  Log->AddEvent(LogLevel_Info, "Network static gateway: " + ret);
+
+  return ret;
+}
+
+/**
+ * @brief Load network static dns from EEPROM
+ * 
+ * @return String - dns
+ */
+String Configuration::LoadNetworkDns() {
+  String ret = LoadIpAddress(EEPROM_ADDR_NETWORK_STATIC_DNS_START);
+  Log->AddEvent(LogLevel_Info, "Network static DNS: " + ret);
 
   return ret;
 }

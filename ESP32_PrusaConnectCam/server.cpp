@@ -537,6 +537,15 @@ void Server_InitWebServer_Sets() {
       response = true;
     }
 
+    /*  set network ip method. 0 - DHCP, 1 - Static */
+    if (request->hasParam("ipcfg")) {
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set ipcfg"));
+      SystemWifiMngt.SetNetIpMethod(request->getParam("ipcfg")->value().toInt());
+      response_msg = MSG_SAVE_OK_REBOOT;
+
+      response = true;
+    }
+
     if (true == response) {
       request->send_P(200, F("text/html"), response_msg.c_str());
     }
@@ -701,6 +710,54 @@ void Server_InitWebServer_Sets() {
       request->send_P(200, F("text/html"), MSG_SAVE_NOTOK);
     }
   });
+
+    /* route for set WI-FI static IP address */
+  server.on("/wifi_net_cfg", HTTP_GET, [](AsyncWebServerRequest* request) {
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: set WI-FI static IP address"));
+    if (Server_CheckBasicAuth(request) == false)
+      return;
+
+    String tmpIp = "";
+    String tmpMask = "";
+    String tmpGw = "";
+    String tmpDns = "";
+
+    /* get ip */
+    if (request->hasParam("ip")) {
+      tmpIp = request->getParam("ip")->value();
+    }
+
+    /* get mask */
+    if (request->hasParam("mask")) {
+      tmpMask = request->getParam("mask")->value();
+    }
+
+    /* get gw */
+    if (request->hasParam("gw")) {
+      tmpGw = request->getParam("gw")->value();
+    }
+
+    /* get dns */
+    if (request->hasParam("dns")) {
+      tmpDns = request->getParam("dns")->value();
+    }
+
+    /* check min and max length network parameters */
+    if (((tmpIp.length() > 0) && (tmpMask.length() > 0) && (tmpGw.length() > 0) &&  (tmpDns.length() > 0)) && 
+        ((tmpIp.length() <= IPV4_ADDR_MAX_LENGTH) && (tmpMask.length() <= IPV4_ADDR_MAX_LENGTH) &&
+         (tmpGw.length() <= IPV4_ADDR_MAX_LENGTH) && (tmpDns.length() <= IPV4_ADDR_MAX_LENGTH))) {
+      
+      /* save ssid and password */
+      SystemWifiMngt.SetNetworkConfig(tmpIp, tmpMask, tmpGw, tmpDns);
+
+      /* send OK response */
+      request->send_P(200, F("text/html"), MSG_SAVE_OK_REBOOT);
+
+    } else {
+      request->send_P(200, F("text/html"), MSG_SAVE_NOTOK);
+    }
+  });
+
 
   /* route for set basic auth */
   server.on("/basicauth_cfg", HTTP_GET, [](AsyncWebServerRequest* request) {
@@ -997,6 +1054,11 @@ String Server_GetJsonData() {
   doc_json["uptime"] = uptime;
   doc_json["user_name"] = WebBasicAuth.UserName;
   doc_json["hostname"] = Connect.GetPrusaConnectHostname();
+  doc_json["ip_cfg"] = SystemWifiMngt.GetNetIpMethod();
+  doc_json["net_ip"] = SystemWifiMngt.GetNetStaticIp();
+  doc_json["net_mask"] = SystemWifiMngt.GetNetStaticMask();
+  doc_json["net_gw"] = SystemWifiMngt.GetNetStaticGateway();
+  doc_json["net_dns"] = SystemWifiMngt.GetNetStaticDns();
   doc_json["sw_build"] = SW_BUILD;
   doc_json["sw_ver"] = SW_VERSION;
   doc_json["sw_new_ver"] = FirmwareUpdate.NewVersionFw;

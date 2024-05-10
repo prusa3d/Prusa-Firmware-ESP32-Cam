@@ -42,6 +42,11 @@ void WiFiMngt_WiFiEventApStaDisconnected(WiFiEvent_t , WiFiEventInfo_t);
 void WiFiMngt_WiFiEventApStaIpAssigned(WiFiEvent_t , WiFiEventInfo_t);
 void WiFiMngt_WiFiEventApStaProbeReqRecved(WiFiEvent_t , WiFiEventInfo_t);
 
+enum NetworkIpMethod_enum {
+  NetworkIpMethodDhcp = 0,            ///< DHCP IP
+  NetworkIpMethodStatic = 1,          ///< STATIC IP
+};
+
 class WiFiMngt {
 private:
   String WifiSsid;                    ///< WI-FI SSID
@@ -52,6 +57,12 @@ private:
   bool FirstConnected;                ///< flag about first connecting to WiFi network status
   bool NtpFirstSync;                  ///< flag about first NTP sync status
   bool EnableServiceAp;               ///< flag about enable service AP mode
+
+  uint8_t NetIpMethod;                ///< flag about IP address obtained. 0 - DHCP, 1 - Static
+  IPAddress NetStaticIp;              ///< Static IP address of the STA
+  IPAddress NetStaticMask;            ///< Static Mask of the STA
+  IPAddress NetStaticGateway;         ///< Static Gateway of the STA
+  IPAddress NetStaticDns;             ///< Static DNS of the STA
 
   uint8_t WiFiStaNetworkBssid[6];     ///< BSSID of the network
 
@@ -109,6 +120,11 @@ public:
   bool GetkActifeWifiCfgFlag();
   bool GetNtpFirstTimeSync();
   bool GetFirstConnection();
+  uint8_t GetNetIpMethod();
+  String GetNetStaticIp();
+  String GetNetStaticMask();
+  String GetNetStaticGateway();
+  String GetNetStaticDns();
 
   void SetStaCredentials(String, String);
   void SetStaSsid(String);
@@ -117,6 +133,8 @@ public:
   void ConnectToSta();
   void SetMdns(String);
   void SetFirstConnection(bool);
+  void SetNetworkConfig(String, String, String, String);
+  void SetNetIpMethod(uint8_t);
 };
 
 extern WiFiMngt SystemWifiMngt;   ///< global variable for wifi management

@@ -624,6 +624,12 @@ void System_TaskSysLed(void *pvParameters) {
   }
 } 
 
+/**
+ * @brief Function for WiFi watchdog task
+ * 
+ * @param void *pvParameters
+ * @return none
+ */
 void System_TaskWiFiWatchdog(void *pvParameters) {
   SystemLog.AddEvent(LogLevel_Info, "WiFiWatchdog task. core: " + String(xPortGetCoreID()));
   TickType_t xLastWakeTime = xTaskGetTickCount();

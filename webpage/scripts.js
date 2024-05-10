@@ -76,6 +76,11 @@ function get_data(val) {
 				$("#ip").text(obj.ip);
 				$("#mdns").text(obj.mdns);
 				$("#wifi_network_status").text(obj.wifi_network_status);
+				document.getElementById('ipcfgid').value = obj.ip_cfg;
+				document.getElementById('net_ip_id').value = obj.net_ip;
+				document.getElementById('net_mask_id').value = obj.net_mask;
+				document.getElementById('net_gw_id').value = obj.net_gw;
+				document.getElementById('net_dns_id').value = obj.net_dns;
 
 				if (!document.querySelector('#main-wifi-signal wifi_img')) {
 					var wifi_img = document.createElement('wifi_img');
@@ -95,7 +100,7 @@ function get_data(val) {
 				$("#sw_new_ver").text(obj.sw_new_ver);
 				$("#service_ap_ssid").text(obj.service_ap_ssid);
 				document.getElementById('mdnsid').value = obj.mdns;
-        document.getElementById('loglevelid').value = obj.log_level;
+        		document.getElementById('loglevelid').value = obj.log_level;
 			}
 		},
 		error: function(html) {
@@ -215,6 +220,14 @@ function setWifi(val_ssid, val_pass) {
 	get_data("wifi");
 }
 
+function setWifiNet(val_ip, val_mask, val_gw, val_dns) {	
+	var xmlHttp = new XMLHttpRequest();
+	xmlHttp.open("GET", "wifi_net_cfg?ip=" +  encodeURIComponent(val_ip) + "&mask=" + encodeURIComponent(val_mask) + "&gw=" + encodeURIComponent(val_gw) + "&dns=" + encodeURIComponent(val_dns), false);
+	xmlHttp.send(null);
+	alert(xmlHttp.responseText);
+	get_data("wifi");
+}
+
 function scanWifi() {
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.open("GET", "wifi_scan?", false);
@@ -267,11 +280,11 @@ function setAuth(val_name, val_pass) {
 	get_data("auth");
 }
 
-function changeValue(val, url, reload) {
+function changeValue(val, url, reload, msg) {
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.open("GET", url + val, false);
 	xmlHttp.send(null);
-	if ((url == "set_int?refresh=") || (url == "set_token?token=") || (url == "set_mdns?mdns=")) {
+	if ((url == "set_int?refresh=") || (url == "set_token?token=") || (url == "set_mdns?mdns=") || (url == "set_int?ipcfg=")) {
 		alert(xmlHttp.responseText);
 	}
 	if (url == "set_flash_time?flash_time=") {

@@ -59,7 +59,19 @@
 		<br>
 		<table id="wificfg_tb">
 			<tr><td class="w1">Advanced Wi-Fi settings</td></tr>
-			<tr><td class="w2" align="right">Enable service AP </td><td><label class="switch"><input type="checkbox" name="serviceap_enable" id="serviceapid" onchange="changeValue(this.checked, 'set_bool?serviceap_enable=', 'serviceap')"><span class="checkbox_slider round"></span></label></label> <span class="w1" id="status_serviceap"></span></td></tr>
+			<tr><td class="w2" align="right">Enable service AP </td><td><label class="switch"><input type="checkbox" name="serviceap_enable" id="serviceapid" onchange="changeValue(this.checked, 'set_bool?serviceap_enable=', 'wifi')"><span class="checkbox_slider round"></span></label></label> <span class="w1" id="status_serviceap"></span></td></tr>
+			<tr><td style="height: 10px;"></td></tr>
+			<tr><td class="w2" align="right">Wi-Fi client IPv4 Method</td><td><label for="loglevel"></label>
+				<select class="select" id="ipcfgid" name="ipcfg" onchange="changeValue(this.value, 'set_int?ipcfg=', 'wifi')">
+					<option value="0">DHCP</option>
+					<option value="1">Manual (static IP)</option>
+				</select>
+			</td></tr>
+			<tr><td class="w2" align="right">IP address</td><td><input type="text" name="net_ip" id=net_ip_id></td></tr>
+			<tr><td class="w2" align="right">Subnet mask</td><td><input type="text" name="net_mask" id=net_mask_id></td></tr>
+			<tr><td class="w2" align="right">Default gateway</td><td><input type="text" name="net_gw" id=net_gw_id></td></tr>
+			<tr><td class="w2" align="right">DNS server</td><td><input type="text" name="net_dns" id=net_dns_id></td></tr>
+			<tr><td></td><td align="center"><button class="btn_save_w" onclick="setWifiNet(document.getElementById('net_ip_id').value, document.getElementById('net_mask_id').value, document.getElementById('net_gw_id').value, document.getElementById('net_dns_id').value)">Save</button></td></tr>
 		</table>
 	</div>
 		

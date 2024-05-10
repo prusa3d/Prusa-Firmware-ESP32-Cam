@@ -20,6 +20,7 @@
 #include "wifi_mngt.h"
 #include "cfg.h"
 #include "connect.h"
+#include "camera.h"
 
 class WiFiMngt;
 class PrusaConnect;
@@ -30,13 +31,14 @@ private:
   Logs *log;                ///< pointer to Logs object
   WiFiMngt *wifim;          ///< pointer to WiFiMngt object
   PrusaConnect *connect;    ///< pointer to PrusaConnect object
+  Camera *cam;              ///< pointer to camera object
 
   String wifi_ssid;         ///< wifi ssid
   String wifi_pass;         ///< wifi password
   String auth_token;        ///< auth token
 
 public:
-  SerialCfg(Configuration*, Logs*, WiFiMngt*, PrusaConnect*);
+  SerialCfg(Configuration*, Logs*, WiFiMngt*, PrusaConnect*, Camera*);
   ~SerialCfg(){};
 
   void ProcessIncommingData();

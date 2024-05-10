@@ -11,7 +11,7 @@
 
 #include "serial_cfg.h"
 
-SerialCfg SystemSerialCfg(&SystemConfig, &SystemLog, &SystemWifiMngt, &Connect);
+SerialCfg SystemSerialCfg(&SystemConfig, &SystemLog, &SystemWifiMngt, &Connect, &SystemCamera);
 
 /**
    @brief Constructor
@@ -21,11 +21,12 @@ SerialCfg SystemSerialCfg(&SystemConfig, &SystemLog, &SystemWifiMngt, &Connect);
    @param PrusaConnect * - pointer to PrusaConnect object
    @return none
 */
-SerialCfg::SerialCfg(Configuration *i_conf, Logs *i_log, WiFiMngt *i_wifi, PrusaConnect *i_connect) {
+SerialCfg::SerialCfg(Configuration *i_conf, Logs *i_log, WiFiMngt *i_wifi, PrusaConnect *i_connect, Camera *i_cam) {
   config = i_conf;
   log = i_log;
   wifim = i_wifi;
   connect = i_connect;
+  cam = i_cam;
 }
 
 /**
@@ -108,6 +109,37 @@ String lastTwoChars = command.substring(command.length() - 2);
   } else if (command.startsWith("getserviceapssid") && command.endsWith(";")) {
     log->AddEvent(LogLevel_Info, F("--> Console print service WiFi AP SSID..."));
     Serial.print("getserviceapssid:" + wifim->GetServiceApSsid() + ";");
+  
+  } else if (command.startsWith("otaupdate") && command.endsWith(";")) {
+    log->AddEvent(LogLevel_Warning, F("--> Start OTA update process!"));
+    FirmwareUpdate.StartOtaUpdate = true;
+
+  } else if (command.startsWith("resolution:") && command.endsWith(";")) {
+    uint8_t resolution = command.substring(11, command.length() -1).toInt();
+    log->AddEvent(LogLevel_Info, "--> Console set photo resolution: " + String(resolution));
+    if ((resolution >= 0) && (resolution <= 6)) {
+      cam->SetFrameSize(resolution);
+    } else {
+      log->AddEvent(LogLevel_Warning, F("--> Bad resolution size!"));
+    }
+  } else if (command.startsWith("photoquality:") && command.endsWith(";")) {
+    uint8_t quality = command.substring(13, command.length() -1).toInt();
+    log->AddEvent(LogLevel_Info, "--> Console set photo quality: " + String(quality));
+    if ((quality >= 10) && (quality <= 63)) {
+      cam->SetPhotoQuality(quality);
+    } else {
+      log->AddEvent(LogLevel_Warning, F("--> Bad photo quality!"));
+    }
+
+  } else if (command.startsWith("setflash") && command.endsWith(";")) {
+    cam->SetCameraFlashEnable(!cam->GetCameraFlashEnable());
+    cam->SetFlashStatus(false);
+    log->AddEvent(LogLevel_Warning, "--> Console set FLASH: " + String(cam->GetCameraFlashEnable()));
+    
+  } else if (command.startsWith("setlight") && command.endsWith(";")) {
+    cam->SetCameraFlashEnable(false);
+    cam->SetFlashStatus(!cam->GetFlashStatus());
+    log->AddEvent(LogLevel_Warning, "--> Console set LIGHT: " + String(cam->GetFlashStatus()));    
 
   } else if (command.startsWith("mcureboot") && command.endsWith(";")) {
     log->AddEvent(LogLevel_Warning, F("--> Reboot MCU!"));
@@ -130,17 +162,33 @@ String lastTwoChars = command.substring(command.length() - 2);
    @return none
 */
 void SerialCfg::PrintAvailableCommands() {
+  Serial.println(F("-----------------------------------"));
   Serial.println(F("Available commands: "));
-  Serial.println(F("setwifissid:SSID; - set WiFi SSID"));
-  Serial.println(F("setwifipass:PASS; - set WiFi password"));
-  Serial.println(F("setauthtoken:TOKEN; - set auth TOKEN for backend"));
-  Serial.println(F("wificonnect; - connect to WiFi network"));
-  Serial.println(F("getwifimode; - get WiFi mode (AP/STA)"));
-  Serial.println(F("getwifistastatus; - get STA status (connected/disconnected)"));
-  Serial.println(F("getwifistaip; - get STA IP address"));
-  Serial.println(F("getserviceapssid;- get service WiFi AP SSID"));
-  Serial.println(F("mcureboot; - reboot MCU"));
-  Serial.println(F("commandslist; - print available commands"));
+  Serial.println(F("      Command           -    Description"));
+  Serial.println(F("setwifissid:SSID;       - set WiFi SSID"));
+  Serial.println(F("setwifipass:PASS;       - set WiFi password"));
+  Serial.println(F("setauthtoken:TOKEN;     - set auth TOKEN for backend"));
+  Serial.println(F("wificonnect;            - connect to WiFi network"));
+  Serial.println(F("getwifimode;            - get WiFi mode (AP/STA)"));
+  Serial.println(F("getwifistastatus;       - get STA status (connected/disconnected)"));
+  Serial.println(F("getwifistaip;           - get STA IP address"));
+  Serial.println(F("getserviceapssid;       - get service WiFi AP SSID"));
+  Serial.println(F("otaupdate;              - start OTA update process"));
+  Serial.println(F("resolution:INDEX;       - set photo resolution"));
+  Serial.println(F(" |   Index - Resolution"));
+  Serial.println(F(" |->   0   - 320x240"));
+  Serial.println(F(" |->   1   - 352x288"));
+  Serial.println(F(" |->   2   - 640x480"));
+  Serial.println(F(" |->   3   - 800x600"));
+  Serial.println(F(" |->   4   - 1024x768"));
+  Serial.println(F(" |->   5   - 1280x1024"));
+  Serial.println(F(" |->   6   - 1600x1200"));
+  Serial.println(F("photoquality:QUALITY;   - set photo quality. 10-63 lower number means higher quality "));
+  Serial.println(F("setflash;               - enable/disable LED flash"));
+  Serial.println(F("setlight;               - enable/disable LED light"));
+  Serial.println(F("mcureboot;              - reboot MCU"));
+  Serial.println(F("commandslist;           - print available commands"));
+  Serial.println(F("-----------------------------------"));
 }
 
 /* EOF */
