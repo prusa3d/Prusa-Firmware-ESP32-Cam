@@ -34,7 +34,7 @@ void Configuration::Init() {
 
   /* check, when it is first MCU start. If yes, then set default CFG */
   if (CheckFirstMcuStart() == true) {
-    Log->AddEvent(LogLevel_Warning, "First MCU start! Set factory cfg");
+    Log->AddEvent(LogLevel_Warning, F("First MCU start! Set factory cfg"));
     DefaultCfg();
     SaveFirstMcuStartFlag(CFG_FIRST_MCU_START_NAK);
     Log->SetLogLevel(LoadLogLevel());
@@ -50,7 +50,7 @@ void Configuration::Init() {
    @return none
 */
 void Configuration::ReadCfg() {
-  Log->AddEvent(LogLevel_Info, "Load CFG from EEPROM");
+  Log->AddEvent(LogLevel_Info, F("Load CFG from EEPROM"));
   LoadRefreshInterval();
   LoadToken();
   LoadFingerprint();
@@ -84,7 +84,7 @@ void Configuration::ReadCfg() {
   LoadAgcGain();
   LoadPrusaConnectHostname();
   Log->AddEvent(LogLevel_Info, "Active WiFi client cfg: " + String(CheckActifeWifiCfgFlag() ? "true" : "false"));
-  Log->AddEvent(LogLevel_Info, "Load CFG from EEPROM done");
+  Log->AddEvent(LogLevel_Info, F("Load CFG from EEPROM done"));
 }
 
 /**
@@ -93,7 +93,7 @@ void Configuration::ReadCfg() {
    @return bool - status
 */
 bool Configuration::CheckFirstMcuStart() {
-  Log->AddEvent(LogLevel_Info, "Read FirstMcuStart: ");
+  Log->AddEvent(LogLevel_Info, F("Read FirstMcuStart: "));
   uint8_t flag = EEPROM.read(EEPROM_ADDR_FIRST_MCU_START_FLAG_START);
 
   if (CFG_FIRST_MCU_START_NAK == flag) {
@@ -123,8 +123,8 @@ void Configuration::SaveFirstMcuStartFlag(uint8_t i_data) {
    @return none
 */
 void Configuration::DefaultCfg() {
-  Log->AddEvent(LogLevel_Warning, "+++++++++++++++++++++++++++");
-  Log->AddEvent(LogLevel_Warning, "Start set factory cfg!");
+  Log->AddEvent(LogLevel_Warning, F("+++++++++++++++++++++++++++"));
+  Log->AddEvent(LogLevel_Warning, F("Start set factory cfg!"));
 
   SaveRefreshInterval(FACTORY_CFG_PHOTO_REFRESH_INTERVAL);
   SaveToken("");
@@ -160,7 +160,7 @@ void Configuration::DefaultCfg() {
   SaveAgcGain(FACTORY_CFG_AGC_GAIN);
   SaveLogLevel(LogLevel_Info);
   SavePrusaConnectHostname(FACTORY_CFG_HOSTNAME);
-  Log->AddEvent(LogLevel_Warning, "+++++++++++++++++++++++++++");
+  Log->AddEvent(LogLevel_Warning, F("+++++++++++++++++++++++++++"));
 }
 
 /**
@@ -187,7 +187,7 @@ bool Configuration::CheckActifeWifiCfgFlag() {
    @return none
 */
 void Configuration::CheckResetCfg() {
-  Log->AddEvent(LogLevel_Verbose, "Check reset MCU cfg");
+  Log->AddEvent(LogLevel_Verbose, F("Check reset MCU cfg"));
   bool ResetPinStatus = digitalRead(CFG_RESET_PIN);
 
   /* wait 10s to pressed reset pin */
@@ -204,7 +204,7 @@ void Configuration::CheckResetCfg() {
 
   /* check if is reset pin grounded more at 10s */
   if (i == (CFG_RESET_TIME_WAIT / CFG_RESET_LOOP_DELAY)) {
-    Log->AddEvent(LogLevel_Warning, "Reset MCU to factory CFG!");
+    Log->AddEvent(LogLevel_Warning, F("Reset MCU to factory CFG!"));
 
     /* wait for ungrounded reset pin, and binking led */
     while (digitalRead(CFG_RESET_PIN) == LOW) {
@@ -220,7 +220,7 @@ void Configuration::CheckResetCfg() {
     ESP.restart();
 
   } else {
-    Log->AddEvent(LogLevel_Verbose, "Reset MCU cfg false");
+    Log->AddEvent(LogLevel_Verbose, F("Reset MCU cfg false"));
   }
 }
 
@@ -306,9 +306,9 @@ void Configuration::SaveString(uint16_t address, uint16_t max_length, String dat
       EEPROM.write(i, data.charAt(j));
     }
     EEPROM.commit();
-    Log->AddEvent(LogLevel_Verbose, "Write string done");
+    Log->AddEvent(LogLevel_Verbose, F("Write string done"));
   } else {
-    Log->AddEvent(LogLevel_Verbose, "Skip write string");
+    Log->AddEvent(LogLevel_Verbose, F("Skip write string"));
   }
 }
 /**

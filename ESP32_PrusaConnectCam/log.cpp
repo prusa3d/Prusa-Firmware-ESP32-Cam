@@ -93,8 +93,8 @@ Logs::Logs(LogLevel_enum i_LogLevel, String i_FilePath, String i_FileName, uint1
    @return none
 */
 void Logs::Init() {
-  Serial.println("----------------------------------------------------------------");
-  Serial.println("Init Logs library");
+  Serial.println(F("----------------------------------------------------------------"));
+  Serial.println(F("Init Logs library"));
 
   /* init micro SD card */
   InitSdCard();
@@ -110,22 +110,22 @@ void Logs::Init() {
     }
 
     /* added first message to log file after start MCU */
-    String msg = "----------------------------------------------------------------\n";
-    msg += "Start MCU!\nSW Version: ";
+    String msg = F("----------------------------------------------------------------\n");
+    msg += F("Start MCU!\nSW Version: ");
     msg += String(SW_VERSION);
-    msg += " ,Build: ";
+    msg += F(" ,Build: ");
     msg += String(SW_BUILD);
     msg += "\n";
-    msg += "Verbose mode: ";
+    msg += F("Verbose mode: ");
     msg += (true == CONSOLE_VERBOSE_DEBUG) ? "true" : "false";
     msg += "\n";
-    msg += "Log level: ";
+    msg += F("Log level: ");
     msg += String(LogLevel);
     msg += "\n";
     AppendFile(SD_MMC, FilePath + FileName, msg);
 
   } else {
-    Serial.println("Micro-SD card not found! Disable logs");
+    Serial.println(F("Micro-SD card not found! Disable logs"));
   }
 }
 

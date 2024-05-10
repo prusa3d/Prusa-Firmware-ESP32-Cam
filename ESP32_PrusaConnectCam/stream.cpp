@@ -236,7 +236,7 @@ size_t AsyncJpegStreamResponse::_content(uint8_t *buffer, size_t maxLen, size_t 
 
     /* check space for headers */
     if (maxLen < (strlen(STREAM_BOUNDARY) + strlen(STREAM_PART) + strlen(JPG_CONTENT_TYPE) + 8)) {
-      log->AddEvent(LogLevel_Error, "Stream Not space for headers");
+      log->AddEvent(LogLevel_Error, F("Stream Not space for headers"));
       return RESPONSE_TRY_AGAIN;
     }
 
@@ -246,7 +246,7 @@ size_t AsyncJpegStreamResponse::_content(uint8_t *buffer, size_t maxLen, size_t 
     _frame.fb = &_dframe;
 
     if (_frame.fb == NULL) {
-      log->AddEvent(LogLevel_Error, "Stream capture frame failed");
+      log->AddEvent(LogLevel_Error, F("Stream capture frame failed"));
       return 0;
     }
 

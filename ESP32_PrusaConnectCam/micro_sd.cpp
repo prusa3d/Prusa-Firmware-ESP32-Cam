@@ -28,11 +28,11 @@ MicroSd::MicroSd() {
    @return none
 */
 void MicroSd::ReinitCard() {
-  Serial.println("Reinit micro SD card!");
-  Serial.println("Deinit micro SD card");
+  Serial.println(F("Reinit micro SD card!"));
+  Serial.println(F("Deinit micro SD card"));
   SD_MMC.end();
   delay(50);
-  Serial.println("Init micro SD card");
+  Serial.println(F("Init micro SD card"));
   InitSdCard();
 }
 
@@ -43,12 +43,12 @@ void MicroSd::ReinitCard() {
 */
 void MicroSd::InitSdCard() {
   /* Start INIT Micro SD card */
-  Serial.println("Start init micro-SD Card");
+  Serial.println(F("Start init micro-SD Card"));
 
   /* set SD card to 1-line/1-bit mode. GPIO 4 is used for LED and for microSD card. But communication is slower. */
   /* https://github.com/espressif/arduino-esp32/blob/master/libraries/SD_MMC/src/SD_MMC.h */
   if (!SD_MMC.begin("/sdcard", true)) {
-    Serial.println("SD Card Mount Failed");
+    Serial.println(F("SD Card Mount Failed"));
     CardDetected = false;
     CardSize = 0;
     //DetectAfterBoot = false;
@@ -58,7 +58,7 @@ void MicroSd::InitSdCard() {
   /* check microSD card and card type */
   uint8_t cardType = SD_MMC.cardType();
   if (cardType == CARD_NONE) {
-    Serial.println("No SD_MMC card attached");
+    Serial.println(F("No SD_MMC card attached"));
     CardDetected = false;
     CardSize = 0;
     //DetectAfterBoot = false;
@@ -66,15 +66,15 @@ void MicroSd::InitSdCard() {
   }
 
   /* print card type */
-  Serial.print("Found card. Card Type: ");
+  Serial.print(F("Found card. Card Type: "));
   if (cardType == CARD_MMC) {
-    Serial.print("MMC");
+    Serial.print(F("MMC"));
   } else if (cardType == CARD_SD) {
-    Serial.print("SDSC");
+    Serial.print(F("SDSC"));
   } else if (cardType == CARD_SDHC) {
-    Serial.print("SDHC");
+    Serial.print(F("SDHC"));
   } else {
-    Serial.print("UNKNOWN");
+    Serial.print(F("UNKNOWN"));
   }
 
   /* calculation card size */
@@ -97,26 +97,26 @@ void MicroSd::ListDir(fs::FS &fs, String DirName, uint8_t levels) {
 
     File root = fs.open(DirName.c_str());
     if (!root) {
-      Serial.println("Failed to open directory");
+      Serial.println(F("Failed to open directory"));
       return;
     }
     if (!root.isDirectory()) {
-      Serial.println("Not a directory");
+      Serial.println(F("Not a directory"));
       return;
     }
 
     File file = root.openNextFile();
     while (file) {
       if (file.isDirectory()) {
-        Serial.print("  DIR : ");
+        Serial.print(F("  DIR : "));
         Serial.println(file.name());
         if (levels) {
           ListDir(fs, file.path(), levels - 1);
         }
       } else {
-        Serial.print("  FILE: ");
+        Serial.print(F("  FILE: "));
         Serial.print(file.name());
-        Serial.print("  SIZE: ");
+        Serial.print(F("  SIZE: "));
         Serial.println(file.size());
       }
       file = root.openNextFile();
@@ -184,11 +184,11 @@ void MicroSd::ReadFileConsole(fs::FS &fs, String path) {
 
     File file = fs.open(path.c_str());
     if (!file) {
-      Serial.println("Failed to open file for reading");
+      Serial.println(F("Failed to open file for reading"));
       return;
     }
 
-    Serial.print("Read from file: ");
+    Serial.print(F("Read from file: "));
     while (file.available()) {
       Serial.write(file.read());
     }
@@ -355,11 +355,11 @@ uint16_t MicroSd::FileCount(fs::FS &fs, String DirName, String FileName) {
 
     File root = fs.open(DirName.c_str());
     if (!root) {
-      Serial.println("Failed to open directory");
+      Serial.println(F("Failed to open directory"));
       return 0;
     }
     if (!root.isDirectory()) {
-      Serial.println("Not a directory");
+      Serial.println(F("Not a directory"));
       return 0;
     }
 

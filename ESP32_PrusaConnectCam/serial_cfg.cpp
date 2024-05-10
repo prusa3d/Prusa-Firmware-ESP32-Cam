@@ -90,27 +90,27 @@ String lastTwoChars = command.substring(command.length() - 2);
     connect->SetToken(auth_token);
 
   } else if (command.startsWith("wificonnect") && command.endsWith(";")) {
-    log->AddEvent(LogLevel_Info, "--> Console connecting to wifi...");
+    log->AddEvent(LogLevel_Info, F("--> Console connecting to wifi..."));
     wifim->ConnectToSta();
 
   } else if (command.startsWith("getwifimode") && command.endsWith(";")) {
-    log->AddEvent(LogLevel_Info, "--> Console print WiFi mode...");
+    log->AddEvent(LogLevel_Info, F("--> Console print WiFi mode..."));
     Serial.print("wifimode:" + wifim->GetWiFiMode() + ";");
 
   } else if (command.startsWith("getwifistastatus") && command.endsWith(";")) {
-    log->AddEvent(LogLevel_Info, "--> Console print STA status...");
+    log->AddEvent(LogLevel_Info, F("--> Console print STA status..."));
     Serial.print("wifistastatus:" + wifim->GetStaStatus() + ";");
   
   } else if (command.startsWith("getwifistaip") && command.endsWith(";")) {
-    log->AddEvent(LogLevel_Info, "--> Console print STA IP...");
+    log->AddEvent(LogLevel_Info, F("--> Console print STA IP..."));
     Serial.print("wifistaip:" + wifim->GetStaIp() + ";");
 
   } else if (command.startsWith("getserviceapssid") && command.endsWith(";")) {
-    log->AddEvent(LogLevel_Info, "--> Console print service WiFi AP SSID...");
+    log->AddEvent(LogLevel_Info, F("--> Console print service WiFi AP SSID..."));
     Serial.print("getserviceapssid:" + wifim->GetServiceApSsid() + ";");
 
   } else if (command.startsWith("mcureboot") && command.endsWith(";")) {
-    log->AddEvent(LogLevel_Warning, "--> Reboot MCU!");
+    log->AddEvent(LogLevel_Warning, F("--> Reboot MCU!"));
     ESP.restart();
 
   } else if (command.startsWith("commandslist") && command.endsWith(";")) {
@@ -130,17 +130,17 @@ String lastTwoChars = command.substring(command.length() - 2);
    @return none
 */
 void SerialCfg::PrintAvailableCommands() {
-  Serial.println("Available commands: ");
-  Serial.println("setwifissid:SSID; - set WiFi SSID");
-  Serial.println("setwifipass:PASS; - set WiFi password");
-  Serial.println("setauthtoken:TOKEN; - set auth TOKEN for backend");
-  Serial.println("wificonnect; - connect to WiFi network");
-  Serial.println("getwifimode; - get WiFi mode (AP/STA)");
-  Serial.println("getwifistastatus; - get STA status (connected/disconnected)");
-  Serial.println("getwifistaip; - get STA IP address");
-  Serial.println("getserviceapssid;- get service WiFi AP SSID");
-  Serial.println("mcureboot; - reboot MCU");
-  Serial.println("commandslist; - print available commands");
+  Serial.println(F("Available commands: "));
+  Serial.println(F("setwifissid:SSID; - set WiFi SSID"));
+  Serial.println(F("setwifipass:PASS; - set WiFi password"));
+  Serial.println(F("setauthtoken:TOKEN; - set auth TOKEN for backend"));
+  Serial.println(F("wificonnect; - connect to WiFi network"));
+  Serial.println(F("getwifimode; - get WiFi mode (AP/STA)"));
+  Serial.println(F("getwifistastatus; - get STA status (connected/disconnected)"));
+  Serial.println(F("getwifistaip; - get STA IP address"));
+  Serial.println(F("getserviceapssid;- get service WiFi AP SSID"));
+  Serial.println(F("mcureboot; - reboot MCU"));
+  Serial.println(F("commandslist; - print available commands"));
 }
 
 /* EOF */

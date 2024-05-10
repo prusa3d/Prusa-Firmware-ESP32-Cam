@@ -59,7 +59,7 @@ void WiFiMngt::Init() {
   /* Set Wi-Fi networks */
   SetWifiEvents();
   CreateApSsid();
-  log->AddEvent(LogLevel_Warning, "Set WiFi AP mode");
+  log->AddEvent(LogLevel_Warning, F("Set WiFi AP mode"));
   WiFi.mode(WIFI_AP_STA);
   esp_wifi_set_ps(WIFI_PS_NONE);
   WiFi.softAPConfig(Service_LocalIp, Service_Gateway, Service_Subnet);
@@ -96,9 +96,9 @@ void WiFiMngt::Init() {
   /* Init MDNS record */
   log->AddEvent(LogLevel_Info, "Starting mDNS record: http://" + mDNS_record + ".local");
   if (!MDNS.begin(mDNS_record)) {
-    log->AddEvent(LogLevel_Error, "Error starting mDNS");
+    log->AddEvent(LogLevel_Error, F("Error starting mDNS"));
   } else {
-    log->AddEvent(LogLevel_Info, "Starting mDNS OK");
+    log->AddEvent(LogLevel_Info, F("Starting mDNS OK"));
   }
   MDNS.addService("http", "tcp", 80);
 }
@@ -116,7 +116,7 @@ void WiFiMngt::WifiManagement() {
     if ((true == config->CheckActifeWifiCfgFlag()) && (true == ServiceMode) && (WL_CONNECTED == WiFi.status())
         && (false == FirmwareUpdate.Processing) && (false == cam->GetStreamStatus())) {
       if (WiFi.softAPgetStationNum() == 0) {
-        log->AddEvent(LogLevel_Info, "Disable service AP mode");
+        log->AddEvent(LogLevel_Info, F("Disable service AP mode"));
         WiFi.mode(WIFI_STA);
         esp_wifi_set_ps(WIFI_PS_NONE);
         WiFiStaConnect();
@@ -151,11 +151,11 @@ void WiFiMngt::WifiManagement() {
 */
 void WiFiMngt::WiFiReconnect() {
   if ((WiFi.status() != WL_CONNECTED) && (FirstConnected == true)) {
-    log->AddEvent(LogLevel_Warning, "Reconnecting to WiFi. STA");
+    log->AddEvent(LogLevel_Warning, F("Reconnecting to WiFi. STA"));
     WiFi.disconnect();
-    log->AddEvent(LogLevel_Warning, "Disconnect from WiFi");
+    log->AddEvent(LogLevel_Warning, F("Disconnect from WiFi"));
     WiFi.reconnect();
-    log->AddEvent(LogLevel_Warning, "Reconnecting to WiFi. STA");
+    log->AddEvent(LogLevel_Warning, F("Reconnecting to WiFi. STA"));
   } else if (WiFi.status() == WL_CONNECTED) {
     char cstr[150];
     sprintf(cstr, "Wifi connected. SSID: %s, BSSID: %s, RSSI: %d dBm, IP: %s, TX power: %s", WiFi.SSID().c_str(), WiFi.BSSIDstr().c_str(), WiFi.RSSI(), WiFi.localIP().toString().c_str(), TranslateTxPower(WiFi.getTxPower()).c_str());  //print 3 digits
@@ -163,7 +163,7 @@ void WiFiMngt::WiFiReconnect() {
   }
 
   if (Connect.GetBackendAvailabilitStatus() == BackendUnavailable) {
-    log->AddEvent(LogLevel_Warning, "Reconnecting to WiFi. STA. Problem with connecting to backend!");
+    log->AddEvent(LogLevel_Warning, F("Reconnecting to WiFi. STA. Problem with connecting to backend!"));
     WiFi.disconnect();
     WiFi.reconnect();
     Connect.SetBackendAvailabilitStatus(WaitForFirstConnection);
@@ -202,10 +202,10 @@ void WiFiMngt::WiFiStaConnect() {
     system_led.setTimer(STATUS_LED_STA_CONNECTING);
     if (false == WiFiStaMultipleNetwork) {
       WiFi.begin(WifiSsid, WifiPassword);
-      log->AddEvent(LogLevel_Info, "Connecting to STA SSID");
+      log->AddEvent(LogLevel_Info, F("Connecting to STA SSID"));
     } else if (true == WiFiStaMultipleNetwork) {
       WiFi.begin(WifiSsid, WifiPassword, 0, WiFiStaNetworkBssid);
-      log->AddEvent(LogLevel_Info, "Connecting to STA BSSID");
+      log->AddEvent(LogLevel_Info, F("Connecting to STA BSSID"));
     }
     WiFi.setAutoReconnect(true);
   }
@@ -219,8 +219,8 @@ void WiFiMngt::WiFiStaConnect() {
 void WiFiMngt::SyncNtpTime() {
   if (WL_CONNECTED == WiFi.status()) {
     /* configure NTP server and timezone to UTC */
-    configTime(0, 0, "pool.ntp.org", "time.nist.gov");  // UTC
-    log->AddEvent(LogLevel_Info, "Waiting for NTP time sync: ");
+    configTime(NTP_GTM_OFFSET_SEC, NTP_DAYLIGHT_OFFSET_SEC, NTP_SERVER_1, NTP_SERVER_2);  // UTC
+    log->AddEvent(LogLevel_Info, F("Waiting for NTP time sync: "));
     log->SetNtpTimeSynced(false);
 
     /* wait maximum 10s for time sync */
@@ -237,10 +237,10 @@ void WiFiMngt::SyncNtpTime() {
 
     /* report sync status */
     if (true == log->GetNtpTimeSynced()) {
-      log->AddEvent(LogLevel_Info, "Sync NTP time done. Set UTC timezone");
+      log->AddEvent(LogLevel_Info, F("Sync NTP time done. Set UTC timezone"));
       NtpFirstSync = true;
     } else {
-      log->AddEvent(LogLevel_Info, "Sync NTP time fail");
+      log->AddEvent(LogLevel_Info, F("Sync NTP time fail"));
     }
   }
 }
@@ -260,7 +260,7 @@ void WiFiMngt::ScanWiFiNetwork() {
    @return uint8_t - count of found wifi networks with same SSID
 */
 uint8_t WiFiMngt::ScanWifiNetwork(String ssid) {
-  log->AddEvent(LogLevel_Info, "Scan WI-FI networks");
+  log->AddEvent(LogLevel_Info, F("Scan WI-FI networks"));
   log->AddEvent(LogLevel_Info, "Check available WI-FI network: " + ssid);
   uint8_t ret = 0;        ///< total wifi network count
   int bestSignal = -100;  ///< wifi network with best signal (when is available multiple networks with same SSID)
@@ -268,17 +268,17 @@ uint8_t WiFiMngt::ScanWifiNetwork(String ssid) {
 
   /* scan WI-FI networks */
   int n = WiFi.scanNetworks();
-  log->AddEvent(LogLevel_Verbose, "Scan done");
+  log->AddEvent(LogLevel_Verbose, F("Scan done"));
   JsonDocument doc_json;
   JsonArray wifiArray = doc_json.to<JsonArray>();
   WifiScanJson = "";
 
   /* make json with each found WI-FI networks */
   if (n == 0) {
-    log->AddEvent(LogLevel_Info, "No networks found!");
+    log->AddEvent(LogLevel_Info, F("No networks found!"));
   } else {
     log->AddEvent(LogLevel_Info, String(n) + " networks found");
-    log->AddEvent(LogLevel_Info, "Nr | SSID                             | RSSI | CH | BSSID             | Encryption");
+    log->AddEvent(LogLevel_Info, F("Nr | SSID                             | RSSI | CH | BSSID             | Encryption"));
 
     for (int i = 0; i < n; ++i) {
       /* check available wifi network */
@@ -375,24 +375,24 @@ void WiFiMngt::WiFiWatchdog() {
 
   /* when is enabled wifi configuration, and is not connected to wifi network, and is available at least one wifi network */
   if ((true == config->CheckActifeWifiCfgFlag()) && (WL_CONNECTED != WiFi.status()) && (true == GetFirstConnection())) {
-    log->AddEvent(LogLevel_Warning, "WiFi WDG. STA connection lost.");
+    log->AddEvent(LogLevel_Warning, F("WiFi WDG. STA connection lost."));
     unsigned long currentMillis = millis();
     
     if (false == StartStaWdg) {
       if (ScanWifiNetwork(WifiSsid) >= 1) {
         StartStaWdg = true;
         TaskWdg_previousMillis = currentMillis;
-        log->AddEvent(LogLevel_Warning, "WiFi STA connection lost. Start watchdog timer!");
+        log->AddEvent(LogLevel_Warning, F("WiFi STA connection lost. Start watchdog timer!"));
       }
     }
 
     if ((true == StartStaWdg) && (currentMillis - TaskWdg_previousMillis >= WIFI_STA_WDG_TIMEOUT)) {
-      log->AddEvent(LogLevel_Warning, "WiFi STA connection lost. WDG timer expired. Restart MCU!");
+      log->AddEvent(LogLevel_Warning, F("WiFi STA connection lost. WDG timer expired. Restart MCU!"));
       /* restart MCU, or disconnect and connect to WiFi again ? From my point of view, and testing, restart MCU is better */
       ESP.restart();
     }
   } else if (true == StartStaWdg) {
-    log->AddEvent(LogLevel_Info, "WiFi STA connection OK. Stop watchdog timer!");
+    log->AddEvent(LogLevel_Info, F("WiFi STA connection OK. Stop watchdog timer!"));
     StartStaWdg = false;
     TaskWdg_previousMillis = millis();
   }
@@ -427,40 +427,40 @@ String WiFiMngt::TranslateTxPower(wifi_power_t data) {
   String ret = "";
   switch (data) {
     case WIFI_POWER_MINUS_1dBm:
-      ret = "-1dBm";
+      ret = F("-1dBm");
       break;
     case WIFI_POWER_2dBm:
-      ret = "2dBm";
+      ret = F("2dBm");
       break;
     case WIFI_POWER_5dBm:
-      ret = "5dBm";
+      ret = F("5dBm");
       break;
     case WIFI_POWER_7dBm:
-      ret = "7dBm";
+      ret = F("7dBm");
       break;
     case WIFI_POWER_8_5dBm:
-      ret = "8.5dBm";
+      ret = F("8.5dBm");
       break;
     case WIFI_POWER_11dBm:
-      ret = "11dBm";
+      ret = F("11dBm");
       break;
     case WIFI_POWER_13dBm:
-      ret = "13dBm";
+      ret = F("13dBm");
       break;
     case WIFI_POWER_15dBm:
-      ret = "15dBm";
+      ret = F("15dBm");
       break;
     case WIFI_POWER_17dBm:
-      ret = "17dBm";
+      ret = F("17dBm");
       break;
     case WIFI_POWER_18_5dBm:
-      ret = "18.5dBm";
+      ret = F("18.5dBm");
       break;
     case WIFI_POWER_19dBm:
-      ret = "19dBm";
+      ret = F("19dBm");
       break;
     case WIFI_POWER_19_5dBm:
-      ret = "19.5dBm";
+      ret = F("19.5dBm");
       break;
   }
 
@@ -477,31 +477,31 @@ String WiFiMngt::TranslateWiFiStatus(wl_status_t i_wifi_status) {
   String ret = "";
   switch (i_wifi_status) {
     case WL_IDLE_STATUS:
-      ret = "Idle";
+      ret = F("Idle");
       break;
     case WL_NO_SSID_AVAIL:
-      ret = "No SSID available";
+      ret = F("No SSID available");
       break;
     case WL_SCAN_COMPLETED:
-      ret = "Scan completed";
+      ret = F("Scan completed");
       break;
     case WL_CONNECTED:
-      ret = "Connected";
+      ret = F("Connected");
       break;
     case WL_CONNECT_FAILED:
-      ret = "Connect failed";
+      ret = F("Connect failed");
       break;
     case WL_CONNECTION_LOST:
-      ret = "Connection lost";
+      ret = F("Connection lost");
       break;
     case WL_DISCONNECTED:
-      ret = "Disconnected";
+      ret = F("Disconnected");
       break;
     case WL_NO_SHIELD:
-      ret = "No WiFi shield";
+      ret = F("No WiFi shield");
       break;
     default:
-      ret = "Unkcnown status";
+      ret = F("Unkcnown status");
       ret += String(i_wifi_status);
   }
   return ret;
@@ -516,34 +516,34 @@ String WiFiMngt::TranslateWiFiEncrypion(wifi_auth_mode_t i_data) {
   String ret = "";
   switch (i_data) {
     case WIFI_AUTH_OPEN:
-      ret = "open";
+      ret = F("open");
       break;
     case WIFI_AUTH_WEP:
-      ret = "WEP";
+      ret = F("WEP");
       break;
     case WIFI_AUTH_WPA_PSK:
-      ret = "WPA";
+      ret = F("WPA");
       break;
     case WIFI_AUTH_WPA2_PSK:
-      ret = "WPA2";
+      ret = F("WPA2");
       break;
     case WIFI_AUTH_WPA_WPA2_PSK:
-      ret = "WPA+WPA2";
+      ret = F("WPA+WPA2");
       break;
     case WIFI_AUTH_WPA2_ENTERPRISE:
-      ret = "WPA2-EAP";
+      ret = F("WPA2-EAP");
       break;
     case WIFI_AUTH_WPA3_PSK:
-      ret = "WPA3";
+      ret = F("WPA3");
       break;
     case WIFI_AUTH_WPA2_WPA3_PSK:
-      ret = "WPA2+WPA3";
+      ret = F("WPA2+WPA3");
       break;
     case WIFI_AUTH_WAPI_PSK:
-      ret = "WAPI";
+      ret = F("WAPI");
       break;
     default:
-      ret = "unknown";
+      ret = F("unknown");
   }
 
   return ret;
@@ -739,7 +739,7 @@ void WiFiMngt::SetFirstConnection(bool i_data) {
    @return none
 */
 void WiFiMngt_WiFiEventScanDone(WiFiEvent_t event, WiFiEventInfo_t info) {
-  SystemLog.AddEvent(LogLevel_Info, "WiFi networks scan done");
+  SystemLog.AddEvent(LogLevel_Info, F("WiFi networks scan done"));
 }
 
 /**
@@ -749,7 +749,7 @@ void WiFiMngt_WiFiEventScanDone(WiFiEvent_t event, WiFiEventInfo_t info) {
    @return none
 */
 void WiFiMngt_WiFiEventStationStart(WiFiEvent_t event, WiFiEventInfo_t info) {
-  SystemLog.AddEvent(LogLevel_Info, "WiFi STA start");
+  SystemLog.AddEvent(LogLevel_Info, F("WiFi STA start"));
 }
 
 /**
@@ -759,7 +759,7 @@ void WiFiMngt_WiFiEventStationStart(WiFiEvent_t event, WiFiEventInfo_t info) {
    @return none
 */
 void WiFiMngt_WiFiEventStationStop(WiFiEvent_t event, WiFiEventInfo_t info) {
-  SystemLog.AddEvent(LogLevel_Info, "WiFi STA stop");
+  SystemLog.AddEvent(LogLevel_Info, F("WiFi STA stop"));
 }
 
 /**
@@ -769,7 +769,7 @@ void WiFiMngt_WiFiEventStationStop(WiFiEvent_t event, WiFiEventInfo_t info) {
    @return none
 */
 void WiFiMngt_WiFiEventStationConnected(WiFiEvent_t event, WiFiEventInfo_t info) {
-  SystemLog.AddEvent(LogLevel_Info, "WiFi connected to STA");
+  SystemLog.AddEvent(LogLevel_Info, F("WiFi connected to STA"));
 }
 
 /**
@@ -803,7 +803,7 @@ void WiFiMngt_WiFiEventGotIP(WiFiEvent_t event, WiFiEventInfo_t info) {
    @return none
 */
 void WiFiMngt_WiFiEventLostIP(WiFiEvent_t event, WiFiEventInfo_t info) {
-  SystemLog.AddEvent(LogLevel_Info, "WiFi lost IP address");
+  SystemLog.AddEvent(LogLevel_Info, F("WiFi lost IP address"));
 }
 
 /**
@@ -855,7 +855,7 @@ void WiFiMngt_WiFiEventStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t in
    @return none
 */
 void WiFiMngt_WiFiEventApStart(WiFiEvent_t event, WiFiEventInfo_t info) {
-  SystemLog.AddEvent(LogLevel_Info, "WiFi AP start");
+  SystemLog.AddEvent(LogLevel_Info, F("WiFi AP start"));
 }
 
 /**
@@ -865,7 +865,7 @@ void WiFiMngt_WiFiEventApStart(WiFiEvent_t event, WiFiEventInfo_t info) {
    @return none
 */
 void WiFiMngt_WiFiEventApStop(WiFiEvent_t event, WiFiEventInfo_t info) {
-  SystemLog.AddEvent(LogLevel_Info, "WiFi AP stop");
+  SystemLog.AddEvent(LogLevel_Info, F("WiFi AP stop"));
 }
 
 /**
@@ -915,7 +915,7 @@ void WiFiMngt_WiFiEventApStaIpAssigned(WiFiEvent_t event, WiFiEventInfo_t info) 
    @return none
 */
 void WiFiMngt_WiFiEventApStaProbeReqRecved(WiFiEvent_t event, WiFiEventInfo_t info) {
-  SystemLog.AddEvent(LogLevel_Info, "WiFi AP STA receive probe request packet in soft-AP interface");
+  SystemLog.AddEvent(LogLevel_Info, F("WiFi AP STA receive probe request packet in soft-AP interface"));
 }
 
 /* EOF */

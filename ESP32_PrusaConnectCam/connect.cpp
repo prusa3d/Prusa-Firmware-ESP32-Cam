@@ -35,7 +35,7 @@ PrusaConnect::PrusaConnect(Configuration *i_conf, Logs *i_log, Camera *i_camera)
  * @return none
  */
 void PrusaConnect::Init() {
-  log->AddEvent(LogLevel_Info, "Init PrusaConnect lib");
+  log->AddEvent(LogLevel_Info, F("Init PrusaConnect lib"));
   TakePicture();
 }
 
@@ -46,7 +46,7 @@ void PrusaConnect::Init() {
  * @return none
  */
 void PrusaConnect::LoadCfgFromEeprom() {
-  log->AddEvent(LogLevel_Info, "Load PrusaConnect CFG from EEPROM");
+  log->AddEvent(LogLevel_Info, F("Load PrusaConnect CFG from EEPROM"));
   Token = config->LoadToken();
   Fingerprint = config->LoadFingerprint();
   RefreshInterval = config->LoadRefreshInterval();
@@ -74,9 +74,8 @@ void PrusaConnect::TakePicture() {
  * @return true - if data was sent successfully
  * @return false - if data was not sent successfully
  */
-bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i_content_type, String i_type, String i_url_path, SendDataToBackendType i_data_type) { 
+bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i_content_type, String i_type, String i_url_path, SendDataToBackendType i_data_type) {
   WiFiClientSecure client;
-  Server_pause();
   BackendReceivedStatus = "";
   bool ret = false;
   log->AddEvent(LogLevel_Info, "Sending " + i_type + " to PrusaConnect");
@@ -85,7 +84,7 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
   if ((Fingerprint.length() > 0) && (Token.length() > 0)) {
     client.setCACert(root_CAs);
     client.setTimeout(1000);
-    log->AddEvent(LogLevel_Verbose, "Connecting to server...");
+    log->AddEvent(LogLevel_Verbose, F("Connecting to server..."));
 
     /* connecting to server */
     if (!client.connect(PrusaConnectHostname.c_str(), 443)) {
@@ -102,7 +101,7 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
 
     } else {
       /* send data to server */
-      log->AddEvent(LogLevel_Verbose, "Connected to server!");
+      log->AddEvent(LogLevel_Verbose, F("Connected to server!"));
       client.println("PUT https://" + PrusaConnectHostname + i_url_path + " HTTP/1.0");
       client.println("Host: " + PrusaConnectHostname);
       client.println("User-Agent: ESP32-CAM");
@@ -111,14 +110,14 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
       client.println("Content-Type: " + i_content_type);
       client.println("fingerprint: " + Fingerprint);
       client.println("token: " + Token);
-      client.print("Content-Length: ");
-      client.println(i_data_length);
+      client.println("Content-Length: " + String(i_data_length));
       client.println();
 
       esp_task_wdt_reset();
+      /* sending photo */
       if (SendPhoto == i_data_type) {
-        log->AddEvent(LogLevel_Verbose, "Send data photo");
-        int index;
+        log->AddEvent(LogLevel_Verbose, F("Send data photo"));
+        int index = 0;
         /* send data in fragments */
         for (index = 0; index < i_data_length; index = index + PHOTO_FRAGMENT_SIZE) {
           camera->CopyPhoto(i_data, index, index + PHOTO_FRAGMENT_SIZE);
@@ -128,14 +127,15 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
 
         /* send rest of data */
         index -= PHOTO_FRAGMENT_SIZE;
-        if((i_data_length > index) && ((i_data_length - index) > 0)) {
+        if ((i_data_length > index) && ((i_data_length - index) > 0)) {
           camera->CopyPhoto(i_data, index, i_data_length);
           client.print(*i_data);
           log->AddEvent(LogLevel_Verbose, String(i_data_length) + "/" + String(i_data_length));
         }
 
+      /* sending device information */
       } else if (SendInfo == i_data_type) {
-        log->AddEvent(LogLevel_Verbose, "Send data info");
+        log->AddEvent(LogLevel_Verbose, F("Send data info"));
         client.print(*i_data);
       }
 
@@ -163,26 +163,25 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
           }
         }
       }
-      log->AddEvent(LogLevel_Verbose, "Full response: " + fullResponse); 
+      log->AddEvent(LogLevel_Verbose, "Full response: " + fullResponse);
 
       BackendAvailability = BackendAvailable;
       client.stop();
     }
   } else {
     /* err message */
-    log->AddEvent(LogLevel_Verbose, "ERROR SEND DATA TO SERVER! INVALID DATA!");
+    log->AddEvent(LogLevel_Verbose, F("ERROR SEND DATA TO SERVER! INVALID DATA!"));
     log->AddEvent(LogLevel_Verbose, "Fingerprint: " + Fingerprint);
     log->AddEvent(LogLevel_Verbose, "Token: " + Token);
 
     if (Fingerprint.length() == 0) {
-      BackendReceivedStatus = "Missing fingerprint";
+      BackendReceivedStatus = F("Missing fingerprint");
     } else if (Token.length() == 0) {
-      BackendReceivedStatus = "Missing token";
+      BackendReceivedStatus = F("Missing token");
     }
   }
 
   log->AddEvent(LogLevel_Info, "Upload done. Response code: " + BackendReceivedStatus + " ,BA:" + CovertBackendAvailabilitStatusToString(BackendAvailability));
-  Server_resume();
   return ret;
 }
 
@@ -193,7 +192,8 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
  * @return none
  */
 void PrusaConnect::SendPhotoToBackend() {
-  log->AddEvent(LogLevel_Info, "Start sending photo to prusaconnect");
+  log->AddEvent(LogLevel_Info, F("Start sending photo to prusaconnect"));
+  String Photo = "";
   SendDataToBackend(&Photo, camera->GetPhotoSize(), "image/jpg", "Photo", HOST_URL_CAM_PATH, SendPhoto);
   SystemLog.AddEvent(LogLevel_Info, "Free RAM: " + String(ESP.getFreeHeap()) + " bytes");
 }
@@ -207,7 +207,7 @@ void PrusaConnect::SendInfoToBackend() {
     return;
 
   } else {
-    log->AddEvent(LogLevel_Info, "Start sending device information to prusaconnect");
+    log->AddEvent(LogLevel_Info, F("Start sending device information to prusaconnect"));
 
     JsonDocument json_data;
     String json_string = "";
@@ -253,40 +253,40 @@ void PrusaConnect::TakePictureAndSendToBackend() {
 String PrusaConnect::ProcessHttpResponseCode(int code) {
   String ret = "";
   switch (code) {
-  case 200:
-    ret = "200 - OK";
-    break;
-  case 201:
-    ret = "201 - OK entry created";
-    break;
-  case 204:
-    ret = "204 - Upload OK";
-    break;
-  case 304:
-    ret = "304 - Response has not been modified";
-    break;
-  case 400:
-    ret = "400 - Some data received is not valid";
-    break;
-  case 401:
-    ret = "401 - Missing security toker or it is not valid";
-    break;
-  case 403:
-    ret = "403 - Security toke is not valid or is outdated";
-    break;
-  case 404:
-    ret = "404 - Entity not found or invalid auth token";
-    break;
-  case 409:
-    ret = "409 - Conflict with the state of target resource (user error)";
-    break;
-  case 503:
-    ret += "503 - Service is unavailable at this moment. Try again later";
-    break;
-  default:
-    ret = String(code);
-    ret += " - unknown error code";
-    break;
+    case 200:
+      ret = F("200 - OK");
+      break;
+    case 201:
+      ret = F("201 - OK entry created");
+      break;
+    case 204:
+      ret = F("204 - Upload OK");
+      break;
+    case 304:
+      ret = F("304 - Response has not been modified");
+      break;
+    case 400:
+      ret = F("400 - Some data received is not valid");
+      break;
+    case 401:
+      ret = F("401 - Missing security toker or it is not valid");
+      break;
+    case 403:
+      ret = F("403 - Security toke is not valid or is outdated");
+      break;
+    case 404:
+      ret = F("404 - Entity not found or invalid auth token");
+      break;
+    case 409:
+      ret = F("409 - Conflict with the state of target resource (user error)");
+      break;
+    case 503:
+      ret += F("503 - Service is unavailable at this moment. Try again later");
+      break;
+    default:
+      ret = String(code);
+      ret += F(" - unknown error code");
+      break;
   }
 
   return ret;
@@ -301,39 +301,39 @@ String PrusaConnect::ProcessHttpResponseCode(int code) {
 bool PrusaConnect::ProcessHttpResponseCodeBool(int code) {
   bool ret = false;
   switch (code) {
-  case 200:
-    ret = true;
-    break;
-  case 201:
-    ret = true;
-    break;
-  case 204:
-    ret = true;
-    break;
-  case 304:
-    ret = false;
-    break;
-  case 400:
-    ret = false;
-    break;
-  case 401:
-    ret = false;
-    break;
-  case 403:
-    ret = false;
-    break;
-  case 404:
-    ret = false;
-    break;
-  case 409:
-    ret = false;
-    break;
-  case 503:
-    ret = false;
-    break;
-  default:
-    ret = false;
-    break;
+    case 200:
+      ret = true;
+      break;
+    case 201:
+      ret = true;
+      break;
+    case 204:
+      ret = true;
+      break;
+    case 304:
+      ret = false;
+      break;
+    case 400:
+      ret = false;
+      break;
+    case 401:
+      ret = false;
+      break;
+    case 403:
+      ret = false;
+      break;
+    case 404:
+      ret = false;
+      break;
+    case 409:
+      ret = false;
+      break;
+    case 503:
+      ret = false;
+      break;
+    default:
+      ret = false;
+      break;
   }
 
   return ret;
@@ -458,18 +458,18 @@ BackendAvailabilitStatus PrusaConnect::GetBackendAvailabilitStatus() {
 String PrusaConnect::CovertBackendAvailabilitStatusToString(BackendAvailabilitStatus i_data) {
   String ret = "";
   switch (i_data) {
-  case WaitForFirstConnection:
-    ret = "Wait for first connection";
-    break;
-  case BackendAvailable:
-    ret = "Backend available";
-    break;
-  case BackendUnavailable:
-    ret = "Backend unavailable";
-    break;
-  default:
-    ret = "Unknown";
-    break;
+    case WaitForFirstConnection:
+      ret = F("Wait for first connection");
+      break;
+    case BackendAvailable:
+      ret = F("Backend available");
+      break;
+    case BackendUnavailable:
+      ret = F("Backend unavailable");
+      break;
+    default:
+      ret = F("Unknown");
+      break;
   }
 
   return ret;
@@ -491,7 +491,7 @@ void PrusaConnect::IncreaseSendingIntervalCounter() {
  * @param uint8_t i_data - counter
  * @return none
  */
-void PrusaConnect::SetSendingIntervalCounter(uint8_t i_data) { 
+void PrusaConnect::SetSendingIntervalCounter(uint8_t i_data) {
   SendingIntervalCounter = i_data;
 }
 

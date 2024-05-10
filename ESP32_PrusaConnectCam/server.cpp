@@ -32,11 +32,11 @@ void Server_LoadCfg() {
    @return none
 */
 void Server_InitWebServer() {
-  SystemLog.AddEvent(LogLevel_Info, "Starting init WEB server");
+  SystemLog.AddEvent(LogLevel_Info, F("Starting init WEB server"));
 
   /* route for get last capture photo */
   server.on("/saved-photo.jpg", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: get photo");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: get photo"));
     if (Server_CheckBasicAuth(request) == false)
       return;
 
@@ -45,7 +45,7 @@ void Server_InitWebServer() {
 
   /* route to jquery */
   server.on("/jquery-3.7.0.min.js", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: Get jquery-3.7.0.min.js");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get jquery-3.7.0.min.js"));
     if (Server_CheckBasicAuth(request) == false)
       return;
 
@@ -75,7 +75,7 @@ void Server_InitWebServer() {
 void Server_InitWebServer_JsonData() {
   /* route for json with cfg parameters */
   server.on("/json_input", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: get json_input");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: get json_input"));
     if (Server_CheckBasicAuth(request) == false)
       return;
     request->send_P(200, F("text/plain"), Server_GetJsonData().c_str());
@@ -83,7 +83,7 @@ void Server_InitWebServer_JsonData() {
 
   /* route for json with wifi networks */
   server.on("/json_wifi", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: get json_wifi");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: get json_wifi"));
     if (Server_CheckBasicAuth(request) == false)
       return;
     request->send_P(200, F("text/plain"), SystemWifiMngt.GetAvailableWifiNetworks().c_str());
@@ -91,7 +91,7 @@ void Server_InitWebServer_JsonData() {
 
   /* route for san wi-fi networks */
   server.on("/wifi_scan", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: scan WI-FI networks");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: scan WI-FI networks"));
     if (Server_CheckBasicAuth(request) == false)
       return;
     request->send_P(200, F("text/html"), MSG_SCANNING);
@@ -123,7 +123,7 @@ void Server_InitWebServer_JsonData() {
 void Server_InitWebServer_WebPages() {
   /* Route for root / web page */
   server.on("/", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: Get index.html");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get index.html"));
     if (Server_CheckBasicAuth(request) == false)
       return;
     
@@ -132,7 +132,7 @@ void Server_InitWebServer_WebPages() {
 
   /* Route for styles */
   server.on("/styles.css", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: Get styles.css");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get styles.css"));
     if (Server_CheckBasicAuth(request) == false)
       return;
 
@@ -141,7 +141,7 @@ void Server_InitWebServer_WebPages() {
 
   /* Route for java scripts */
   server.on("/scripts.js", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: Get scripts.js");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get scripts.js"));
     if (Server_CheckBasicAuth(request) == false)
       return;
     request->send_P(200, "application/javascript", scripts_js);
@@ -150,7 +150,7 @@ void Server_InitWebServer_WebPages() {
 
   /* Route for config web page */
   server.on("/page_config.html", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: Get page_config.html");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get page_config.html"));
     if (Server_CheckBasicAuth(request) == false)
       return;
     
@@ -159,7 +159,7 @@ void Server_InitWebServer_WebPages() {
 
   /* Route for wifi web page */
   server.on("/page_wifi.html", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: Get page_wifi.html");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get page_wifi.html"));
     if (Server_CheckBasicAuth(request) == false)
       return;
     
@@ -168,7 +168,7 @@ void Server_InitWebServer_WebPages() {
 
   /* Route for auth web page */
   server.on("/page_auth.html", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: Get page_auth.html");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get page_auth.html"));
     if (Server_CheckBasicAuth(request) == false)
       return;
     
@@ -177,7 +177,7 @@ void Server_InitWebServer_WebPages() {
 
   /* Route for system web page */
   server.on("/page_system.html", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: Get page_system.html");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get page_system.html"));
     if (Server_CheckBasicAuth(request) == false)
       return;
     
@@ -186,7 +186,7 @@ void Server_InitWebServer_WebPages() {
 
   /* route to license page */
   server.on("/license.html", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: Get license.html");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get license.html"));
     if (Server_CheckBasicAuth(request) == false)
       return;
     
@@ -195,7 +195,7 @@ void Server_InitWebServer_WebPages() {
 
   /* route to gtac page */
   server.on("/gtac.html", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: Get gtac.html");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get gtac.html"));
     if (Server_CheckBasicAuth(request) == false)
       return;
     
@@ -204,7 +204,7 @@ void Server_InitWebServer_WebPages() {
 
   /* route to privacy policy page */
   server.on("/privacypolicy.html", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: Get privacypolicy.html");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get privacypolicy.html"));
     if (Server_CheckBasicAuth(request) == false)
       return;
     
@@ -213,7 +213,7 @@ void Server_InitWebServer_WebPages() {
 
   /* route to cookie page */
   server.on("/cookie.html", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: Get cookie.html");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get cookie.html"));
     if (Server_CheckBasicAuth(request) == false)
       return;
     
@@ -222,7 +222,7 @@ void Server_InitWebServer_WebPages() {
 
   /* route to logs page */
   server.on("/get_logs", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: Get get_logs.html");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get get_logs.html"));
     if (Server_CheckBasicAuth(request) == false)
       return;
 
@@ -242,7 +242,7 @@ void Server_InitWebServer_WebPages() {
 void Server_InitWebServer_Icons() {
   /* route to logo */
   server.on("/esp32_cam.svg", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: Get esp32_cam.svg");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get esp32_cam.svg"));
     if (Server_CheckBasicAuth(request) == false)
       return;
     
@@ -251,7 +251,7 @@ void Server_InitWebServer_Icons() {
 
   /* route to github icon */
   server.on("/github-icon.svg", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: Get github-icon.svg");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get github-icon.svg"));
     if (Server_CheckBasicAuth(request) == false)
       return;
     
@@ -260,7 +260,7 @@ void Server_InitWebServer_Icons() {
 
   /* route to light on icon */
   server.on("/light-on-icon.svg", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: Get light-icon.svg");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get light-icon.svg"));
     if (Server_CheckBasicAuth(request) == false)
       return;
 
@@ -269,7 +269,7 @@ void Server_InitWebServer_Icons() {
 
   /* route to light off icon */
   server.on("/light-off-icon.svg", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: Get light-icon.svg");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get light-icon.svg"));
     if (Server_CheckBasicAuth(request) == false)
       return;
     
@@ -278,7 +278,7 @@ void Server_InitWebServer_Icons() {
 
   /* route to refresh icon */
   server.on("/refresh-icon.svg", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: Get refresh-icon.svg");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get refresh-icon.svg"));
     if (Server_CheckBasicAuth(request) == false)
       return;
 
@@ -287,7 +287,7 @@ void Server_InitWebServer_Icons() {
 
   /* route to reboot icon */
   server.on("/reboot-icon.svg", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: Get reboot-icon.svg");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get reboot-icon.svg"));
     if (Server_CheckBasicAuth(request) == false)
       return;
 
@@ -296,7 +296,7 @@ void Server_InitWebServer_Icons() {
 
   /* route to wifi icon */
   server.on("/wifi-icon-1.svg", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: Get wifi-icon-1.svg");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get wifi-icon-1.svg"));
     if (Server_CheckBasicAuth(request) == false)
       return;
 
@@ -305,7 +305,7 @@ void Server_InitWebServer_Icons() {
 
   /* route to wifi icon */
   server.on("/wifi-icon-2.svg", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: Get wifi-icon-2.svg");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get wifi-icon-2.svg"));
     if (Server_CheckBasicAuth(request) == false)
       return;
 
@@ -314,7 +314,7 @@ void Server_InitWebServer_Icons() {
 
   /* route to wifi icon */
   server.on("/wifi-icon-3.svg", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: Get wifi-icon-3.svg");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get wifi-icon-3.svg"));
     if (Server_CheckBasicAuth(request) == false)
       return;
 
@@ -323,7 +323,7 @@ void Server_InitWebServer_Icons() {
 
   /* route to wifi icon */
   server.on("/wifi-icon-4.svg", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: Get wifi-icon-4.svg");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get wifi-icon-4.svg"));
     if (Server_CheckBasicAuth(request) == false)
       return;
 
@@ -332,7 +332,7 @@ void Server_InitWebServer_Icons() {
 
   /* route to wifi icon */
   server.on("/wifi-icon-0.svg", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: Get wifi-icon-0.svg");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get wifi-icon-0.svg"));
     if (Server_CheckBasicAuth(request) == false)
       return;
 
@@ -341,7 +341,7 @@ void Server_InitWebServer_Icons() {
 
   /* route to eye icon */
   server.on("/eye.svg", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: Get eye.svg");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get eye.svg"));
     if (Server_CheckBasicAuth(request) == false)
       return;
 
@@ -350,7 +350,7 @@ void Server_InitWebServer_Icons() {
 
   /* route to eye-slash icon */
   server.on("/eye-slash.svg", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: Get eye-slash.svg");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get eye-slash.svg"));
     if (Server_CheckBasicAuth(request) == false)
       return;
 
@@ -359,7 +359,7 @@ void Server_InitWebServer_Icons() {
 
   /* route to favicon */
   server.on("/favicon.svg", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: Get favicon.svg");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get favicon.svg"));
     if (Server_CheckBasicAuth(request) == false)
       return;
 
@@ -375,7 +375,7 @@ void Server_InitWebServer_Icons() {
 void Server_InitWebServer_Actions() {
   /*route for capture photo */
   server.on("/action_capture", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: /action_capture Take photo");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: /action_capture Take photo"));
     if (Server_CheckBasicAuth(request) == false)
       return;
     SystemCamera.CapturePhoto();
@@ -384,7 +384,7 @@ void Server_InitWebServer_Actions() {
 
   /* route for send photo to prusa backend */
   server.on("/action_send", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: /action_send send photo to cloud");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: /action_send send photo to cloud"));
     if (Server_CheckBasicAuth(request) == false)
       return;
     Connect.SetSendingIntervalExpired();
@@ -393,7 +393,7 @@ void Server_InitWebServer_Actions() {
 
   /* route for change LED status */
   server.on("/action_led", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: /action_led Change LED status");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: /action_led Change LED status"));
     if (Server_CheckBasicAuth(request) == false)
       return;
 
@@ -405,7 +405,7 @@ void Server_InitWebServer_Actions() {
 
   /* reboot MCU */
   server.on("/action_reboot", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: /action_reboo reboot MCU!");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: /action_reboo reboot MCU!"));
     if (Server_CheckBasicAuth(request) == false)
       return;
     request->send_P(200, F("text/html"), MSG_REBOOT_MCU);
@@ -422,7 +422,7 @@ void Server_InitWebServer_Actions() {
 void Server_InitWebServer_Sets() {
   /* route to set integer value */
   server.on("/set_int", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: /set_int");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: /set_int"));
     if (Server_CheckBasicAuth(request) == false)
       return;
 
@@ -431,24 +431,20 @@ void Server_InitWebServer_Sets() {
 
     /* set refresh interval */
     if (request->hasParam("refresh")) {
-      SystemLog.AddEvent(LogLevel_Verbose, "Set refresh interval");
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set refresh interval"));
       uint8_t value = request->getParam("refresh")->value().toInt();
       if ((value >= REFRESH_INTERVAL_MIN) && (value <= REFRESH_INTERVAL_MAX)) {
         Connect.SetRefreshInterval(value);
         response_msg = MSG_SAVE_OK;
       } else {
-        response_msg = "ERROR! Bad value. Minimum is ";
-        response_msg += String(REFRESH_INTERVAL_MIN);
-        response_msg += ", maximum ";
-        response_msg += String(REFRESH_INTERVAL_MAX);
-        response_msg += " second";
+        response_msg = "ERROR! Bad value. Minimum is " + String(REFRESH_INTERVAL_MIN) + ", maximum " + String(REFRESH_INTERVAL_MAX) + " second";
       }
       response = true;
     }
 
     /* set saturation */
     if (request->hasParam("saturation")) {
-      SystemLog.AddEvent(LogLevel_Verbose, "set saturation");
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set saturation"));
       SystemCamera.SetSaturation(request->getParam("saturation")->value().toInt());
       response_msg = MSG_SAVE_OK;
       response = true;
@@ -456,7 +452,7 @@ void Server_InitWebServer_Sets() {
 
     /* set contrast */
     if (request->hasParam("contrast")) {
-      SystemLog.AddEvent(LogLevel_Verbose, "set contrast");
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set contrast"));
       SystemCamera.SetContrast(request->getParam("contrast")->value().toInt());
       response_msg = MSG_SAVE_OK;
       response = true;
@@ -464,7 +460,7 @@ void Server_InitWebServer_Sets() {
 
     /* set brightness */
     if (request->hasParam("brightness")) {
-      SystemLog.AddEvent(LogLevel_Verbose, "Set brightness");
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set brightness"));
       SystemCamera.SetBrightness(request->getParam("brightness")->value().toInt());
       response_msg = MSG_SAVE_OK;
       response = true;
@@ -472,7 +468,7 @@ void Server_InitWebServer_Sets() {
 
     /* set frame size */
     if (request->hasParam("framesize")) {
-      SystemLog.AddEvent(LogLevel_Verbose, "Set framesize");
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set framesize"));
       SystemCamera.SetFrameSize(request->getParam("framesize")->value().toInt());
       response_msg = MSG_SAVE_OK;
       response = true;
@@ -480,7 +476,7 @@ void Server_InitWebServer_Sets() {
 
     /* set photo quality */
     if (request->hasParam("photo_quality")) {
-      SystemLog.AddEvent(LogLevel_Verbose, "Set photo_quality");
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set photo_quality"));
       SystemCamera.SetPhotoQuality(73 - request->getParam("photo_quality")->value().toInt());
       response_msg = MSG_SAVE_OK;
       response = true;
@@ -488,7 +484,7 @@ void Server_InitWebServer_Sets() {
 
     /* set flash time */
     if (request->hasParam("flash_time")) {
-      SystemLog.AddEvent(LogLevel_Verbose, "Set flash_time");
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set flash_time"));
       SystemCamera.SetCameraFlashTime(request->getParam("flash_time")->value().toInt());
       response_msg = MSG_SAVE_OK;
       response = true;
@@ -496,7 +492,7 @@ void Server_InitWebServer_Sets() {
 
     /* set white balancing mode */
     if (request->hasParam("wb_mode")) {
-      SystemLog.AddEvent(LogLevel_Verbose, "Set wb_mode");
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set wb_mode"));
       SystemCamera.SetAwbMode(request->getParam("wb_mode")->value().toInt());
       response_msg = MSG_SAVE_OK;
       response = true;
@@ -504,7 +500,7 @@ void Server_InitWebServer_Sets() {
 
     /* set auto exposition level */
     if (request->hasParam("ae_level")) {
-      SystemLog.AddEvent(LogLevel_Verbose, "Set ae_level");
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set ae_level"));
       SystemCamera.SetAeLevel(request->getParam("ae_level")->value().toInt());
       response_msg = MSG_SAVE_OK;
       response = true;
@@ -512,7 +508,7 @@ void Server_InitWebServer_Sets() {
 
     /* set auto exposition controll value */
     if (request->hasParam("aec_value")) {
-      SystemLog.AddEvent(LogLevel_Verbose, "Set aec_value");
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set aec_value"));
       SystemCamera.SetAecValue(request->getParam("aec_value")->value().toInt());
       response_msg = MSG_SAVE_OK;
       response = true;
@@ -520,7 +516,7 @@ void Server_InitWebServer_Sets() {
 
     /* set auto gain correction value */
     if (request->hasParam("agc_gain")) {
-      SystemLog.AddEvent(LogLevel_Verbose, "Set agc_gain");
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set agc_gain"));
       SystemCamera.SetAgcGain(request->getParam("agc_gain")->value().toInt());
       response_msg = MSG_SAVE_OK;
       response = true;
@@ -528,7 +524,7 @@ void Server_InitWebServer_Sets() {
 
     /* set log level /set_int?log_level=2 */
     if (request->hasParam("log_level")) {
-      SystemLog.AddEvent(LogLevel_Verbose, "Set log_level");
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set log_level"));
       LogLevel_enum level = (LogLevel_enum)request->getParam("log_level")->value().toInt();
       if ((level >= LogLevel_Error) && (level <= LogLevel_Verbose)) {
         SystemConfig.SaveLogLevel(level);
@@ -548,7 +544,7 @@ void Server_InitWebServer_Sets() {
 
   /* route to set bool value */
   server.on("/set_bool", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: /set_bool");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: /set_bool"));
     if (Server_CheckBasicAuth(request) == false)
       return;
 
@@ -556,84 +552,84 @@ void Server_InitWebServer_Sets() {
 
     /* check cfg for hmirror */
     if (request->hasParam("hmirror")) {
-      SystemLog.AddEvent(LogLevel_Verbose, "Set hmirror");
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set hmirror"));
       SystemCamera.SetHMirror(Server_TransfeStringToBool(request->getParam("hmirror")->value()));
       response = true;
     }
 
     /* set vertical flip */
     if (request->hasParam("vflip")) {
-      SystemLog.AddEvent(LogLevel_Verbose, "Set hmirror");
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set hmirror"));
       SystemCamera.SetVFlip(Server_TransfeStringToBool(request->getParam("vflip")->value()));
       response = true;
     }
 
     /* set lens correction */
     if (request->hasParam("lenc")) {
-      SystemLog.AddEvent(LogLevel_Verbose, "Set lensc");
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set lensc"));
       SystemCamera.SetLensC(Server_TransfeStringToBool(request->getParam("lenc")->value()));
       response = true;
     }
 
     /* set exposure controll */
     if (request->hasParam("exposure_ctrl")) {
-      SystemLog.AddEvent(LogLevel_Verbose, "Set exposure ctrl");
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set exposure ctrl"));
       SystemCamera.SetExposureCtrl(Server_TransfeStringToBool(request->getParam("exposure_ctrl")->value()));
       response = true;
     }
 
     /* set auto white balancing */
     if (request->hasParam("awb")) {
-      SystemLog.AddEvent(LogLevel_Verbose, "Set awb");
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set awb"));
       SystemCamera.SetAwb(Server_TransfeStringToBool(request->getParam("awb")->value()));
       response = true;
     }
 
     /* set auto white balancing gain */
     if (request->hasParam("awb_gain")) {
-      SystemLog.AddEvent(LogLevel_Verbose, "Set awb_gain");
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set awb_gain"));
       SystemCamera.SetAwbGain(Server_TransfeStringToBool(request->getParam("awb_gain")->value()));
       response = true;
     }
 
     /* set bad pixel correction */
     if (request->hasParam("bpc")) {
-      SystemLog.AddEvent(LogLevel_Verbose, "Set bpc");
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set bpc"));
       SystemCamera.SetBpc(Server_TransfeStringToBool(request->getParam("bpc")->value()));
       response = true;
     }
 
     /* set white pixel correction */
     if (request->hasParam("wpc")) {
-      SystemLog.AddEvent(LogLevel_Verbose, "Set wpc");
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set wpc"));
       SystemCamera.SetWpc(Server_TransfeStringToBool(request->getParam("wpc")->value()));
       response = true;
     }
 
     /* set raw gama correction */
     if (request->hasParam("raw_gama")) {
-      SystemLog.AddEvent(LogLevel_Verbose, "Set raw_gama");
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set raw_gama"));
       SystemCamera.SetRawGama(Server_TransfeStringToBool(request->getParam("raw_gama")->value()));
       response = true;
     }
 
     /* set automatic exposure correction */
     if (request->hasParam("aec2")) {
-      SystemLog.AddEvent(LogLevel_Verbose, "Set aec2");
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set aec2"));
       SystemCamera.SetAec2(Server_TransfeStringToBool(request->getParam("aec2")->value()));
       response = true;
     }
 
     /* set gain controll */
     if (request->hasParam("gain_ctrl")) {
-      SystemLog.AddEvent(LogLevel_Verbose, "Set gain_ctrl");
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set gain_ctrl"));
       SystemCamera.SetGainCtrl(Server_TransfeStringToBool(request->getParam("gain_ctrl")->value()));
       response = true;
     }
 
     /* set flash */
     if (request->hasParam("flash")) {
-      SystemLog.AddEvent(LogLevel_Verbose, "Set flash");
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set flash"));
       SystemCamera.SetCameraFlashEnable(Server_TransfeStringToBool(request->getParam("flash")->value()));
       SystemCamera.SetFlashStatus(false);
       response = true;
@@ -646,7 +642,7 @@ void Server_InitWebServer_Sets() {
 
   /* route for set token for authentification to prusa backend*/
   server.on("/set_token", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: /set_token");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: /set_token"));
     if (Server_CheckBasicAuth(request) == false)
       return;
     request->send_P(200, F("text/html"), MSG_SAVE_OK);
@@ -658,7 +654,7 @@ void Server_InitWebServer_Sets() {
 
   /* route for set prusa connect hostname */
   server.on("/set_hostname", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: /set_hostname");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: /set_hostname"));
     if (Server_CheckBasicAuth(request) == false)
       return;
     request->send_P(200, F("text/html"), MSG_SAVE_OK);
@@ -670,7 +666,7 @@ void Server_InitWebServer_Sets() {
 
   /* route for set WI-FI credentials */
   server.on("/wifi_cfg", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: set WI-FI credentials");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: set WI-FI credentials"));
     if (Server_CheckBasicAuth(request) == false)
       return;
 
@@ -702,7 +698,7 @@ void Server_InitWebServer_Sets() {
 
   /* route for set basic auth */
   server.on("/basicauth_cfg", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: set basic auth user name and password");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: set basic auth user name and password"));
     bool ret = false;
     String ret_msg = "";
 
@@ -719,8 +715,7 @@ void Server_InitWebServer_Sets() {
         ret = true;
       } else {
         ret = false;
-        ret_msg = "Maximum username length: ";
-        ret_msg += String(EEPROM_ADDR_BASIC_AUTH_USERNAME_LENGTH);
+        ret_msg = "Maximum username length: " + String(EEPROM_ADDR_BASIC_AUTH_USERNAME_LENGTH);
       }
     }
 
@@ -734,8 +729,7 @@ void Server_InitWebServer_Sets() {
         ret = true;
       } else {
         ret = false;
-        ret_msg = "Maximum password length: ";
-        ret_msg += String(EEPROM_ADDR_BASIC_AUTH_PASSWORD_LENGTH);
+        ret_msg = "Maximum password length: " + String(EEPROM_ADDR_BASIC_AUTH_PASSWORD_LENGTH);
       }
     }
 
@@ -752,15 +746,14 @@ void Server_InitWebServer_Sets() {
       
     } else {
       String msg = MSG_SAVE_NOTOK;
-      msg += " ";
-      msg += ret_msg;
+      msg += " " + ret_msg;
       request->send_P(200, F("text/html"), msg.c_str());
     }
   });
 
   /* route for set firmware size */
   server.on("/set_firmware_size", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Info, "WEB server: /set_firmware_size");
+    SystemLog.AddEvent(LogLevel_Info, F("WEB server: /set_firmware_size"));
     if (Server_CheckBasicAuth(request) == false)
       return;
     request->send_P(200, F("text/html"), MSG_SAVE_OK);
@@ -774,7 +767,7 @@ void Server_InitWebServer_Sets() {
 
   /* route for set firmware size */
   server.on("/set_mdns", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: /set_mdns");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: /set_mdns"));
     if (Server_CheckBasicAuth(request) == false)
       return;
 
@@ -843,7 +836,7 @@ void Server_InitWebServer_Update() {
         FirmwareUpdate.Processing = false;
         if (Update.end(true)) {
           FirmwareUpdate.UpdatingStatus = String(SYSTEM_MSG_UPDATE_DONE);
-          SystemLog.AddEvent(LogLevel_Info, "Update FW from file done. Reboot MCU");
+          SystemLog.AddEvent(LogLevel_Info, F("Update FW from file done. Reboot MCU"));
         } else {
           Update.printError(Serial);
           SystemLog.AddEvent(LogLevel_Error, String(SYSTEM_MSG_UPDATE_FAIL));
@@ -854,7 +847,7 @@ void Server_InitWebServer_Update() {
 
   /* route for start web OTA update from server */
   server.on("/web_ota_update", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Info, "WEB server: /web_ota_update");
+    SystemLog.AddEvent(LogLevel_Info, F("WEB server: /web_ota_update"));
     if (Server_CheckBasicAuth(request) == false)
       return;
     request->send_P(200, F("text/html"), MSG_UPDATE_START);
@@ -873,7 +866,7 @@ void Server_InitWebServer_Update() {
 
   /* get OTA FW version on the server */
   server.on("/check_web_ota_update", HTTP_GET, [](AsyncWebServerRequest* request) {
-    SystemLog.AddEvent(LogLevel_Verbose, "WEB server: /check_web_ota_update");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: /check_web_ota_update"));
     if (Server_CheckBasicAuth(request) == false)
       return;
 
@@ -898,7 +891,7 @@ void Server_InitWebServer_Stream() {
 */
 void Server_pause() {
   server.end();
-  SystemLog.AddEvent(LogLevel_Verbose, "WEB server: pause");
+  SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: pause"));
 }
 
 /**
@@ -908,7 +901,7 @@ void Server_pause() {
 */
 void Server_resume() {
   server.begin();
-  SystemLog.AddEvent(LogLevel_Verbose, "WEB server: resume");
+  SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: resume"));
 }
 
 /**
@@ -932,13 +925,9 @@ void Server_handleCacheRequest(AsyncWebServerRequest* request, const char* conte
 void Server_handleNotFound(AsyncWebServerRequest* request) {
   String message = "URL not Found\n\n";
 
-  message += "URI: ";
-  message += request->url();
-  message += "\nMethod: ";
+  message += "URI: " + request->url() + "\nMethod: ";
   message += (request->method() == HTTP_GET) ? "GET" : "POST";
-  message += "\nArguments: ";
-  message += request->args();
-  message += "\n";
+  message += "\nArguments: " + String(request->args()) + "\n";
 
   for (uint8_t i = 0; i < request->args(); i++) {
     message += " " + request->argName(i) + ": " + request->arg(i) + "\n";
@@ -1017,7 +1006,7 @@ String Server_GetJsonData() {
 */
 bool Server_CheckBasicAuth(AsyncWebServerRequest* request) {
   if ((!request->authenticate(WebBasicAuth.UserName.c_str(), WebBasicAuth.Password.c_str())) && (true == WebBasicAuth.EnableAuth)) {
-    SystemLog.AddEvent(LogLevel_Verbose, "Unauthorized! Sending longin request");
+    SystemLog.AddEvent(LogLevel_Verbose, F("Unauthorized! Sending longin request"));
     request->requestAuthentication();
     return false;
   }

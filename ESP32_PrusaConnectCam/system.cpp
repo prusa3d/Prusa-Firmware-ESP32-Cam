@@ -17,7 +17,7 @@
    @return none
 */
 void System_Init() {
-  SystemLog.AddEvent(LogLevel_Info, "Init system lib");
+  SystemLog.AddEvent(LogLevel_Info, F("Init system lib"));
   /* show last reset status */
   String reason_simple = System_printMcuResetReasonSimple();
   SystemLog.AddEvent(LogLevel_Warning, "CPU reset reason: " + reason_simple);
@@ -51,21 +51,21 @@ void System_LoadCfg() {
 */
 void System_CheckIfPsramIsUsed() {
   if (psramFound()) {
-    SystemLog.AddEvent(LogLevel_Info, "PSRAM is used.");
+    SystemLog.AddEvent(LogLevel_Info, F("PSRAM is used."));
     void *ptr = malloc(100);
 
     if (ptr != NULL) {
       if (esp_ptr_external_ram(ptr)) {
-        SystemLog.AddEvent(LogLevel_Info, "malloc/new is using SPIRAM");
+        SystemLog.AddEvent(LogLevel_Info, F("malloc/new is using SPIRAM"));
       } else {
-        SystemLog.AddEvent(LogLevel_Info, "malloc/new is not using SPIRAM");
+        SystemLog.AddEvent(LogLevel_Info, F("malloc/new is not using SPIRAM"));
       }
       free(ptr);
     } else {
-      SystemLog.AddEvent(LogLevel_Info, "Failed to allocate memory");
+      SystemLog.AddEvent(LogLevel_Info, F("Failed to allocate memory"));
     }
   } else {
-    SystemLog.AddEvent(LogLevel_Info, "PSRAM is not used.");
+    SystemLog.AddEvent(LogLevel_Info, F("PSRAM is not used."));
   }
 }
 
@@ -95,9 +95,7 @@ void System_UpdateInit() {
 void System_Main() {
   /* check new FW version */
   if (false == FirmwareUpdate.CheckNewVersionAfterBoot) {
-    Server_pause();
     System_CheckNewVersion();
-    Server_resume();
   }
 
   /* task for download and flash FW from server */
@@ -114,7 +112,7 @@ void System_Main() {
 */
 void System_CheckNewVersion() {
   if (WL_CONNECTED == WiFi.status()) {
-    SystemLog.AddEvent(LogLevel_Info, "Check new FW version from OTA");
+    SystemLog.AddEvent(LogLevel_Info, F("Check new FW version from OTA"));
     FirmwareUpdate.CheckNewVersionAfterBoot = true;
     WiFiClientSecure client;
     client.setCACert(root_CAs_ota);
@@ -130,7 +128,7 @@ void System_CheckNewVersion() {
       SystemLog.AddEvent(LogLevel_Info, FirmwareUpdate.CheckNewVersionFwStatus);
 
     } else {
-      SystemLog.AddEvent(LogLevel_Verbose, "Connected to server!");
+      SystemLog.AddEvent(LogLevel_Verbose, F("Connected to server!"));
       client.println("GET https://" + String(OTA_UPDATE_API_SERVER) + String(OTA_UPDATE_API_URL) + " HTTP/1.0");
       client.println("Host: " + String(OTA_UPDATE_API_SERVER));
       client.println("User-Agent: " + String(DEVICE_HOSTNAME));
@@ -162,14 +160,14 @@ void System_CheckNewVersion() {
       DeserializationError error = deserializeJson(jsonDoc, Data);
 
       if (error) {
-        FirmwareUpdate.CheckNewVersionFwStatus = "Failed to parse JSON from OTA server!";
+        FirmwareUpdate.CheckNewVersionFwStatus = F("Failed to parse JSON from OTA server!");
         SystemLog.AddEvent(LogLevel_Warning, FirmwareUpdate.CheckNewVersionFwStatus);
         SystemLog.AddEvent(LogLevel_Warning, Data);
 
       } else {
         const char *firmwareVersion = jsonDoc["tag_name"];
         if (firmwareVersion) {
-          FirmwareUpdate.CheckNewVersionFwStatus = "Download successful";
+          FirmwareUpdate.CheckNewVersionFwStatus = F("Download successful");
           FirmwareUpdate.NewVersionFw = firmwareVersion;
           SystemLog.AddEvent(LogLevel_Info, "Available OTA firmware: " + FirmwareUpdate.NewVersionFw);
 
@@ -192,7 +190,7 @@ void System_CheckNewVersion() {
             }
           }
         } else {
-          FirmwareUpdate.CheckNewVersionFwStatus = "JSON key 'tag_name' from OTA server not found!";
+          FirmwareUpdate.CheckNewVersionFwStatus = F("JSON key 'tag_name' from OTA server not found!");
           SystemLog.AddEvent(LogLevel_Warning, FirmwareUpdate.CheckNewVersionFwStatus);
         }
       }
@@ -209,9 +207,9 @@ void System_OtaCloudUpdate() {
   if (true == FirmwareUpdate.StartOtaUpdate) {
     FirmwareUpdate.Processing = true;
     FirmwareUpdate.StartOtaUpdate = false;
-    FirmwareUpdate.UpdatingStatus = "Sync NTP time...";
+    FirmwareUpdate.UpdatingStatus = F("Sync NTP time...");
     SystemWifiMngt.SyncNtpTime();
-    FirmwareUpdate.UpdatingStatus = "Start updating";
+    FirmwareUpdate.UpdatingStatus = F("Start updating");
     System_OtaUpdateStart();
   }
 }
@@ -269,7 +267,7 @@ bool System_OtaUpdateStart() {
       break;
 
     case HTTP_UPDATE_NO_UPDATES:
-      FirmwareUpdate.UpdatingStatus = "No updates";
+      FirmwareUpdate.UpdatingStatus = F("No updates");
       break;
 
     case HTTP_UPDATE_OK:
@@ -303,7 +301,7 @@ void System_OtaUpdateProgressCB(int cur, int total) {
    @return none
 */
 void System_OtaUpdateStartCB() {
-  SystemLog.AddEvent(LogLevel_Info, "Start OTA update");
+  SystemLog.AddEvent(LogLevel_Info, F("Start OTA update"));
 }
 
 /**
@@ -312,7 +310,7 @@ void System_OtaUpdateStartCB() {
    @return none
 */
 void System_OtaUpdateEndCB() {
-  SystemLog.AddEvent(LogLevel_Info, "OTA update done");
+  SystemLog.AddEvent(LogLevel_Info, F("OTA update done"));
 }
 
 /**
@@ -333,52 +331,52 @@ String System_PrintMcuResetReason(int reason) {
   String ret = "";
   switch (reason) {
     case 1: /**<1,  Vbat power on reset*/
-      ret = "POWERON_RESET";
+      ret = F("POWERON_RESET");
       break;
     case 3: /**<3,  Software reset digital core*/
-      ret = "SW_RESET";
+      ret = F("SW_RESET");
       break;
     case 4: /**<4,  Legacy watch dog reset digital core*/
-      ret = "OWDT_RESET";
+      ret = F("OWDT_RESET");
       break;
     case 5: /**<5,  Deep Sleep reset digital core*/
-      ret = "DEEPSLEEP_RESET";
+      ret = F("DEEPSLEEP_RESET");
       break;
     case 6: /**<6,  Reset by SLC module, reset digital core*/
-      ret = "SDIO_RESET";
+      ret = F("SDIO_RESET");
       break;
     case 7: /**<7,  Timer Group0 Watch dog reset digital core*/
-      ret = "TG0WDT_SYS_RESET";
+      ret = F("TG0WDT_SYS_RESET");
       break;
     case 8: /**<8,  Timer Group1 Watch dog reset digital core*/
-      ret = "TG1WDT_SYS_RESET";
+      ret = F("TG1WDT_SYS_RESET");
       break;
     case 9: /**<9,  RTC Watch dog Reset digital core*/
-      ret = "RTCWDT_SYS_RESET";
+      ret = F("RTCWDT_SYS_RESET");
       break;
     case 10: /**<10, Instrusion tested to reset CPU*/
-      ret = "INTRUSION_RESET";
+      ret = F("INTRUSION_RESET");
       break;
     case 11: /**<11, Time Group reset CPU*/
-      ret = "TGWDT_CPU_RESET";
+      ret = F("TGWDT_CPU_RESET");
       break;
     case 12: /**<12, Software reset CPU*/
-      ret = "SW_CPU_RESET";
+      ret = F("SW_CPU_RESET");
       break;
     case 13: /**<13, RTC Watch dog Reset CPU*/
-      ret = "RTCWDT_CPU_RESET";
+      ret = F("RTCWDT_CPU_RESET");
       break;
     case 14: /**<14, for APP CPU, reseted by PRO CPU*/
-      ret = "EXT_CPU_RESET";
+      ret = F("EXT_CPU_RESET");
       break;
     case 15: /**<15, Reset when the vdd voltage is not stable*/
-      ret = "RTCWDT_BROWN_OUT_RESET";
+      ret = F("RTCWDT_BROWN_OUT_RESET");
       break;
     case 16: /**<16, RTC Watch dog reset digital core and rtc module*/
-      ret = "RTCWDT_RTC_RESET";
+      ret = F("RTCWDT_RTC_RESET");
       break;
     default:
-      ret = "NO_MEAN";
+      ret = F("NO_MEAN");
   }
 
   return ret;
@@ -395,40 +393,40 @@ String System_printMcuResetReasonSimple() {
 
   switch (reason) {
     case ESP_RST_UNKNOWN:
-      ret = "Reset reason can not be determined";
+      ret = F("Reset reason can not be determined");
       break;
     case ESP_RST_POWERON:
-      ret = "Reset due to power-on event";
+      ret = F("Reset due to power-on event");
       break;
     case ESP_RST_EXT:
-      ret = "Reset by external pin (not applicable for ESP32)";
+      ret = F("Reset by external pin (not applicable for ESP32)");
       break;
     case ESP_RST_SW:
-      ret = "Software reset via esp_restart";
+      ret = F("Software reset via esp_restart");
       break;
     case ESP_RST_PANIC:
-      ret = "Software reset due to exception/panic";
+      ret = F("Software reset due to exception/panic");
       break;
     case ESP_RST_INT_WDT:
-      ret = "Reset (software or hardware) due to interrupt watchdog";
+      ret = F("Reset (software or hardware) due to interrupt watchdog");
       break;
     case ESP_RST_TASK_WDT:
-      ret = "Reset due to task watchdog";
+      ret = F("Reset due to task watchdog");
       break;
     case ESP_RST_WDT:
-      ret = "Reset due to other watchdogs";
+      ret = F("Reset due to other watchdogs");
       break;
     case ESP_RST_DEEPSLEEP:
-      ret = "Reset after exiting deep sleep mode";
+      ret = F("Reset after exiting deep sleep mode");
       break;
     case ESP_RST_BROWNOUT:
-      ret = "Brownout reset (software or hardware)";
+      ret = F("Brownout reset (software or hardware)");
       break;
     case ESP_RST_SDIO:
-      ret = "Reset over SDIO";
+      ret = F("Reset over SDIO");
       break;
     default:
-      ret = "N/A";
+      ret = F("N/A");
       break;
   }
 
@@ -451,9 +449,6 @@ void System_TaskWifiManagement(void *pvParameters) {
     /* wifi reconnect after signal lost */
     SystemWifiMngt.WiFiReconnect();
 
-    SystemLog.AddEvent(LogLevel_Info, "Free RAM: " + String(ESP.getFreeHeap()) + " bytes");
-    SystemLog.AddEvent(LogLevel_Info, "Free SPIRAM: " + String(ESP.getFreePsram()) + " bytes");
-    SystemLog.AddEvent(LogLevel_Info, "Temperature: " + String(temperatureRead()) + " *C");
     SystemLog.AddEvent(LogLevel_Verbose, "WiFiManagement task. Stack free size: " + String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
 
     /* reset wdg */
@@ -478,6 +473,9 @@ void System_TaskMain(void *pvParameters) {
     /* for ota update */
     esp_task_wdt_reset();
     System_Main();
+    SystemLog.AddEvent(LogLevel_Info, "Free RAM: " + String(ESP.getFreeHeap()) + " bytes");
+    SystemLog.AddEvent(LogLevel_Info, "Free SPIRAM: " + String(ESP.getFreePsram()) + " bytes");
+    SystemLog.AddEvent(LogLevel_Info, "Temperature: " + String(temperatureRead()) + " *C");
     SystemLog.AddEvent(LogLevel_Verbose, "System task. Stack free size: " + String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
 
     /* reset wdg */
@@ -543,7 +541,7 @@ void System_TaskSdCardCheck(void *pvParameters) {
     /* check micro SD card */
     if ((true == SystemLog.GetCardDetectAfterBoot()) && (false == SystemLog.GetCardDetectedStatus())) {
       SystemLog.ReinitCard();
-      SystemLog.AddEvent(LogLevel_Warning, "Reinit micro SD card done!");
+      SystemLog.AddEvent(LogLevel_Warning, F("Reinit micro SD card done!"));
     }
     SystemLog.AddEvent(LogLevel_Verbose, "MicroSdCard task. Stack free size: " + String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
 
@@ -620,6 +618,7 @@ void System_TaskSysLed(void *pvParameters) {
     system_led.toggle();
     /* reset wdg */
     esp_task_wdt_reset();
+    SystemLog.AddEvent(LogLevel_Verbose, "SystemLed task. Stack free size: " + String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
 
     /* next start task */
     vTaskDelayUntil(&xLastWakeTime, system_led.getTimer() / portTICK_PERIOD_MS);

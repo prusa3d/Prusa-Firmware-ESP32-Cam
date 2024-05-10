@@ -51,12 +51,11 @@ private:
   uint8_t RefreshInterval;                        ///< interval for sending photo to backend
   String BackendReceivedStatus;                   ///< status of backend response
   BackendAvailabilitStatus BackendAvailability;   ///< status of backend availability
-  bool SendDeviceInformationToBackend;           ///< flag for sending device information to backend
+  bool SendDeviceInformationToBackend;            ///< flag for sending device information to backend
   uint8_t SendingIntervalCounter;                 ///< counter for sending interval, represents seconds
 
   String Token;                                   ///< token for backend communication
-  String Fingerprint;                             ///< fingerprint for backend communication
-  String Photo;                                   ///< photo for sending to backend        
+  String Fingerprint;                             ///< fingerprint for backend communication 
   String PrusaConnectHostname;                    ///< hostname of prusa connect backend          
 
   Configuration *config;                          ///< pointer to configuration object

@@ -14,7 +14,7 @@
 #define _MCU_CFG_H_
 
 /* ---------------- BASIC MCU CFG  --------------*/
-#define SW_VERSION                  "1.0.1"                 ///< SW version
+#define SW_VERSION                  "1.0.2-beta"                 ///< SW version
 #define SW_BUILD                    __DATE__ " " __TIME__   ///< build number
 #define CONSOLE_VERBOSE_DEBUG       false                   ///< enable/disable verbose debug log level for console
 #define DEVICE_HOSTNAME             "Prusa-ESP32cam"        ///< device hostname
@@ -22,7 +22,7 @@
 /* ------------ PRUSA BACKEND CFG  --------------*/
 #define HOST_URL_CAM_PATH           "/c/snapshot"           ///< path for sending photo to prusa connect
 #define HOST_URL_INFO_PATH          "/c/info"               ///< path for sending info to prusa connect
-#define REFRESH_INTERVAL_MIN        5                       ///< minimum refresh interval for sending photo to prusa connect [s]
+#define REFRESH_INTERVAL_MIN        10                      ///< minimum refresh interval for sending photo to prusa connect [s]
 #define REFRESH_INTERVAL_MAX        240                     ///< maximum refresh interval for sending photo to prusa connect [s]
 
 /* --------------- FLASH LED CFG  ---------------*/
@@ -89,6 +89,12 @@
 
 /* ----------------- WiFi CFG -------------------*/
 #define WIFI_STA_WDG_TIMEOUT        60000                   ///< STA watchdog timeout [ms]
+
+/* ----------------- NTP CFG --------------------*/
+#define NTP_SERVER_1                "pool.ntp.org"          ///< NTP server
+#define NTP_SERVER_2                "time.nist.gov"         ///< NTP server
+#define NTP_GTM_OFFSET_SEC          0                       ///< GMT offset in seconds. 0 = UTC. 3600 = GMT+1
+#define NTP_DAYLIGHT_OFFSET_SEC     0                       ///< daylight offset in seconds. 0 = no daylight saving time. 3600 = +1 hour
 
 /* ---------------- FACTORY CFG  ----------------*/
 #define FACTORY_CFG_PHOTO_REFRESH_INTERVAL    30                ///< in the second

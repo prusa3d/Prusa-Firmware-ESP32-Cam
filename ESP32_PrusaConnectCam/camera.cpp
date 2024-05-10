@@ -33,9 +33,9 @@ Camera::Camera(Configuration* i_conf, Logs* i_log, uint8_t i_FlashPin) {
    @return none
 */
 void Camera::Init() {
-  log->AddEvent(LogLevel_Info, "Init camera lib");
+  log->AddEvent(LogLevel_Info, F("Init camera lib"));
 
-  log->AddEvent(LogLevel_Info, "Init GPIO");
+  log->AddEvent(LogLevel_Info, F("Init GPIO"));
   ledcSetup(FLASH_PWM_CHANNEL, FLASH_PWM_FREQ, FLASH_PWM_RESOLUTION);
   ledcAttachPin(FLASH_GPIO_NUM, FLASH_PWM_CHANNEL);
   ledcWrite(FLASH_PWM_CHANNEL, FLASH_OFF_STATUS);
@@ -50,7 +50,7 @@ void Camera::Init() {
    @return none
 */
 void Camera::InitCameraModule() {
-  log->AddEvent(LogLevel_Info, "Init camera module");
+  log->AddEvent(LogLevel_Info, F("Init camera module"));
   /* Turn-off the 'brownout detector' */
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
   esp_err_t err;
@@ -92,18 +92,18 @@ void Camera::InitCameraModule() {
   CameraConfig.grab_mode = CAMERA_GRAB_LATEST;  /* CAMERA_GRAB_WHEN_EMPTY or CAMERA_GRAB_LATEST */
 
   if (CameraConfig.fb_location == CAMERA_FB_IN_DRAM) {
-    log->AddEvent(LogLevel_Verbose, "Camera frame buffer location: DRAM");
+    log->AddEvent(LogLevel_Verbose, F("Camera frame buffer location: DRAM"));
   } else if (CameraConfig.fb_location == CAMERA_FB_IN_PSRAM) {
-    log->AddEvent(LogLevel_Verbose, "Camera frame buffer location: PSRAM");
+    log->AddEvent(LogLevel_Verbose, F("Camera frame buffer location: PSRAM"));
   } else {
-    log->AddEvent(LogLevel_Verbose, "Camera frame buffer location: Unknown");
+    log->AddEvent(LogLevel_Verbose, F("Camera frame buffer location: Unknown"));
   }
 
   /* Camera init */
   err = esp_camera_init(&CameraConfig);
   if (err != ESP_OK) {
     log->AddEvent(LogLevel_Warning, "Camera init failed. Error: " + String(err, HEX));
-    log->AddEvent(LogLevel_Warning, "Reset ESP32-cam!");
+    log->AddEvent(LogLevel_Warning, F("Reset ESP32-cam!"));
     ESP.restart();
   }
 }
@@ -114,7 +114,7 @@ void Camera::InitCameraModule() {
    @return none
 */
 void Camera::LoadCameraCfgFromEeprom() {
-  log->AddEvent(LogLevel_Info, "Load camera CFG from EEPROM");
+  log->AddEvent(LogLevel_Info, F("Load camera CFG from EEPROM"));
   PhotoQuality = config->LoadPhotoQuality();
   FrameSize = config->LoadFrameSize();
   TFrameSize = TransformFrameSizeDataType(config->LoadFrameSize());
@@ -212,7 +212,7 @@ bool Camera::GetFlashStatus() {
    @return none
 */
 void Camera::ApplyCameraCfg() {
-  log->AddEvent(LogLevel_Info, "Set camera CFG");
+  log->AddEvent(LogLevel_Info, F("Set camera CFG"));
 
   /* sensor configuration */
   sensor_t* sensor = esp_camera_sensor_get();
@@ -274,12 +274,12 @@ void Camera::CapturePhoto() {
       esp_camera_fb_return(FrameBuffer);
 
       do {
-        log->AddEvent(LogLevel_Info, "Taking photo...");
+        log->AddEvent(LogLevel_Info, F("Taking photo..."));
 
         /* capture final photo */
         FrameBuffer = esp_camera_fb_get();
         if (!FrameBuffer) {
-          log->AddEvent(LogLevel_Error, "Camera capture failed! photo");
+          log->AddEvent(LogLevel_Error, F("Camera capture failed! photo"));
           return;
 
         } else {
@@ -325,7 +325,7 @@ void Camera::CaptureStream(camera_fb_t* i_buf) {
       /* capture final photo */
       FrameBuffer = esp_camera_fb_get();
       if (!FrameBuffer) {
-        log->AddEvent(LogLevel_Error, "Camera capture failed! stream");
+        log->AddEvent(LogLevel_Error, F("Camera capture failed! stream"));
         i_buf = NULL;
         return;
       }
