@@ -2,6 +2,8 @@
 
 This repository includes source code and firmware releases for the ESP32-cam module programmed in the Arduino IDE
 
+To use this software with the Freenove ESP32-WROVER board, see [these instructions instead](README.esp32_wrover.md).
+
 This project uses other libraries. It is necessary to install them in the Arduino IDE.
 - App [Arduino IDE 2.3.2](https://www.arduino.cc/en/software)
 - MCU support [ESP32 2.0.16](https://github.com/espressif/arduino-esp32)
