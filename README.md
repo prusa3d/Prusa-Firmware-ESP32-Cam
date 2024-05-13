@@ -26,6 +26,7 @@ What we need for functionality
 - Power supply [here](#power_supply)
 - Debug logs [here](#logs)
 - Serial console configuration [here](#serial_cfg)
+- Video stream [here](#stream)
 - Potential issue [here](#issue)
 
 <a name="esp32"></a>
@@ -342,7 +343,12 @@ Currently, available commands are listed in the table below:
 | getwifistastatus  | Print WiFi STA status. Connected/Disconnected/Connecting....        |
 | getwifistaip      | Print IP address for WiFi STA                                       |
 | getserviceapssid  | Print service AP SSID name                                          |
-| setauthtoken:     | Set authentication token for Prusa Connect                          |
+| setauthtoken      | Set authentication token for Prusa Connect                          |
+| otaupdate         | Start OTA update process                                            |
+| resolution        | Set photo resolution                                                |
+| photoquality      | Set photo quality                                                   |
+| setflash          | enable/disable LED flash                                            |
+| setlight          | enable/disable LED light                                            |
 
 The standard command sequence for camera basic settings is
 
@@ -352,9 +358,13 @@ The standard command sequence for camera basic settings is
 - setauthtoken:TOKEN;
 - mcureboot;
 
+<a name="stream"></a>
+## Video stream 
+
+The video stream is available on the WEB page **http://IP/stream.mjpg**
+
 <a name="issue"></a>
 ## Potential issue
 
 - A potential issue may arise with connecting to the service AP. If the connection fails and an authentication error occurs, it is necessary to clear the FLASH memory of the processor, and FLASH FW again. This can be done either through the Arduino IDE or using official software.
-- While sending the photo to the backend, the WEB server is temporarily disabled for this short interval. After the photo is sent to the backend, the WEB server is re-enabled. This may cause short unavailability in the WEB server on the camera, lasting several seconds, depending on the internet connection and the quality of the WiFi connection
 - After the initial firmware upload to the new camera, there may be an issue when connecting to the IP address, where the camera prompts for a username and password to access the web page. Even when entering the username "admin" and the password "admin", the login still doesn't work. In such cases, it's necessary to reset the camera configuration to factory settings. The procedure is outlined in the readme file [here](#factory_cfg)
