@@ -62,7 +62,7 @@ private:
   Logs *log;                                      ///< pointer to logs object
   Camera *camera;                                 ///< pointer to camera object
 
-  bool SendDataToBackend(String *,int, String, String, String, SendDataToBackendType);
+  bool SendDataToBackend(String *, int, String, String, String, SendDataToBackendType);
 
 public:
   PrusaConnect(Configuration*, Logs*, Camera*);

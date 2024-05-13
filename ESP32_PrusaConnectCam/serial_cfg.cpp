@@ -146,7 +146,7 @@ String lastTwoChars = command.substring(command.length() - 2);
     ESP.restart();
 
   } else if (command.startsWith("commandslist") && command.endsWith(";")) {
-    log->AddEvent(LogLevel_Warning, "--> Available commands");
+    log->AddEvent(LogLevel_Warning, F("--> Available commands"));
     PrintAvailableCommands();
 
   } else {

@@ -253,7 +253,7 @@ String Logs::GetSystemTime() {
     struct tm timeinfo;
     if (!getLocalTime(&timeinfo)) {
 #if (true == CONSOLE_VERBOSE_DEBUG)
-      Serial.println("Failed to obtain time");
+      Serial.println(F("Failed to obtain time"));
 #endif
       return ret;
     }

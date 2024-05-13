@@ -258,7 +258,13 @@ void Configuration::GetFingerprint() {
 */
 void Configuration::SaveUint8(uint16_t address, uint8_t data) {
   EEPROM.write(address, data);
-  EEPROM.commit();
+
+  if (EEPROM.commit()) {
+    Log->AddEvent(LogLevel_Verbose, F("Write uint8_t done"));
+  } else {
+    Log->AddEvent(LogLevel_Error, F("Failed to write uint8_t"));
+    EEPROM.commit(); // try again
+  }
 }
 /**
    @info Function for save int8_t to EEPROM
@@ -268,7 +274,13 @@ void Configuration::SaveUint8(uint16_t address, uint8_t data) {
 */
 void Configuration::SaveInt8(uint16_t address, int8_t data) {
   EEPROM.write(address, data);
-  EEPROM.commit();
+
+  if (EEPROM.commit()) {
+    Log->AddEvent(LogLevel_Verbose, F("Write int8_t done"));
+  } else {
+    Log->AddEvent(LogLevel_Error, F("Failed to write int8_t"));
+    EEPROM.commit(); // try again
+  }
 }
 /**
    @info Function for save bool to EEPROM
@@ -278,7 +290,13 @@ void Configuration::SaveInt8(uint16_t address, int8_t data) {
 */
 void Configuration::SaveBool(uint16_t address, bool data) {
   EEPROM.write(address, data);
-  EEPROM.commit();
+
+  if (EEPROM.commit()) { 
+    Log->AddEvent(LogLevel_Verbose, F("Write bool done"));
+  } else {
+    Log->AddEvent(LogLevel_Error, F("Failed to write bool"));
+    EEPROM.commit(); // try again
+  }
 }
 /**
    @info Function for save uint16_t to EEPROM
@@ -292,7 +310,13 @@ void Configuration::SaveUint16(uint16_t address, uint16_t data) {
 
   EEPROM.write(address, highByte);
   EEPROM.write(address + 1, lowByte);
-  EEPROM.commit();
+
+  if (EEPROM.commit()) {
+    Log->AddEvent(LogLevel_Verbose, F("Write uint16_t done"));
+  } else {
+    Log->AddEvent(LogLevel_Error, F("Failed to write uint16_t"));
+    EEPROM.commit(); // try again
+  }
 }
 
 /**
@@ -311,8 +335,13 @@ void Configuration::SaveString(uint16_t address, uint16_t max_length, String dat
     for (uint16_t i = address + 1, j = 0; j < data.length(); i++, j++) {
       EEPROM.write(i, data.charAt(j));
     }
-    EEPROM.commit();
-    Log->AddEvent(LogLevel_Verbose, F("Write string done"));
+    
+    if (EEPROM.commit()) {
+      Log->AddEvent(LogLevel_Verbose, F("Write string done"));
+    } else {
+      Log->AddEvent(LogLevel_Error, F("Failed to write string"));
+      EEPROM.commit(); // try again
+    }
   } else {
     Log->AddEvent(LogLevel_Verbose, F("Skip write string"));
   }
@@ -331,7 +360,12 @@ void Configuration::SaveIpAddress(uint16_t address, String data) {
     EEPROM.write(address + 1, ip[1]);
     EEPROM.write(address + 2, ip[2]);
     EEPROM.write(address + 3, ip[3]);
-    EEPROM.commit();
+
+    if (EEPROM.commit()) {
+      Log->AddEvent(LogLevel_Verbose, F("Write IP address done"));
+    } else {
+      Log->AddEvent(LogLevel_Error, F("Failed to write IP address"));
+    }
   }
 }
 

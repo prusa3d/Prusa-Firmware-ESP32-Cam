@@ -78,7 +78,7 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
   WiFiClientSecure client;
   BackendReceivedStatus = "";
   bool ret = false;
-  log->AddEvent(LogLevel_Info, "Sending " + i_type + " to PrusaConnect");
+  log->AddEvent(LogLevel_Info, "Sending " + i_type + " to PrusaConnect, " + String(i_data_length) + " bytes");
 
   /* check fingerprint and token length */
   if ((Fingerprint.length() > 0) && (Token.length() > 0)) {
@@ -119,7 +119,7 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
         log->AddEvent(LogLevel_Verbose, F("Send data photo"));
         int index = 0;
         /* send data in fragments */
-        for (index = 0; index < i_data_length; index = index + PHOTO_FRAGMENT_SIZE) {
+        for (index = 0; index < i_data_length; index += PHOTO_FRAGMENT_SIZE) {
           camera->CopyPhoto(i_data, index, index + PHOTO_FRAGMENT_SIZE);
           client.print(*i_data);
           log->AddEvent(LogLevel_Verbose, String(i_data_length) + "/" + String(index));

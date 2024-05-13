@@ -277,6 +277,7 @@ void Camera::CapturePhoto() {
         log->AddEvent(LogLevel_Info, F("Taking photo..."));
 
         /* capture final photo */
+        delay(5); // delay for camera stabilization. test it
         FrameBuffer = esp_camera_fb_get();
         if (!FrameBuffer) {
           log->AddEvent(LogLevel_Error, F("Camera capture failed! photo"));
@@ -476,7 +477,8 @@ void Camera::CopyPhoto(String* i_data, int i_from, int i_to) {
  * @return int - photo size
  */
 int Camera::GetPhotoSize() {
-  return FrameBuffer->len;
+  log->AddEvent(LogLevel_Verbose, "Photo size: " + String(FrameBuffer->len));
+  return (int) FrameBuffer->len;
 }
 
 /**
