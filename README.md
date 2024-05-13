@@ -67,7 +67,7 @@ The red arrow points to a pin that differs between these boards. In version 1, t
 
 If we want to program the MCU without the original programmer with **CH340**, or if we want to program the second version of the board, then we need to follow the following instructions. We will need a USB to UART converter, such as **FT232**, **CP2102** or **CH340**. I have tested firmware uploading to the **ESP32-cam** with these converters. Uploading FW to the **second** version using **CH340** did not work for me. Uploading FW using **CH340** only worked for me for the first version of **ESP32-cam** board. For the next steps, I will use the **FT232RL** converter. We connect the **ESP32-cam** to the **FT232** according to the following diagram, where we connect:
 
-<img src="doc/ESP32-cam prog_bb.png" width=50% height=50%>
+<img src="doc/ESP32-cam prog_bb.png" width=60% height=60%>
 
 - **VCC** from **FT232** to **5V** on the **ESP32-CAM**. **CAUTION!** It is necessary to observe the maximum supply voltage of the **ESP32-CAM**, otherwise irreversible damage to the **ESP32-CAM** module may occur.
 - **GND** from **FT232** to **GND** on the **ESP32-CAM**
@@ -147,11 +147,11 @@ Here is the tool and configuration for [windows platform](https://www.espressif.
 
 You can find the driver for CH340 for Windows for example [here](https://www.wch-ic.com/search?q=CH340&t=downloads) . An older version of the driver is for example [here](https://blog.laskakit.cz/wp-content/uploads/2020/03/CH341SER.zip)
 
-<img src="doc/how to flash chip select.jpg" width=15% height=15%>
+<img src="doc/how to flash chip select.jpg" width=25% height=25%>
 
 It's necessary to erase the FLASH using the **ERASE** button before the first firmware flash.
 
-<img src="doc/how to flash.jpg" width=25% height=25%>
+<img src="doc/how to flash.jpg" width=30% height=30%>
 
 #### Partitions table
 
@@ -175,7 +175,7 @@ However, for uploading the firmware, it's important to use this configuration of
 <a name="prusa_connect"></a>
 ## How to connect ESP32-cam to Prusa Connect
 
-- Open up the **Prusa Connect** webpage [connect.prusa3D.com](https://connect.prusa3D.com
+- Open up the **Prusa Connect** webpage [connect.prusa3D.com](https://connect.prusa3D.com)
 - Log in
 - Select a printer you wish to use the camera for.
 - Navigate to the **Camera** tab.
@@ -183,8 +183,8 @@ However, for uploading the firmware, it's important to use this configuration of
 - **A new camera will appear** in the list. Here, you can give the camera a name.
 - This is the most important part: Copy the **TOKEN** for the given camera and save it for later use.
 
-<img src="doc/connect_1.jpg" width=30% height=30%>
-<img src="doc/connect_2.jpg" width=30% height=30%>
+<img src="doc/connect_1.jpg" width=50% height=50%>
+<img src="doc/connect_2.jpg" width=50% height=50%>
 
 - Connect the Cam to the **USB Power supply**
 - After a brief moment, the camera will start in a **Wi-Fi AP mode**. Essentially, it starts it's own Wi-Fi network. The network name (SSID) is **ESP32_camera_UID**, where **UID** is the first three numbers from the **MCU ID**.
@@ -195,11 +195,11 @@ However, for uploading the firmware, it's important to use this configuration of
 - The camera's configuration interface should appear.
 - In the **Wi-Fi configuration tab** It's necessary to set the SSID of the WiFi network and the password of the WiFi network to which the camera should connect in order to be able to upload images to Prusa Connect. And click to **Save & Connect** button
 
-<img src="doc/connect_4.jpg" width=30% height=30%>
+<img src="doc/connect_4.jpg" width=50% height=50%>
 
 - In the **Camera configuration tab**, insert the **Token** into the marked field. Click **Save**. **This is the Prusa Connect camera token we have obtained in an earlier step.** Wait until the token has been save successfully.
 
-<img src="doc/connect_3.jpg" width=30% height=30%>
+<img src="doc/connect_3.jpg" width=50% height=50%>
 
 - Since we're in the camera configuration tab already, we can set up the image options:
 - Set up the **resolution**. This will improve the image quality significantly, as the resolution is set to the lowest possible by default.
