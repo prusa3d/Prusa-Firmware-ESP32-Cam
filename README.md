@@ -16,6 +16,7 @@ What we need for functionality
 - Install the necessary libraries in the Arduino IDE [ here ](#arduino_lib)
 - Arduino IDE configuration [ here ](#arduino_cfg)
 - How to flash binary files to ESP32-cam board from Linux/MAC/Windows [ here ](#flash_fw)
+- How to connect ESP32-cam to Prusa Connect [here](#prusa_connect)
 - Service AP [here](#service_ap)
 - How to reset the configuration to factory settings [here](#factory_cfg)
 - Status LED [ here ](#status_led)
@@ -58,11 +59,23 @@ These are currently known or tested camera modules:
 <a name="different_mcu"></a>
 ## Different MCU version
 
-There are currently 2 versions of the board, but only one version is possible programming via CH340. The blue rectangle shows the differences between the HW versions.
+There are currently 2 versions of the board, but only one version is possible programming via oficial **CH340** programmer. The blue rectangle shows the differences between the HW versions.
 
 <img src="doc/cam_versions.jpg" width=50% height=50%>
 
-The red arrow points to a pin that differs between these boards. In version 1, this pin is used for MCU RESET (GND/R). In version 2, this pin serves as ground (GND). Version 1 can be programmed via CH340, whereas version 2 cannot be programmed via CH340. For version 2, we tested programming via FT232RL or CP2102,  and the programming process worked successfully.
+The red arrow points to a pin that differs between these boards. In version 1, this pin is used for **MCU RESET (GND/R)**. In version 2, this pin serves as ground **(GND)**. Version 1 can be programmed via **CH340**, whereas version 2 cannot be programmed via **CH340**. For version 2, we tested programming via **FT232RL** or **CP2102**, and the programming process worked successfully.
+
+If we want to program the MCU without the original programmer with **CH340**, or if we want to program the second version of the board, then we need to follow the following instructions. We will need a USB to UART converter, such as **FT232**, **CP2102** or **CH340**. I have tested firmware uploading to the **ESP32-cam** with these converters. Uploading FW to the **second** version using **CH340** did not work for me. Uploading FW using **CH340** only worked for me for the first version of **ESP32-cam** board. For the next steps, I will use the **FT232RL** converter. We connect the **ESP32-cam** to the **FT232** according to the following diagram, where we connect:
+
+<img src="doc/ESP32-cam prog_bb.png" width=50% height=50%>
+
+- **VCC** from **FT232** to **5V** on the **ESP32-CAM**. **CAUTION!** It is necessary to observe the maximum supply voltage of the **ESP32-CAM**, otherwise irreversible damage to the **ESP32-CAM** module may occur.
+- **GND** from **FT232** to **GND** on the **ESP32-CAM**
+- **TX** from **FT232** to **U0R** on the **ESP32-CAM**
+- **RX** from **FT232** to **U0T** on the **ESP32-CAM**
+- **IO0** from **ESP32-CAM** to **GND** on **ESP32-CAM**. By connecting the **IO0** pin to **GND**, we switch the board to the mode in which it expects firmware uploading.
+
+Next step is connect the **FT232** converter to the PC and install the correct driver. Then we proceed with uploading the firmware to the **ESP32-cam**, which is described [here](https://github.com/prusa3d/Prusa-Firmware-ESP32-Cam?tab=readme-ov-file#how-to-flash-binary-files-to-esp32-cam-board-from-linuxmacwindows). After successfully uploading the firmware to the **ESP32-cam**, we disconnect **IO0** from **GND**, disconnect the **FT232** converter from the **ESP32-CAM**, and connect the **ESP32-CAM** to the power supply.
 
 The recommended version includes the MCU ESP32 (ESP32-S) with 520 KB of SRAM and external 4M PSRAM
 
@@ -159,6 +172,58 @@ However, for uploading the firmware, it's important to use this configuration of
 - address **0x8000** - **ESP32_PrusaConnectCam.ino.partitions.bin**
 - address **0x10000** - **ESP32_PrusaConnectCam.ino.bin**
 
+<a name="prusa_connect"></a>
+## How to connect ESP32-cam to Prusa Connect
+
+- Open up the **Prusa Connect** webpage [connect.prusa3D.com](https://connect.prusa3D.com
+- Log in
+- Select a printer you wish to use the camera for.
+- Navigate to the **Camera** tab.
+- Click **Add new other camera**
+- **A new camera will appear** in the list. Here, you can give the camera a name.
+- This is the most important part: Copy the **TOKEN** for the given camera and save it for later use.
+
+<img src="doc/connect_1.jpg" width=30% height=30%>
+<img src="doc/connect_2.jpg" width=30% height=30%>
+
+- Connect the Cam to the **USB Power supply**
+- After a brief moment, the camera will start in a **Wi-Fi AP mode**. Essentially, it starts it's own Wi-Fi network. The network name (SSID) is **ESP32_camera_UID**, where **UID** is the first three numbers from the **MCU ID**.
+- Find the camera in the Wi-Fi list on your computer.
+- Enter the default password: **12345678** and connect to it. After establishing a successful connection, your computer might complain about having "No Internet" on the given network. That is OK.
+- Open up a new web browser.
+- Open up the **192.168.0.1** IP Address as a webpage. Alternatively, you can also use the http://prusa-esp32cam.local hostname (mDNS) instead of the IP Address.
+- The camera's configuration interface should appear.
+- In the **Wi-Fi configuration tab** It's necessary to set the SSID of the WiFi network and the password of the WiFi network to which the camera should connect in order to be able to upload images to Prusa Connect. And click to **Save & Connect** button
+
+<img src="doc/connect_4.jpg" width=30% height=30%>
+
+- In the **Camera configuration tab**, insert the **Token** into the marked field. Click **Save**. **This is the Prusa Connect camera token we have obtained in an earlier step.** Wait until the token has been save successfully.
+
+<img src="doc/connect_3.jpg" width=30% height=30%>
+
+- Since we're in the camera configuration tab already, we can set up the image options:
+- Set up the **resolution**. This will improve the image quality significantly, as the resolution is set to the lowest possible by default.
+- Set up the **Trigger interval** and click **Save**.
+- Clicking **Refresh snapshot** will refresh the image you see on the page.
+- We should now have completed setting up the camera.
+
+While we are on the ESP camera's configuration page, let's take a quick look at the other options it offers.
+- Camera configuration tab contain
+  - Camera cip settings
+  - Authentication token setting
+  - Camera flash settings
+- Wi-Fi configuration tab contain 
+  - Setting the wifi network to which the camera can connect
+  - The possibility of turning off the service AP
+  - Option to set static IP addresses for WiFi networks to which the camera connects
+- On the **Authentication** tab, you can set a password to access the configuration page.
+- The **System tab** provides several advanced options such as:
+  - Setting a Hostname (mDNS record) for easier future access to the configuration page over the local network.
+  - For a manual firmware update, select the firmware file **ESP32_PrusaConnectCam.ino.bin** and click **Upload file & Update**. Afterwards, reboot the camera.
+  - Update from cloud. To check for firmware updates, select **Check Update from cloud**. If a newer version is available, click **Update from cloud**. Note that the camera has to be connected to the Internet, before using these functions.
+  - Setting **log level** and getting logs from the camera. To get the logos, it is necessary to have a micro SD card formatted to **FAT32** inserted in the camera!
+  - Check the status of uploading the image to Prusa Connect using the **PrusaConnect Status:** variable
+  
 <a name="service_ap"></a>
 ## Service AP
 
