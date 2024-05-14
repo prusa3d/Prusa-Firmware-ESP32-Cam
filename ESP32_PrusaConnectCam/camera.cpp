@@ -261,57 +261,57 @@ void Camera::ReinitCameraModule() {
 */
 void Camera::CapturePhoto() {
   if (false == StreamOnOff) {
-    if (xSemaphoreTake(frameBufferSemaphore, portMAX_DELAY)) {
-      
-      /* check flash, and enable FLASH LED */
-      if (true == CameraFlashEnable) {
-        ledcWrite(FLASH_PWM_CHANNEL, FLASH_ON_STATUS);
-        delay(CameraFlashTime);
+    if (!xSemaphoreTake(frameBufferSemaphore, portMAX_DELAY)) {
+      log->AddEvent(LogLevel_Error, F("Failed to take frame buffer semaphore"));
+      return;
+    }
+
+    /* check flash, and enable FLASH LED */
+    if (true == CameraFlashEnable) {
+      ledcWrite(FLASH_PWM_CHANNEL, FLASH_ON_STATUS);
+      delay(CameraFlashTime);
+    }
+
+    int attempts = 0;
+    const int maxAttempts = 5;
+    do {
+      log->AddEvent(LogLevel_Info, F("Taking photo..."));
+
+      delay(5); // delay for camera stabilization. test it
+      FrameBuffer = esp_camera_fb_get();
+      if (!FrameBuffer) {
+        log->AddEvent(LogLevel_Error, F("Camera capture failed! photo"));
+        xSemaphoreGive(frameBufferSemaphore);  // Release semaphore before returning
+        return;
       }
 
-      /* get train photo */
-      FrameBuffer = esp_camera_fb_get();
+      char buf[150] = { '\0' };
+      uint8_t ControlFlag = (uint8_t)FrameBuffer->buf[15];
+      sprintf(buf, "The picture has been saved. Size: %d bytes, Photo resolution: %zu x %zu", FrameBuffer->len, FrameBuffer->width, FrameBuffer->height);
+      log->AddEvent(LogLevel_Info, buf);
+
+      if (ControlFlag != 0x00) {
+        log->AddEvent(LogLevel_Error, "Camera capture failed! photo " + String(ControlFlag, HEX));
+        FrameBuffer->len = 0;
+      } else {
+        log->AddEvent(LogLevel_Info, "Photo OK! " + String(ControlFlag, HEX));
+      }
+
       esp_camera_fb_return(FrameBuffer);
 
-      do {
-        log->AddEvent(LogLevel_Info, F("Taking photo..."));
-
-        /* capture final photo */
-        delay(5); // delay for camera stabilization. test it
-        FrameBuffer = esp_camera_fb_get();
-        if (!FrameBuffer) {
-          log->AddEvent(LogLevel_Error, F("Camera capture failed! photo"));
-          return;
-
-        } else {
-          /* copy photo from buffer to string array */
-          char buf[150] = { '\0' };
-          uint8_t ControlFlag = (uint8_t)FrameBuffer->buf[15];
-          sprintf(buf, "The picture has been saved. Size: %d bytes, Photo resolution: %zu x %zu", FrameBuffer->len, FrameBuffer->width, FrameBuffer->height);
-          log->AddEvent(LogLevel_Info, buf);
-
-          /* check corrupted photo */
-          if (ControlFlag != 0x00) {
-            log->AddEvent(LogLevel_Error, "Camera capture failed! photo " + String(ControlFlag, HEX));
-            FrameBuffer->len = 0;
-
-          } else {
-            log->AddEvent(LogLevel_Info, "Photo OK! " + String(ControlFlag, HEX));
-          }
-
-          esp_camera_fb_return(FrameBuffer);
-        }
-
-        /* check if photo is correctly saved */
-      } while (!(FrameBuffer->len > 100));
-
-      /* Disable flash */
-      if (true == CameraFlashEnable) {
-        delay(CameraFlashTime);
-        ledcWrite(FLASH_PWM_CHANNEL, FLASH_OFF_STATUS);
+      attempts++;
+      if (attempts >= maxAttempts) {
+        log->AddEvent(LogLevel_Error, F("Failed to capture a valid photo after max attempts"));
+        break;
       }
-      xSemaphoreGive(frameBufferSemaphore);
+    } while (!(FrameBuffer->len > 100));
+
+    /* Disable flash */
+    if (true == CameraFlashEnable) {
+      delay(CameraFlashTime);
+      ledcWrite(FLASH_PWM_CHANNEL, FLASH_OFF_STATUS);
     }
+    xSemaphoreGive(frameBufferSemaphore);
   }
 }
 
