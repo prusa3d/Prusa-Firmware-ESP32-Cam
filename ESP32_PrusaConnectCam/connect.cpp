@@ -11,7 +11,7 @@
 
 #include "connect.h"
 
-PrusaConnect Connect(&SystemConfig, &SystemLog, &SystemCamera);
+PrusaConnect Connect(&SystemConfig, &SystemLog, &SystemCamera, &SystemWifiMngt);
 
 /**
  * @brief Constructor for PrusaConnect class
@@ -20,10 +20,11 @@ PrusaConnect Connect(&SystemConfig, &SystemLog, &SystemCamera);
  * @param Logs*           - pointer to Logs class
  * @param Camera*         - pointer to Camera class
  */
-PrusaConnect::PrusaConnect(Configuration *i_conf, Logs *i_log, Camera *i_camera) {
+PrusaConnect::PrusaConnect(Configuration *i_conf, Logs *i_log, Camera *i_camera, WiFiMngt *i_wifi) {
   config = i_conf;
   log = i_log;
   camera = i_camera;
+  wifi = i_wifi;
   BackendAvailability = WaitForFirstConnection;
   SendDeviceInformationToBackend = true;
 }
@@ -36,8 +37,6 @@ PrusaConnect::PrusaConnect(Configuration *i_conf, Logs *i_log, Camera *i_camera)
  */
 void PrusaConnect::Init() {
   log->AddEvent(LogLevel_Info, F("Init PrusaConnect lib"));
-  //camera->CapturePhoto();
-  //camera->CaptureReturnFrameBuffer();
 }
 
 /**
@@ -121,7 +120,7 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
       size_t sendet_data = 0;
       /* sending photo */
       if (SendPhoto == i_data_type) {
-        log->AddEvent(LogLevel_Verbose, F("Send data photo"));
+        log->AddEvent(LogLevel_Verbose, F("Sendig photo"));
 
         /* sending photo */
         uint8_t *fbBuf = camera->GetPhotoFb()->buf;
@@ -136,18 +135,17 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
             sendet_data += client.write(fbBuf, remainder);
           }
         }
-
         client.println("\r\n");
         client.flush();
-        log->AddEvent(LogLevel_Verbose, String(i_data_length) + "/" + String(sendet_data));
 
       /* sending device information */
       } else if (SendInfo == i_data_type) {
-        log->AddEvent(LogLevel_Verbose, F("Send data info"));
+        log->AddEvent(LogLevel_Verbose, F("Sending info"));
         sendet_data = client.print(*i_data);
+        client.flush();
       }
 
-      log->AddEvent(LogLevel_Info, "Send done: " + String(sendet_data) + " bytes");
+      log->AddEvent(LogLevel_Info, "Send done: " + String(i_data_length) + "/" + String(sendet_data) + " bytes");
       esp_task_wdt_reset();
 
       /* read response from server */
@@ -203,7 +201,6 @@ void PrusaConnect::SendPhotoToBackend() {
   log->AddEvent(LogLevel_Info, F("Start sending photo to prusaconnect"));
   String Photo = "";
   SendDataToBackend(&Photo, camera->GetPhotoFb()->len, "image/jpg", "Photo", HOST_URL_CAM_PATH, SendPhoto);
-  SystemLog.AddEvent(LogLevel_Info, "Free RAM: " + String(ESP.getFreeHeap()) + " bytes");
 }
 
 /**
@@ -221,7 +218,7 @@ void PrusaConnect::SendInfoToBackend() {
     String json_string = "";
 
     JsonObject config = json_data["config"].to<JsonObject>();
-    config["name"] = "ESP32-CAM";
+    config["name"] = wifi->GetMdns();
 
     JsonObject resolution = config["resolution"].to<JsonObject>();
     resolution["width"] = SystemCamera.GetFrameSizeWidth();

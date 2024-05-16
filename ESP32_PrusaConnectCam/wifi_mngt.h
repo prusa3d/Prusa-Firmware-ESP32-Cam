@@ -42,6 +42,10 @@ void WiFiMngt_WiFiEventApStaDisconnected(WiFiEvent_t , WiFiEventInfo_t);
 void WiFiMngt_WiFiEventApStaIpAssigned(WiFiEvent_t , WiFiEventInfo_t);
 void WiFiMngt_WiFiEventApStaProbeReqRecved(WiFiEvent_t , WiFiEventInfo_t);
 
+/**
+ * @brief NetworkIpMethod_enum
+ * method for obtaining IP address
+ */
 enum NetworkIpMethod_enum {
   NetworkIpMethodDhcp = 0,            ///< DHCP IP
   NetworkIpMethodStatic = 1,          ///< STATIC IP

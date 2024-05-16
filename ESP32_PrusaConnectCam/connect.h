@@ -27,6 +27,8 @@
 #include "Certificate.h"
 #include "server.h"
 
+class WiFiMngt;
+
 /**
  * @brief BackendAvailabilitStatus enum
  * status of backend availability
@@ -61,11 +63,12 @@ private:
   Configuration *config;                          ///< pointer to configuration object
   Logs *log;                                      ///< pointer to logs object
   Camera *camera;                                 ///< pointer to camera object
+  WiFiMngt *wifi;                                 ///< pointer to wifi object
 
   bool SendDataToBackend(String *, int, String, String, String, SendDataToBackendType);
 
 public:
-  PrusaConnect(Configuration*, Logs*, Camera*);
+  PrusaConnect(Configuration*, Logs*, Camera*, WiFiMngt*);
   ~PrusaConnect(){};
 
   void Init();

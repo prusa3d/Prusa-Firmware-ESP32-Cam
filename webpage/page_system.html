@@ -13,7 +13,7 @@
 			<tr><td class="ps1">Available software update</td><td class="ps2"><span id="sw_new_ver"></span> <span class="underlined-text" onclick="checkUpdate()">Check update from cloud</span></td></tr>
             <tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
 			<tr><td class="ps3">System configuration</td><td></td></tr>
-			<tr><td class="pc1">mDNS record</td><td ><input type="text" name="mdns" id=mdnsid ><span class=pc1>.local</span>&nbsp;<button class="btn_save" onclick="changeValue(document.getElementById('mdnsid').value, 'set_mdns?mdns=', 'system')">Save</button></td></tr>
+			<tr><td class="pc1">Cam name & mDNS record</td><td ><input type="text" name="mdns" id=mdnsid ><span class=pc1>.local</span>&nbsp;<button class="btn_save" onclick="changeValue(document.getElementById('mdnsid').value, 'set_mdns?mdns=', 'system')">Save</button></td></tr>
 			<tr>
 			    <td class="pc1">Log level</td><td><label for="loglevel"></label>
 				<select class="select" id="loglevelid" name="loglevel" onchange="changeValue(this.value, 'set_int?log_level=', 'system')">
