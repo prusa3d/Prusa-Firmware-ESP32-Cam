@@ -40,6 +40,7 @@ void Server_InitWebServer() {
     if (Server_CheckBasicAuth(request) == false)
       return;
 
+    SystemLog.AddEvent(LogLevel_Verbose, "Photo size: " + String(SystemCamera.GetPhotoFb()->len) + " bytes");
     request->send_P(200, "image/jpg", SystemCamera.GetPhotoFb()->buf, SystemCamera.GetPhotoFb()->len);
   });
 
@@ -667,7 +668,7 @@ void Server_InitWebServer_Sets() {
     }
   });
 
-  /* route for set prusa connect hostname */
+  /* route for set prusa connect hostname /set_hostname?hostname=*/
   server.on("/set_hostname", HTTP_GET, [](AsyncWebServerRequest* request) {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: /set_hostname"));
     if (Server_CheckBasicAuth(request) == false)

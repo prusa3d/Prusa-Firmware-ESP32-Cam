@@ -88,6 +88,7 @@ public:
   void CopyPhoto(camera_fb_t *);
   void CopyPhoto(String*);
   void CopyPhoto(String*, int, int);
+  void CopyPhoto(char*, int, int);
   int GetPhotoSize();
   String GetPhoto();
   camera_fb_t *GetPhotoFb();

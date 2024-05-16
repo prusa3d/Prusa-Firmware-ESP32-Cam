@@ -36,7 +36,8 @@ PrusaConnect::PrusaConnect(Configuration *i_conf, Logs *i_log, Camera *i_camera)
  */
 void PrusaConnect::Init() {
   log->AddEvent(LogLevel_Info, F("Init PrusaConnect lib"));
-  TakePicture();
+  //camera->CapturePhoto();
+  //camera->CaptureReturnFrameBuffer();
 }
 
 /**
@@ -83,7 +84,10 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
   /* check fingerprint and token length */
   if ((Fingerprint.length() > 0) && (Token.length() > 0)) {
     client.setCACert(root_CAs);
+    //client.setInsecure();
     client.setTimeout(1000);
+    client.setNoDelay(true);
+        
     log->AddEvent(LogLevel_Verbose, F("Connecting to server..."));
 
     /* connecting to server */
@@ -102,7 +106,7 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
     } else {
       /* send data to server */
       log->AddEvent(LogLevel_Verbose, F("Connected to server!"));
-      client.println("PUT https://" + PrusaConnectHostname + i_url_path + " HTTP/1.0");
+      client.println("PUT https://" + PrusaConnectHostname + i_url_path + " HTTP/1.1");
       client.println("Host: " + PrusaConnectHostname);
       client.println("User-Agent: ESP32-CAM");
       client.println("Connection: close");
@@ -114,32 +118,36 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
       client.println();
 
       esp_task_wdt_reset();
+      size_t sendet_data = 0;
       /* sending photo */
       if (SendPhoto == i_data_type) {
         log->AddEvent(LogLevel_Verbose, F("Send data photo"));
-        int index = 0;
-        /* send data in fragments */
-        for (index = 0; index < i_data_length; index += PHOTO_FRAGMENT_SIZE) {
-          camera->CopyPhoto(i_data, index, index + PHOTO_FRAGMENT_SIZE);
-          client.print(*i_data);
-          log->AddEvent(LogLevel_Verbose, String(i_data_length) + "/" + String(index));
+
+        /* sending photo */
+        uint8_t *fbBuf = camera->GetPhotoFb()->buf;
+        size_t fbLen = camera->GetPhotoFb()->len;
+        for (size_t i=0; i < fbLen; i += PHOTO_FRAGMENT_SIZE) {
+          if ((i + PHOTO_FRAGMENT_SIZE) < fbLen) {
+            sendet_data += client.write(fbBuf, PHOTO_FRAGMENT_SIZE);
+            fbBuf += PHOTO_FRAGMENT_SIZE;
+
+          } else if ((fbLen % PHOTO_FRAGMENT_SIZE) > 0) {
+            size_t remainder = fbLen % PHOTO_FRAGMENT_SIZE;
+            sendet_data += client.write(fbBuf, remainder);
+          }
         }
 
-        /* send rest of data */
-        index -= PHOTO_FRAGMENT_SIZE;
-        if ((i_data_length > index) && ((i_data_length - index) > 0)) {
-          camera->CopyPhoto(i_data, index, i_data_length);
-          client.print(*i_data);
-          log->AddEvent(LogLevel_Verbose, String(i_data_length) + "/" + String(i_data_length));
-        }
+        client.println("\r\n");
+        client.flush();
+        log->AddEvent(LogLevel_Verbose, String(i_data_length) + "/" + String(sendet_data));
 
       /* sending device information */
       } else if (SendInfo == i_data_type) {
         log->AddEvent(LogLevel_Verbose, F("Send data info"));
-        client.print(*i_data);
+        sendet_data = client.print(*i_data);
       }
 
-      log->AddEvent(LogLevel_Info, "Send done: " + String(i_data_length) + " bytes");
+      log->AddEvent(LogLevel_Info, "Send done: " + String(sendet_data) + " bytes");
       esp_task_wdt_reset();
 
       /* read response from server */
@@ -194,7 +202,7 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
 void PrusaConnect::SendPhotoToBackend() {
   log->AddEvent(LogLevel_Info, F("Start sending photo to prusaconnect"));
   String Photo = "";
-  SendDataToBackend(&Photo, camera->GetPhotoSize(), "image/jpg", "Photo", HOST_URL_CAM_PATH, SendPhoto);
+  SendDataToBackend(&Photo, camera->GetPhotoFb()->len, "image/jpg", "Photo", HOST_URL_CAM_PATH, SendPhoto);
   SystemLog.AddEvent(LogLevel_Info, "Free RAM: " + String(ESP.getFreeHeap()) + " bytes");
 }
 
@@ -241,8 +249,9 @@ void PrusaConnect::SendInfoToBackend() {
  * @return none
  */
 void PrusaConnect::TakePictureAndSendToBackend() {
-  TakePicture();
+  camera->CapturePhoto();
   SendPhotoToBackend();
+  camera->CaptureReturnFrameBuffer();
 }
 
 /**

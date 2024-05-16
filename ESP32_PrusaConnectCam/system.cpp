@@ -500,12 +500,14 @@ void System_TaskCaptureAndSendPhoto(void *pvParameters) {
       Connect.SetSendingIntervalCounter(0);
       /* send network information to backend */
       if ((WL_CONNECTED == WiFi.status()) && (false == FirmwareUpdate.Processing)) {
+        SystemLog.AddEvent(LogLevel_Verbose, F("Task photo processing. Start sending info"));
         esp_task_wdt_reset();
         Connect.SendInfoToBackend();
       }
 
       /* send photo to backend*/
       if ((WL_CONNECTED == WiFi.status()) && (false == FirmwareUpdate.Processing)) {
+        SystemLog.AddEvent(LogLevel_Verbose, F("Task photo processing. Start sending photo"));
         esp_task_wdt_reset();
         Connect.TakePictureAndSendToBackend();
       }

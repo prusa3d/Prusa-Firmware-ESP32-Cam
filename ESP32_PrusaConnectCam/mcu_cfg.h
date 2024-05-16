@@ -14,7 +14,7 @@
 #define _MCU_CFG_H_
 
 /* ---------------- BASIC MCU CFG  --------------*/
-#define SW_VERSION                  "1.0.2-rc1"             ///< SW version
+#define SW_VERSION                  "1.0.2-rc2"             ///< SW version
 #define SW_BUILD                    __DATE__ " " __TIME__   ///< build number
 #define CONSOLE_VERBOSE_DEBUG       false                   ///< enable/disable verbose debug log level for console
 #define DEVICE_HOSTNAME             "Prusa-ESP32cam"        ///< device hostname
@@ -55,7 +55,7 @@
 #define WEB_SERVER_PORT             80                      ///< WEB server port 
 #define SERIAL_PORT_SPEED           115200                  ///< baud rate 
 #define WDG_TIMEOUT                 40                      ///< wdg timeout [second]
-#define PHOTO_FRAGMENT_SIZE         5000                    ///< photo fragmentation size [bytes]
+#define PHOTO_FRAGMENT_SIZE         1024                    ///< photo fragmentation size [bytes]
 #define LOOP_DELAY                  100                     ///< loop delay [ms]
 #define WIFI_CLIENT_WAIT_CON        false                   ///< wait for connecting to WiFi network
 #define DYNMIC_JSON_SIZE            1024                    ///< maximum size for dynamic json [bytes]

@@ -16,6 +16,8 @@
 
    Board configuration in the arduino IDE 2.3.2
    Tools -> Board -> ESP32 Arduino -> AI Thinker ESP32
+   Tools -> CPU Frequency -> 240MHz (WiFi/BT)
+   Tools -> Core debug level -> None
    Tools -> Flash frequency -> 80MHz
    Tools -> Flash Mode -> DIO
    Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)
@@ -103,6 +105,7 @@ void setup() {
   /* init camera interface */
   SystemCamera.Init();
   SystemCamera.CapturePhoto();
+  SystemCamera.CaptureReturnFrameBuffer();
 
   /* init WEB server */
   Server_InitWebServer();
@@ -113,7 +116,7 @@ void setup() {
   /* init tasks */
   SystemLog.AddEvent(LogLevel_Info, F("Start tasks"));
   xTaskCreatePinnedToCore(System_TaskMain, "SystemNtpOtaUpdate", 8000, NULL, 1, &Task_SystemMain, 0);                           /*function, description, stack size, parameters, priority, task handle, core*/
-  xTaskCreatePinnedToCore(System_TaskCaptureAndSendPhoto, "CaptureAndSendPhoto", 6000, NULL, 2, &Task_CapturePhotoAndSend, 0);  /*function, description, stack size, parameters, priority, task handle, core*/
+  xTaskCreatePinnedToCore(System_TaskCaptureAndSendPhoto, "CaptureAndSendPhoto", 8000, NULL, 2, &Task_CapturePhotoAndSend, 0);  /*function, description, stack size, parameters, priority, task handle, core*/
   xTaskCreatePinnedToCore(System_TaskWifiManagement, "WiFiManagement", 3800, NULL, 3, &Task_WiFiManagement, 0);                 /*function, description, stack size, parameters, priority, task handle, core*/
   xTaskCreatePinnedToCore(System_TaskSdCardCheck, "CheckMicroSdCard", 3300, NULL, 4, &Task_SdCardCheck, 0);                     /*function, description, stack size, parameters, priority, task handle, core*/
   xTaskCreatePinnedToCore(System_TaskSerialCfg, "CheckSerialConfiguration", 3300, NULL, 5, &Task_SerialCfg, 0);                 /*function, description, stack size, parameters, priority, task handle, core*/

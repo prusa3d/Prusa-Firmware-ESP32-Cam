@@ -86,10 +86,10 @@ void Camera::InitCameraModule() {
     FRAMESIZE_UXGA (1600 x 1200)
   */
 
-  CameraConfig.frame_size = TFrameSize;         /* FRAMESIZE_ + QVGA|CIF|VGA|SVGA|XGA|SXGA|UXGA */
-  CameraConfig.jpeg_quality = PhotoQuality;     /* 10-63 lower number means higher quality */
-  CameraConfig.fb_count = 1;                    /* picture frame buffer alocation */
-  CameraConfig.grab_mode = CAMERA_GRAB_LATEST;  /* CAMERA_GRAB_WHEN_EMPTY or CAMERA_GRAB_LATEST */
+  CameraConfig.frame_size = TFrameSize;        /* FRAMESIZE_ + QVGA|CIF|VGA|SVGA|XGA|SXGA|UXGA */
+  CameraConfig.jpeg_quality = PhotoQuality;    /* 10-63 lower number means higher quality */
+  CameraConfig.fb_count = 1;                   /* picture frame buffer alocation */
+  CameraConfig.grab_mode = CAMERA_GRAB_LATEST; /* CAMERA_GRAB_WHEN_EMPTY or CAMERA_GRAB_LATEST */
 
   if (CameraConfig.fb_location == CAMERA_FB_IN_DRAM) {
     log->AddEvent(LogLevel_Verbose, F("Camera frame buffer location: DRAM"));
@@ -173,7 +173,7 @@ framesize_t Camera::TransformFrameSizeDataType(uint8_t i_data) {
       ret = FRAMESIZE_QVGA;
       log->AddEvent(LogLevel_Warning, "Bad frame size. Set default value. " + String(i_data));
       break;
-    }
+  }
 
   return ret;
 }
@@ -272,12 +272,20 @@ void Camera::CapturePhoto() {
       delay(CameraFlashTime);
     }
 
+    /* Capturing a training photo. Without this sequence, the camera will not obtain the current photo but photo from the previous cycle. */
+    FrameBuffer = esp_camera_fb_get();
+    if (FrameBuffer) {
+      esp_camera_fb_return(FrameBuffer);
+    } else {
+      log->AddEvent(LogLevel_Error, F("Camera capture failed training photo"));
+    }
+
     int attempts = 0;
     const int maxAttempts = 5;
     do {
       log->AddEvent(LogLevel_Info, F("Taking photo..."));
 
-      delay(5); // delay for camera stabilization. test it
+      delay(5);  // delay for camera stabilization. test it
       FrameBuffer = esp_camera_fb_get();
       if (!FrameBuffer) {
         log->AddEvent(LogLevel_Error, F("Camera capture failed! photo"));
@@ -296,8 +304,6 @@ void Camera::CapturePhoto() {
       } else {
         log->AddEvent(LogLevel_Info, "Photo OK! " + String(ControlFlag, HEX));
       }
-
-      esp_camera_fb_return(FrameBuffer);
 
       attempts++;
       if (attempts >= maxAttempts) {
@@ -464,11 +470,24 @@ void Camera::CopyPhoto(String* i_data) {
  * @param i_to - end index
  */
 void Camera::CopyPhoto(String* i_data, int i_from, int i_to) {
-  Photo = "";
-  for (size_t i = i_from; i < i_to; i++) {
-    Photo += (char)FrameBuffer->buf[i];
+  *i_data = "";
+
+  for (int i = i_from; i < i_to; i++) {
+    *i_data += (char)FrameBuffer->buf[i];
   }
-  *i_data = Photo;
+}
+
+/**
+ * @brief Copy photo from frame buffer to char array with range
+ * 
+ * @param i_data - pointer to char array
+ * @param i_from - start index
+ * @param i_to - end index
+ */
+void Camera::CopyPhoto(char* i_data, int i_from, int i_to) {
+  int length = i_to - i_from;
+  memcpy(i_data, FrameBuffer->buf + i_from, length);
+  i_data[length + 1] = '\0';
 }
 
 /**
@@ -478,7 +497,7 @@ void Camera::CopyPhoto(String* i_data, int i_from, int i_to) {
  */
 int Camera::GetPhotoSize() {
   log->AddEvent(LogLevel_Verbose, "Photo size: " + String(FrameBuffer->len));
-  return (int) FrameBuffer->len;
+  return (int)FrameBuffer->len;
 }
 
 /**
@@ -754,35 +773,35 @@ uint8_t Camera::GetFrameSize() {
  * @return uint16_t 
  */
 uint16_t Camera::GetFrameSizeWidth() {
- uint16_t ret = 0;
- 
- switch (FrameSize) {
-  case 0:
-    ret = 320;
-    break;
-  case 1:
-    ret = 352;
-    break;
-  case 2:
-    ret = 640;
-    break;
-  case 3:
-    ret = 800;
-    break;
-  case 4:
-    ret = 1024;
-    break;
-  case 5:
-    ret = 1280;
-    break;
-  case 6: 
-    ret = 1600;
-    break;
-  default:
-    ret = 320;
-    break;
+  uint16_t ret = 0;
+
+  switch (FrameSize) {
+    case 0:
+      ret = 320;
+      break;
+    case 1:
+      ret = 352;
+      break;
+    case 2:
+      ret = 640;
+      break;
+    case 3:
+      ret = 800;
+      break;
+    case 4:
+      ret = 1024;
+      break;
+    case 5:
+      ret = 1280;
+      break;
+    case 6:
+      ret = 1600;
+      break;
+    default:
+      ret = 320;
+      break;
   }
-  
+
   return ret;
 }
 
@@ -820,7 +839,7 @@ uint16_t Camera::GetFrameSizeHeight() {
     case 5:
       ret = 1024;
       break;
-    case 6: 
+    case 6:
       ret = 1200;
       break;
     default:
