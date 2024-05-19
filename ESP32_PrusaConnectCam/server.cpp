@@ -381,6 +381,7 @@ void Server_InitWebServer_Actions() {
       return;
     SystemCamera.CapturePhoto();
     request->send_P(200, "text/plain", "Take Photo");
+	SystemCamera.CaptureReturnFrameBuffer();
   });
 
   /* route for send photo to prusa backend */
