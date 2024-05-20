@@ -27,6 +27,7 @@ What we need for functionality
 - Debug logs [here](#logs)
 - Serial console configuration [here](#serial_cfg)
 - Video stream [here](#stream)
+- Manual camera focus [here](#man_focus)
 - Potential issue [here](#issue)
 
 <a name="esp32"></a>
@@ -217,14 +218,22 @@ While we are on the ESP camera's configuration page, let's take a quick look at 
   - Setting the wifi network to which the camera can connect
   - The possibility of turning off the service AP
   - Option to set static IP addresses for WiFi networks to which the camera connects
-- On the **Authentication** tab, you can set a password to access the configuration page.
+- On the **Authentication** tab, you can set a password to access the configuration page. Default login is admin:admin.
 - The **System tab** provides several advanced options such as:
   - Setting a Hostname (mDNS record) for easier future access to the configuration page over the local network.
   - For a manual firmware update, select the firmware file **ESP32_PrusaConnectCam.ino.bin** and click **Upload file & Update**. Afterwards, reboot the camera.
   - Update from cloud. To check for firmware updates, select **Check Update from cloud**. If a newer version is available, click **Update from cloud**. Note that the camera has to be connected to the Internet, before using these functions.
   - Setting **log level** and getting logs from the camera. To get the logos, it is necessary to have a micro SD card formatted to **FAT32** inserted in the camera!
   - Check the status of uploading the image to Prusa Connect using the **PrusaConnect Status:** variable
-  
+
+**Interesting improvements.** There is a protective film on the camera module. The protective film needs to be removed from the lens.
+
+<img src="doc/cam_prot_film.jpg" width=50% height=50%>
+
+The second problem is that the camera module is not usually attached to the micro SD card slot. Therefore, the camera module overheats. This can permanently damage the camera module. If the quality of the camera module decreases, the resulting image starts to have a purple tint. Therefore, it is necessary to attach the camera module to the micro SD card socket with double-sided tape. Ideally, with double-sided thermal tape.
+
+<img src="doc/cam_thermal.jpg" width=50% height=50%>
+
 <a name="service_ap"></a>
 ## Service AP
 
@@ -362,6 +371,11 @@ The standard command sequence for camera basic settings is
 ## Video stream 
 
 The video stream is available on the WEB page **http://IP/stream.mjpg**
+
+<a name="man_focus"></a>
+## Manual camera focus
+
+Usually, the camera module is properly focused. However, the camera module can be manually focused. There are several types of lenses for camera modules. I have created several tools for manually focusing the camera module. **WARNING! Manual focusing can permanently damage the camera module!** I do not recommend using manual focusing unless it is necessary. [Tools](https://www.printables.com/cs/model/877739-esp32-cam-ov2640-focus-adjustment-wrench)
 
 <a name="issue"></a>
 ## Potential issue
