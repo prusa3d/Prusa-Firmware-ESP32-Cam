@@ -375,7 +375,13 @@ The video stream is available on the WEB page **http://IP/stream.mjpg**
 <a name="man_focus"></a>
 ## Manual camera focus
 
-Usually, the camera module is properly focused. However, the camera module can be manually focused. There are several types of lenses for camera modules. I have created several tools for manually focusing the camera module. **WARNING! Manual focusing can permanently damage the camera module!** I do not recommend using manual focusing unless it is necessary. [Tools](https://www.printables.com/cs/model/877739-esp32-cam-ov2640-focus-adjustment-wrench)
+Usually, the camera module is properly focused. However, the camera module can be manually focused. There are several types of lenses for camera modules. I have created several [Tools](https://www.printables.com/cs/model/877739-esp32-cam-ov2640-focus-adjustment-wrench)  for manually focusing the camera module.
+
+<img src="doc/focus_2.jpg" width=40% height=40%>
+
+First, it is necessary to hold the camera with a holder and then put the wrench on the lens. Next, gently turn the wrench by a couple of degrees, and observe the difference.
+
+**WARNING! Manual focusing can permanently damage the camera module!**
 
 <a name="issue"></a>
 ## Potential issue
