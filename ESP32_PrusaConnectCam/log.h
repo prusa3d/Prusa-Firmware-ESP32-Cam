@@ -55,6 +55,7 @@ public:
   LogLevel_enum GetLogLevel();
   bool GetNtpTimeSynced();
   void CheckMaxLogFileSize();
+  void CheckCardSpace();
 
   String GetSystemTime();
 };

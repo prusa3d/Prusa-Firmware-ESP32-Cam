@@ -109,7 +109,7 @@ void Camera::InitCameraModule() {
   err = esp_camera_init(&CameraConfig);
 
   if (err != ESP_OK) {
-    log->AddEvent(LogLevel_Warning, "Camera init failed. Error: " + String(err, HEX));
+    log->AddEvent(LogLevel_Warning, F("Camera init failed. Error: "), String(err, HEX));
     log->AddEvent(LogLevel_Warning, F("Reset ESP32-cam!"));
     ESP.restart();
   }
@@ -179,7 +179,7 @@ framesize_t Camera::TransformFrameSizeDataType(uint8_t i_data) {
       break;
     default:
       ret = FRAMESIZE_QVGA;
-      log->AddEvent(LogLevel_Warning, "Bad frame size. Set default value. " + String(i_data));
+      log->AddEvent(LogLevel_Warning, F("Bad frame size. Set default value. "), String(i_data));
       break;
   }
 
@@ -260,7 +260,7 @@ void Camera::ApplyCameraCfg() {
 void Camera::ReinitCameraModule() {
   esp_err_t err = esp_camera_deinit();
   if (err != ESP_OK) {
-    log->AddEvent(LogLevel_Warning, "Camera error deinit camera module. Error: " + String(err, HEX));
+    log->AddEvent(LogLevel_Warning, F("Camera error deinit camera module. Error: "), String(err, HEX));
   }
   delay(100);
   InitCameraModule();
@@ -321,11 +321,11 @@ void Camera::CapturePhoto() {
       log->AddEvent(LogLevel_Info, buf);
 
       if (ControlFlag != 0x00) {
-        log->AddEvent(LogLevel_Error, "Camera capture failed! photo " + String(ControlFlag, HEX));
+        log->AddEvent(LogLevel_Error, F("Camera capture failed! photo "), String(ControlFlag, HEX));
         FrameBuffer->len = 0;
 
       } else {
-        log->AddEvent(LogLevel_Info, "Photo OK! " + String(ControlFlag, HEX));
+        log->AddEvent(LogLevel_Info, F("Photo OK! "), String(ControlFlag, HEX));
 
         /* generate exif header */
         update_exif_from_cfg(imageExifRotation);
@@ -334,9 +334,9 @@ void Camera::CapturePhoto() {
         CameraCaptureSuccess = true;
         
         if (PhotoExifData.header != NULL) {
-          log->AddEvent(LogLevel_Info, "Exif header OK! Len: " + String(PhotoExifData.len));
+          log->AddEvent(LogLevel_Info, F("Exif header OK! Len: "), String(PhotoExifData.len));
         } else {
-          log->AddEvent(LogLevel_Error, "Exif header failed! " + String(PhotoExifData.len));
+          log->AddEvent(LogLevel_Error, F("Exif header failed! "), String(PhotoExifData.len));
         }
       }
 
@@ -395,7 +395,7 @@ void Camera::CaptureReturnFrameBuffer() {
 */
 void Camera::SetStreamStatus(bool i_status) {
   StreamOnOff = i_status;
-  log->AddEvent(LogLevel_Info, "Camera video stream: " + String(StreamOnOff));
+  log->AddEvent(LogLevel_Info, F("Camera video stream: "), String(StreamOnOff));
 }
 
 /**
@@ -544,7 +544,7 @@ void Camera::CopyPhoto(char* i_data, int i_from, int i_to) {
  * @return int - photo size
  */
 int Camera::GetPhotoSize() {
-  log->AddEvent(LogLevel_Verbose, "Photo size: " + String(FrameBuffer->len));
+  log->AddEvent(LogLevel_Verbose, F("Photo size: "), String(FrameBuffer->len));
   return (int)FrameBuffer->len;
 }
 

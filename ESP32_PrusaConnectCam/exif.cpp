@@ -405,9 +405,7 @@ const uint8_t *get_exif_header(camera_fb_t *fb, const uint8_t **exif_buf, size_t
   // Set date time
   struct tm timeinfo;
   localtime_r(&now_tv.tv_sec, &timeinfo);
-  strftime(exif_hdr.tiff_data.ifd0_data.datetime,
-      sizeof(exif_hdr.tiff_data.ifd0_data.datetime),
-      "%Y:%m:%d %H:%M:%S", &timeinfo);
+  strftime(exif_hdr.tiff_data.ifd0_data.datetime, sizeof(exif_hdr.tiff_data.ifd0_data.datetime), "%Y:%m:%d %H:%M:%S", &timeinfo);
 
   // Set sub-seconds time
   snprintf( (char *) &(exif_hdr.tiff_data.ifd_exif.entries[TAG_EXIF_SUBSEC_TIME_IDX].value), 9, "%03ld", now_tv.tv_usec/1000);

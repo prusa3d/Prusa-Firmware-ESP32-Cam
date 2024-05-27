@@ -254,7 +254,7 @@ bool System_OtaUpdateStart() {
   FirmwareUpdate.UpdatingStatus = SYSTEM_MSG_UPDATE_PROCESS;
   httpUpdate.setLedPin(4, HIGH);
 
-  SystemLog.AddEvent(LogLevel_Info, "Start OTA update URL: " + FirmwareUpdate.OtaUpdateFwUrl + ";");
+  SystemLog.AddEvent(LogLevel_Info, F("Start OTA update URL: "), FirmwareUpdate.OtaUpdateFwUrl + ";");
 
   /* start update */
   t_httpUpdate_return ret = httpUpdate.update(client, FirmwareUpdate.OtaUpdateFwUrl.c_str());
@@ -275,7 +275,7 @@ bool System_OtaUpdateStart() {
       break;
   }
   FirmwareUpdate.Processing = false;
-  SystemLog.AddEvent(LogLevel_Info, "OTA update DONE. " + FirmwareUpdate.UpdatingStatus);
+  SystemLog.AddEvent(LogLevel_Info, F("OTA update DONE. "), FirmwareUpdate.UpdatingStatus);
 
   return b_ret;
 }
@@ -439,7 +439,7 @@ String System_printMcuResetReasonSimple() {
    @return none
 */
 void System_TaskWifiManagement(void *pvParameters) {
-  SystemLog.AddEvent(LogLevel_Info, "Task Wifi Management. core: " + String(xPortGetCoreID()));
+  SystemLog.AddEvent(LogLevel_Info, F("Task Wifi Management. core: "), String(xPortGetCoreID()));
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while (1) {
@@ -451,7 +451,8 @@ void System_TaskWifiManagement(void *pvParameters) {
     SystemLog.AddEvent(LogLevel_Info, "Free RAM: " + String(ESP.getFreeHeap()) + " bytes");
     SystemLog.AddEvent(LogLevel_Info, "Free SPIRAM: " + String(ESP.getFreePsram()) + " bytes");
     SystemLog.AddEvent(LogLevel_Info, "Temperature: " + String(temperatureRead()) + " *C");
-    SystemLog.AddEvent(LogLevel_Verbose, "WiFiManagement task. Stack free size: " + String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WiFiManagement task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WiFi status: "), String(WiFi.status()));
 
     /* reset wdg */
     esp_task_wdt_reset();
@@ -468,14 +469,14 @@ void System_TaskWifiManagement(void *pvParameters) {
  * @return none
  */
 void System_TaskMain(void *pvParameters) {
-  SystemLog.AddEvent(LogLevel_Info, "System task. core: " + String(xPortGetCoreID()));
+  SystemLog.AddEvent(LogLevel_Info, F("System task. core: "), String(xPortGetCoreID()));
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while (1) {
     /* for ota update */
     esp_task_wdt_reset();
     System_Main();
-    SystemLog.AddEvent(LogLevel_Verbose, "System task. Stack free size: " + String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
+    SystemLog.AddEvent(LogLevel_Verbose, F("System task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
 
     /* reset wdg */
     esp_task_wdt_reset();
@@ -492,7 +493,7 @@ void System_TaskMain(void *pvParameters) {
  * @return none
  */
 void System_TaskCaptureAndSendPhoto(void *pvParameters) {
-  SystemLog.AddEvent(LogLevel_Info, "Task photo processing. core: " + String(xPortGetCoreID()));
+  SystemLog.AddEvent(LogLevel_Info, F("Task photo processing. core: "), String(xPortGetCoreID()));
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while (1) {
@@ -517,7 +518,7 @@ void System_TaskCaptureAndSendPhoto(void *pvParameters) {
       Connect.IncreaseSendingIntervalCounter();
     }
     
-    SystemLog.AddEvent(LogLevel_Verbose, "Photo processing task. Stack free size: " + String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
+    SystemLog.AddEvent(LogLevel_Verbose, F("Photo processing task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
 
     /* reset wdg */
     esp_task_wdt_reset();
@@ -534,7 +535,7 @@ void System_TaskCaptureAndSendPhoto(void *pvParameters) {
  * @return none
  */
 void System_TaskSdCardCheck(void *pvParameters) {
-  SystemLog.AddEvent(LogLevel_Info, "MicroSdCard check task. core: " + String(xPortGetCoreID()));
+  SystemLog.AddEvent(LogLevel_Info, F("MicroSdCard check task. core: "), String(xPortGetCoreID()));
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while (1) {
@@ -547,17 +548,17 @@ void System_TaskSdCardCheck(void *pvParameters) {
 
     /* check card free space */
     if (true == SystemLog.GetCardDetectedStatus()) {
-      SystemLog.AddEvent(LogLevel_Verbose, "Check card free space");
-      SystemLog.CheckCardUsedStatus();
+      SystemLog.AddEvent(LogLevel_Verbose, F("Check card free space"));
+      SystemLog.CheckCardSpace();
     }
 
     /* check maximum log file size */
     if (true == SystemLog.GetCardDetectedStatus()) {
-      SystemLog.AddEvent(LogLevel_Verbose, "Check maximum log file size");
+      SystemLog.AddEvent(LogLevel_Verbose, F("Check maximum log file size"));
       SystemLog.CheckMaxLogFileSize();
     }
 
-    SystemLog.AddEvent(LogLevel_Verbose, "MicroSdCard task. Stack free size: " + String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
+    SystemLog.AddEvent(LogLevel_Verbose, F("MicroSdCard task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
 
     /* reset wdg */
     esp_task_wdt_reset();
@@ -574,13 +575,13 @@ void System_TaskSdCardCheck(void *pvParameters) {
  * @return none
  */
 void System_TaskSerialCfg(void *pvParameters) {
-  SystemLog.AddEvent(LogLevel_Info, "SerialCg task. core: " + String(xPortGetCoreID()));
+  SystemLog.AddEvent(LogLevel_Info, F("SerialCg task. core: "), String(xPortGetCoreID()));
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while (1) {
     esp_task_wdt_reset();
     SystemSerialCfg.ProcessIncommingData();
-    SystemLog.AddEvent(LogLevel_Verbose, "SerialCfg task. Stack free size: " + String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
+    SystemLog.AddEvent(LogLevel_Verbose, F("SerialCfg task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
 
     /* reset wdg */
     esp_task_wdt_reset();
@@ -597,12 +598,12 @@ void System_TaskSerialCfg(void *pvParameters) {
  * @return none
  */
 void System_TaskStreamTelemetry(void *pvParameters) {
-  SystemLog.AddEvent(LogLevel_Info, "StreamTelemetry task. core: " + String(xPortGetCoreID()));
+  SystemLog.AddEvent(LogLevel_Info, F("StreamTelemetry task. core: "), String(xPortGetCoreID()));
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while (1) {
     esp_task_wdt_reset();
-    SystemLog.AddEvent(LogLevel_Verbose, "StreamTelemetry task. Stack free size: " + String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
+    SystemLog.AddEvent(LogLevel_Verbose, F("StreamTelemetry task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
     if (SystemCamera.GetStreamStatus()) {
       char buf[80] = { '\0' };
       sprintf(buf, "Stream, average data in %dsec. FPS: %.1f, Size: %uKB", (TASK_STREAM_TELEMETRY / SECOND_TO_MILISECOND), SystemCamera.StreamGetFrameAverageFps(), SystemCamera.StreamGetFrameAverageSize());
@@ -625,14 +626,14 @@ void System_TaskStreamTelemetry(void *pvParameters) {
  * @return none
  */
 void System_TaskSysLed(void *pvParameters) {
-  SystemLog.AddEvent(LogLevel_Info, "SystemLed task. core: " + String(xPortGetCoreID()));
+  SystemLog.AddEvent(LogLevel_Info, F("SystemLed task. core: "), String(xPortGetCoreID()));
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while (1) {
     system_led.toggle();
     /* reset wdg */
     esp_task_wdt_reset();
-    SystemLog.AddEvent(LogLevel_Verbose, "SystemLed task. Stack free size: " + String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
+    SystemLog.AddEvent(LogLevel_Verbose, F("SystemLed task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
 
     /* next start task */
     vTaskDelayUntil(&xLastWakeTime, system_led.getTimer() / portTICK_PERIOD_MS);
@@ -646,13 +647,13 @@ void System_TaskSysLed(void *pvParameters) {
  * @return none
  */
 void System_TaskWiFiWatchdog(void *pvParameters) {
-  SystemLog.AddEvent(LogLevel_Info, "WiFiWatchdog task. core: " + String(xPortGetCoreID()));
+  SystemLog.AddEvent(LogLevel_Info, F("WiFiWatchdog task. core: "), String(xPortGetCoreID()));
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while (1) {
     esp_task_wdt_reset();
     SystemWifiMngt.WiFiWatchdog();
-    SystemLog.AddEvent(LogLevel_Verbose, "WiFiWatchdog task. Stack free size: " + String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WiFiWatchdog task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
 
     /* reset wdg */
     esp_task_wdt_reset();
@@ -669,7 +670,7 @@ void System_TaskWiFiWatchdog(void *pvParameters) {
  * @return none
  */
 void System_TaskSdCardRemove(void *pvParameters) {
-  SystemLog.AddEvent(LogLevel_Info, "TaskSdCardRemove. core: " + String(xPortGetCoreID()));
+  SystemLog.AddEvent(LogLevel_Info, F("TaskSdCardRemove. core: "), String(xPortGetCoreID()));
   TickType_t xLastWakeTime = xTaskGetTickCount();
   SdCardRemoveTime = TASK_SDCARD_FILE_REMOVE;
 
@@ -678,21 +679,21 @@ void System_TaskSdCardRemove(void *pvParameters) {
       if (0 != StartRemoveSdCard) {
         if (1 == StartRemoveSdCard) {
           SdCardRemoveTime = 5000;
-          SystemLog.AddEvent(LogLevel_Info, "Start remove timelaps photo");
+          SystemLog.AddEvent(LogLevel_Info, F("Start remove timelaps photo"));
           uint16_t file_count = SystemLog.CountFilesInDir(SD_MMC, TIMELAPS_PHOTO_FOLDER);
-          SystemLog.AddEvent(LogLevel_Info, "Files in dir: " + String(file_count));
+          SystemLog.AddEvent(LogLevel_Info, F("Files in dir: "), String(file_count));
           esp_task_wdt_reset();
           StartRemoveSdCard = 2;
         }
 
         if ( false == SystemLog.RemoveFilesInDir(SD_MMC, TIMELAPS_PHOTO_FOLDER, FILE_REMOVE_MAX_COUNT)) {
-          SystemLog.AddEvent(LogLevel_Info, "Remove files in dir done");
+          SystemLog.AddEvent(LogLevel_Info, F("Remove files in dir done"));
           StartRemoveSdCard = 0;
           SdCardRemoveTime = TASK_SDCARD_FILE_REMOVE;
         }
       }
     
-    SystemLog.AddEvent(LogLevel_Verbose, "MicroSdCard task. Stack free size: " + String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
+    SystemLog.AddEvent(LogLevel_Verbose, F("MicroSdCard task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
 
     /* reset wdg */
     esp_task_wdt_reset();

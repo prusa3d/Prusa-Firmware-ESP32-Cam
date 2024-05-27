@@ -344,9 +344,9 @@ function uploadFile() {
 
 	if (file) {
 		statusDiv.innerText = 'Updating...';
-		uploadingFirmware = true;
 		const formData = new FormData();
 		formData.append('firmware', file);
+		uploadingFirmware = true;
 
 		fetch('/upload', {
 				method: 'POST',

@@ -18,8 +18,8 @@ Logs SystemLog(LOGS_FILE_PATH, LOGS_FILE_NAME, LOGS_FILE_MAX_SIZE);
    @return none
 */
 Logs::Logs() {
-  FileName = "log.txt";
-  FilePath = "/";
+  FileName = F("log.txt");
+  FilePath = F("/");
   LogLevel = LogLevel_Verbose;
   FileMaxSize = 1024;
   NtpTimeSynced = false;
@@ -163,7 +163,16 @@ void Logs::AddEvent(LogLevel_enum level, String msg, bool newLine, bool date) {
 #endif
 }
 
- void Logs::AddEvent(LogLevel_enum level, const __FlashStringHelper *msg, String parameters, bool newLine, bool date) {
+/**
+   @info Add new log event
+   @param LogLevel_enum - log level
+   @param const __FlashStringHelper - log message
+   @param String - parameters
+   @param bool - new line
+   @param bool - date
+   @return none
+*/
+void Logs::AddEvent(LogLevel_enum level, const __FlashStringHelper *msg, String parameters, bool newLine, bool date) {
   if (LogLevel >= level) {
     String LogMsg = "";
 
@@ -221,7 +230,7 @@ void Logs::SetFileMaxSize(uint16_t i_data) {
 */
 void Logs::SetNtpTimeSynced(bool i_data) {
   NtpTimeSynced = i_data;
-  AddEvent(LogLevel_Info, "System time: " + GetSystemTime());
+  AddEvent(LogLevel_Info, F("System time: "), GetSystemTime());
 }
 
 /**
@@ -267,12 +276,19 @@ bool Logs::GetNtpTimeSynced() {
 */
 void Logs::CheckMaxLogFileSize() {
   uint32_t FileSize = GetFileSize(SD_MMC, FilePath + FileName);
-  Serial.printf("Log file size: %d bytes\n", FileSize);
+  AddEvent(LogLevel_Verbose, F("Log file size: "), String(FileSize) + " bytes");
+
   if (FileSize >= LOGS_FILE_MAX_SIZE) {
     uint16_t file_count = FileCount(SD_MMC, FilePath, FileName);
-    Serial.printf("Maximum log file size.\nFile count: %d\n", file_count);
+    AddEvent(LogLevel_Info, F("Maximum log file size. File count: "), String(file_count));
     RenameFile(SD_MMC, FilePath + FileName, FilePath + FileName + String(file_count));
+
   }
+}
+
+void Logs::CheckCardSpace() {
+  CheckCardUsedStatus();
+  AddEvent(LogLevel_Verbose, "Card size: " + String(GetCardSizeMB()), + " MB, Used: " + String(GetCardUsedMB()) + " MB, Free: " + String(GetCardUsedMB()) + " MB");
 }
 
 /**

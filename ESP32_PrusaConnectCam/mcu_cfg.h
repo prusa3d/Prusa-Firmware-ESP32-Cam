@@ -56,10 +56,9 @@
 #define WEB_SERVER_PORT             80                      ///< WEB server port 
 #define SERIAL_PORT_SPEED           115200                  ///< baud rate 
 #define WDG_TIMEOUT                 40                      ///< wdg timeout [second]
-#define PHOTO_FRAGMENT_SIZE         2048                    ///< photo fragmentation size [bytes]
+#define PHOTO_FRAGMENT_SIZE         5120                     ///< photo fragmentation size [bytes]
 #define LOOP_DELAY                  100                     ///< loop delay [ms]
 #define WIFI_CLIENT_WAIT_CON        false                   ///< wait for connecting to WiFi network
-#define DYNMIC_JSON_SIZE            1024                    ///< maximum size for dynamic json [bytes]
 #define WEB_CACHE_INTERVAL          86400                   ///< cache interval for browser [s] 86400s = 24h
 
 /* --------------- OTA UPDATE CFG  --------------*/

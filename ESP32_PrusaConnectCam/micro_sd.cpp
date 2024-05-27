@@ -451,7 +451,7 @@ int MicroSd::CountFilesInDir(fs::FS &fs, String path) {
    @param none
    @return bool - status
 */
-bool MicroSd::CheckCardUsedStatus() {
+void MicroSd::CheckCardUsedStatus() {
 
   CardSizeMB = SD_MMC.cardSize()  / (1024 * 1024);
   CardTotalMB = SD_MMC.totalBytes() / (1024 * 1024);
@@ -460,9 +460,9 @@ bool MicroSd::CheckCardUsedStatus() {
   FreeSpacePercent = (CardFreeMB * 100) / CardSizeMB;
   UsedSpacePercent = 100 - FreeSpacePercent;
 
+#if (true == CONSOLE_VERBOSE_DEBUG)  
   Serial.printf("Card size: %d MB, Total: %d MB, Used: %d MB, Free: %d GB, Free: %d %% \n", CardSizeMB, CardTotalMB, CardUsedMB, CardFreeMB, FreeSpacePercent);
-
-  return true;
+#endif
 }
 
 /**

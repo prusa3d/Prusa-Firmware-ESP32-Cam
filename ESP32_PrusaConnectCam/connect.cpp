@@ -469,7 +469,7 @@ void PrusaConnect::SavePhotoToSdCard() {
     String FileName = String(TIMELAPS_PHOTO_FOLDER) + "/" + String(TIMELAPS_PHOTO_PREFIX) + "_";
     FileName += log->GetSystemTime();
     FileName += TIMELAPS_PHOTO_SUFFIX;
-    log->AddEvent(LogLevel_Verbose, "Saving file: " + FileName);
+    log->AddEvent(LogLevel_Verbose, F("Saving file: "), FileName);
 
     if (camera->GetPhotoExifData()->header != NULL) {
       if (log->WritePicture(FileName, camera->GetPhotoFb()->buf + camera->GetPhotoExifData()->offset, camera->GetPhotoFb()->len - camera->GetPhotoExifData()->offset, camera->GetPhotoExifData()->header, camera->GetPhotoExifData()->len) == true) {

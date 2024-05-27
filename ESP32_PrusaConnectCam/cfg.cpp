@@ -29,7 +29,7 @@ Configuration::Configuration(Logs* i_log) {
    @return none
 */
 void Configuration::Init() {
-  Log->AddEvent(LogLevel_Info, "Init cfg module: " + String(EEPROM_SIZE));
+  Log->AddEvent(LogLevel_Info, F("Init cfg module: "), String(EEPROM_SIZE));
   //EEPROM.begin(EEPROM_SIZE);
 
   /* check, when it is first MCU start. If yes, then set default CFG */
@@ -90,7 +90,7 @@ void Configuration::ReadCfg() {
   LoadNetworkDns();
   LoadCameraImageExifRotation();
   LoadTimeLapseFunctionStatus();
-  Log->AddEvent(LogLevel_Info, "Active WiFi client cfg: " + String(CheckActifeWifiCfgFlag() ? "true" : "false"));
+  Log->AddEvent(LogLevel_Info, F("Active WiFi client cfg: "), String(CheckActifeWifiCfgFlag() ? "true" : "false"));
   Log->AddEvent(LogLevel_Info, F("Load CFG from EEPROM done"));
 }
 
@@ -104,10 +104,10 @@ bool Configuration::CheckFirstMcuStart() {
   uint8_t flag = EEPROM.read(EEPROM_ADDR_FIRST_MCU_START_FLAG_START);
 
   if (CFG_FIRST_MCU_START_NAK == flag) {
-    Log->AddEvent(LogLevel_Info, "It's not first start MCU: " + String(flag));
+    Log->AddEvent(LogLevel_Info, F("It's not first start MCU: "), String(flag));
     return false;
   } else {
-    Log->AddEvent(LogLevel_Warning, "First start MCU!: " + String(flag));
+    Log->AddEvent(LogLevel_Warning, F("First start MCU!: "), String(flag));
     return true;
   }
 
@@ -120,7 +120,7 @@ bool Configuration::CheckFirstMcuStart() {
    @return none
 */
 void Configuration::SaveFirstMcuStartFlag(uint8_t i_data) {
-  Log->AddEvent(LogLevel_Info, "Save first MCU start flag: " + String(i_data));
+  Log->AddEvent(LogLevel_Info, F("Save first MCU start flag: "), String(i_data));
   SaveUint8(EEPROM_ADDR_FIRST_MCU_START_FLAG_START, i_data);
 }
 
@@ -185,7 +185,7 @@ void Configuration::DefaultCfg() {
 */
 bool Configuration::CheckActifeWifiCfgFlag() {
   uint8_t flag = EEPROM.read(EEPROM_ADDR_WIFI_ACTIVE_FLAG_START);
-  Log->AddEvent(LogLevel_Verbose, "Read ActifeWifiCfgFlag: " + String(flag));
+  Log->AddEvent(LogLevel_Verbose, F("Read ActifeWifiCfgFlag: "), String(flag));
 
   if (CFG_WIFI_SETTINGS_SAVED == flag) {
     return true;
@@ -208,7 +208,7 @@ void Configuration::CheckResetCfg() {
   /* wait 10s to pressed reset pin */
   uint8_t i = 0;
   for (i = 0; i < (CFG_RESET_TIME_WAIT / CFG_RESET_LOOP_DELAY); i++) {
-    Log->AddEvent(LogLevel_Verbose, "Reset pin status: " + String(ResetPinStatus));
+    Log->AddEvent(LogLevel_Verbose, F("Reset pin status: "), String(ResetPinStatus));
     if (ResetPinStatus == HIGH) {
       break;
     }
@@ -253,10 +253,10 @@ void Configuration::GetFingerprint() {
   //String Random = String(esp_random());
   String encoded = base64::encode(Id + " " + WiFiMacAddress);
   SaveFingerprint(encoded);
-  Log->AddEvent(LogLevel_Verbose, "UniqueID: " + Id);
-  Log->AddEvent(LogLevel_Verbose, "WiFi MAC: " + WiFiMacAddress);
+  Log->AddEvent(LogLevel_Verbose, F("UniqueID: "), Id);
+  Log->AddEvent(LogLevel_Verbose, F("WiFi MAC: "), WiFiMacAddress);
   //Log->AddEvent(LogLevel_Verbose, "Random number: " + Random);
-  Log->AddEvent(LogLevel_Warning, "Calculated device fingerprint: " + encoded);
+  Log->AddEvent(LogLevel_Warning, F("Calculated device fingerprint: "), encoded);
 }
 
 /**
@@ -434,7 +434,7 @@ String Configuration::LoadIpAddress(uint16_t address) {
    @return none
 */
 void Configuration::SaveRefreshInterval(uint8_t i_interval) {
-  Log->AddEvent(LogLevel_Verbose, "Save RefreshInterval: " + String(i_interval));
+  Log->AddEvent(LogLevel_Verbose, F("Save RefreshInterval: "), String(i_interval));
   SaveUint8(EEPROM_ADDR_REFRESH_INTERVAL_START, i_interval);
 }
 
@@ -444,7 +444,7 @@ void Configuration::SaveRefreshInterval(uint8_t i_interval) {
    @return none
 */
 void Configuration::SaveToken(String i_token) {
-  Log->AddEvent(LogLevel_Verbose, "Save Token[" + String(i_token.length()) + "]: " + i_token);
+  Log->AddEvent(LogLevel_Verbose, F("Save Token["), String(i_token.length()) + "]: " + i_token);
   SaveString(EEPROM_ADDR_TOKEN_START, EEPROM_ADDR_TOKEN_LENGTH, i_token);
 }
 
@@ -454,7 +454,7 @@ void Configuration::SaveToken(String i_token) {
    @return none
 */
 void Configuration::SaveFingerprint(String i_fingerprint) {
-  Log->AddEvent(LogLevel_Verbose, "Save Fingerprint[" + String(i_fingerprint.length()) + "]: " + i_fingerprint);
+  Log->AddEvent(LogLevel_Verbose, F("Save Fingerprint["), String(i_fingerprint.length()) + "]: " + i_fingerprint);
   SaveString(EEPROM_ADDR_FINGERPRINT_START, EEPROM_ADDR_FINGERPRINT_LENGTH, i_fingerprint);
 }
 
@@ -464,7 +464,7 @@ void Configuration::SaveFingerprint(String i_fingerprint) {
    @return none
 */
 void Configuration::SavePhotoQuality(uint8_t i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save PhotoQuality: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save PhotoQuality: "), String(i_data));
   SaveUint8(EEPROM_ADDR_PHOTO_QUALITY_START, i_data);
 }
 
@@ -474,7 +474,7 @@ void Configuration::SavePhotoQuality(uint8_t i_data) {
    @return none
 */
 void Configuration::SaveFrameSize(uint8_t i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save FrameSize: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save FrameSize: "), String(i_data));
   SaveUint8(EEPROM_ADDR_FRAMESIZE_START, i_data);
 }
 
@@ -484,7 +484,7 @@ void Configuration::SaveFrameSize(uint8_t i_data) {
    @return none
 */
 void Configuration::SaveBrightness(int8_t i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save Brightness: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save Brightness: "), String(i_data));
   SaveInt8(EEPROM_ADDR_BRIGHTNESS_START, i_data);
 }
 
@@ -494,7 +494,7 @@ void Configuration::SaveBrightness(int8_t i_data) {
    @return none
 */
 void Configuration::SaveContrast(int8_t i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save Contrast: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save Contrast: "), String(i_data));
   SaveInt8(EEPROM_ADDR_CONTRAST_START, i_data);
 }
 
@@ -504,7 +504,7 @@ void Configuration::SaveContrast(int8_t i_data) {
    @return none
 */
 void Configuration::SaveSaturation(int8_t i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save Saturation: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save Saturation: "), String(i_data));
   SaveInt8(EEPROM_ADDR_SATURATION_START, i_data);
 }
 
@@ -514,7 +514,7 @@ void Configuration::SaveSaturation(int8_t i_data) {
    @return none
 */
 void Configuration::SaveHmirror(bool i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save Hmirror: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save Hmirror: "), String(i_data));
   SaveBool(EEPROM_ADDR_HMIRROR_START, i_data);
 }
 
@@ -524,7 +524,7 @@ void Configuration::SaveHmirror(bool i_data) {
    @return none
 */
 void Configuration::SaveVflip(bool i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save vflip: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save vflip: "), String(i_data));
   SaveBool(EEPROM_ADDR_VFLIP_START, i_data);
 }
 
@@ -534,7 +534,7 @@ void Configuration::SaveVflip(bool i_data) {
    @return none
 */
 void Configuration::SaveLensCorrect(bool i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save lensc: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save lensc: "), String(i_data));
   SaveBool(EEPROM_ADDR_LENSC_START, i_data);
 }
 
@@ -544,7 +544,7 @@ void Configuration::SaveLensCorrect(bool i_data) {
    @return none
 */
 void Configuration::SaveExposureCtrl(bool i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save exposure_ctrl: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save exposure_ctrl: "), String(i_data));
   SaveBool(EEPROM_ADDR_EXPOSURE_CTRL_START, i_data);
 }
 
@@ -554,7 +554,7 @@ void Configuration::SaveExposureCtrl(bool i_data) {
    @return none
 */
 void Configuration::SaveAwb(bool i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save awb: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save awb: "), String(i_data));
   SaveBool(EEPROM_ADDR_AWB_ENABLE_START, i_data);
 }
 
@@ -564,7 +564,7 @@ void Configuration::SaveAwb(bool i_data) {
    @return none
 */
 void Configuration::SaveAwbGain(bool i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save awb_gain: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save awb_gain: "), String(i_data));
   Configuration::SaveBool(EEPROM_ADDR_AWB_GAIN_ENABLE_START, i_data);
 }
 
@@ -574,7 +574,7 @@ void Configuration::SaveAwbGain(bool i_data) {
    @return none
 */
 void Configuration::SaveAwbMode(uint8_t i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save awb_mode: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save awb_mode: "), String(i_data));
   SaveUint8(EEPROM_ADDR_AWB_MODE_ENABLE_START, i_data);
 }
 
@@ -584,7 +584,7 @@ void Configuration::SaveAwbMode(uint8_t i_data) {
    @return none
 */
 void Configuration::SaveBpc(bool i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save bpc: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save bpc: "), String(i_data));
   SaveBool(EEPROM_ADDR_BPC_ENABLE_START, i_data);
 }
 
@@ -594,7 +594,7 @@ void Configuration::SaveBpc(bool i_data) {
    @return none
 */
 void Configuration::SaveWpc(bool i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save wpc: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save wpc: "), String(i_data));
   SaveBool(EEPROM_ADDR_WPC_ENABLE_START, i_data);
 }
 
@@ -604,7 +604,7 @@ void Configuration::SaveWpc(bool i_data) {
    @return none
 */
 void Configuration::SaveRawGama(bool i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save raw_gama: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save raw_gama: "), String(i_data));
   SaveBool(EEPROM_ADDR_RAW_GAMA_ENABLE_START, i_data);
 }
 
@@ -614,7 +614,7 @@ void Configuration::SaveRawGama(bool i_data) {
    @return none
 */
 void Configuration::SaveWifiSsid(String i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save WI-FI SSID[" + String(i_data.length()) + "]: " + i_data);
+  Log->AddEvent(LogLevel_Verbose, F("Save WI-FI SSID["), String(i_data.length()) + "]: " + i_data);
   SaveString(EEPROM_ADDR_WIFI_SSID_START, EEPROM_ADDR_WIFI_SSID_LENGTH, i_data);
 }
 
@@ -625,7 +625,7 @@ void Configuration::SaveWifiSsid(String i_data) {
 */
 void Configuration::SaveWifiPassword(String i_data) {
   //Log->AddEvent(LogLevel_Verbose, "Save WI-FI password[" + String(i_data.length()) + "]: " + i_data); /* SENSITIVE DATA! */
-  Log->AddEvent(LogLevel_Verbose, "Save WI-FI password[" + String(i_data.length()) + "]");
+  Log->AddEvent(LogLevel_Verbose, F("Save WI-FI password["), String(i_data.length()) + "]");
   SaveString(EEPROM_ADDR_WIFI_PASSWORD_START, EEPROM_ADDR_WIFI_PASSWORD_LENGTH, i_data);
 }
 
@@ -635,7 +635,7 @@ void Configuration::SaveWifiPassword(String i_data) {
    @return none
 */
 void Configuration::SaveWifiCfgFlag(uint8_t i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save active wifi cfg flag: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save active wifi cfg flag: "), String(i_data));
   SaveUint8(EEPROM_ADDR_WIFI_ACTIVE_FLAG_START, i_data);
 }
 
@@ -645,7 +645,7 @@ void Configuration::SaveWifiCfgFlag(uint8_t i_data) {
    @return none
 */
 void Configuration::SaveEnableServiceAp(bool i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save Enable/disable service AP: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save Enable/disable service AP: "), String(i_data));
   SaveBool(EEPROM_ADDR_SERVICE_AP_ENABLE_START, i_data);
 }
 
@@ -655,7 +655,7 @@ void Configuration::SaveEnableServiceAp(bool i_data) {
    @return none
 */
 void Configuration::SaveBasicAuthUsername(String i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save username BasicAuth[" + String(i_data.length()) + "]: " + i_data);
+  Log->AddEvent(LogLevel_Verbose, F("Save username BasicAuth["), String(i_data.length()) + "]: " + i_data);
   SaveString(EEPROM_ADDR_BASIC_AUTH_USERNAME_START, EEPROM_ADDR_BASIC_AUTH_USERNAME_LENGTH, i_data);
 }
 
@@ -666,7 +666,7 @@ void Configuration::SaveBasicAuthUsername(String i_data) {
 */
 void Configuration::SaveBasicAuthPassword(String i_data) {
   uint8_t len = i_data.length();
-  Log->AddEvent(LogLevel_Verbose, "Save password BasicAuth[" + String(len) + "]: ");
+  Log->AddEvent(LogLevel_Verbose, F("Save password BasicAuth["), String(len) + "]: ");
   SaveString(EEPROM_ADDR_BASIC_AUTH_PASSWORD_START, EEPROM_ADDR_BASIC_AUTH_PASSWORD_LENGTH, i_data);
 }
 
@@ -676,7 +676,7 @@ void Configuration::SaveBasicAuthPassword(String i_data) {
    @return none
 */
 void Configuration::SaveBasicAuthFlag(bool i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save Enable/disable BasicAuth: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save Enable/disable BasicAuth: "), String(i_data));
   SaveBool(EEPROM_ADDR_BASIC_AUTH_ENABLE_FLAG_START, i_data);
 }
 
@@ -686,7 +686,7 @@ void Configuration::SaveBasicAuthFlag(bool i_data) {
    @return none
 */
 void Configuration::SaveCameraFlashEnable(uint8_t i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save Enable/disable camera flash: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save Enable/disable camera flash: "), String(i_data));
   SaveUint8(EEPROM_ADDR_CAMERA_FLASH_ENABLE_START, i_data);
 }
 
@@ -696,7 +696,7 @@ void Configuration::SaveCameraFlashEnable(uint8_t i_data) {
    @return none
 */
 void Configuration::SaveCameraFlashTime(uint16_t i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save camera flash time: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save camera flash time: "), String(i_data));
   SaveUint16(EEPROM_ADDR_CAMERA_FLASH_TIME_START, i_data);
 }
 
@@ -706,7 +706,7 @@ void Configuration::SaveCameraFlashTime(uint16_t i_data) {
    @return none
 */
 void Configuration::SaveMdnsRecord(String i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save mDNS record[" + String(i_data.length()) + "]: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save mDNS record["), String(i_data.length()) + "]: " + String(i_data));
   SaveString(EEPROM_ADDR_MDNS_RECORD_START, EEPROM_ADDR_MDNS_RECORD_LENGTH, i_data);
 }
 
@@ -716,7 +716,7 @@ void Configuration::SaveMdnsRecord(String i_data) {
    @return none
 */
 void Configuration::SaveAec2(bool i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save Enable/disable AEC2: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save Enable/disable AEC2: "), String(i_data));
   SaveBool(EEPROM_ADDR_AEC2_START, i_data);
 }
 
@@ -726,7 +726,7 @@ void Configuration::SaveAec2(bool i_data) {
    @return none
 */
 void Configuration::SaveAeLevel(int8_t i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save ae_level: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save ae_level: "), String(i_data));
   SaveBool(EEPROM_ADDR_AE_LEVEL_START, i_data);
 }
 
@@ -736,7 +736,7 @@ void Configuration::SaveAeLevel(int8_t i_data) {
    @return none
 */
 void Configuration::SaveAecValue(uint16_t i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save aec value time: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save aec value time: "), String(i_data));
   SaveUint16(EEPROM_ADDR_AEC_VALUE_START, i_data);
 }
 
@@ -746,7 +746,7 @@ void Configuration::SaveAecValue(uint16_t i_data) {
    @return none
 */
 void Configuration::SaveGainCtrl(bool i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save gain_ctrl: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save gain_ctrl: "), String(i_data));
   SaveBool(EEPROM_ADDR_GAIN_CTRL_START, i_data);
 }
 
@@ -756,7 +756,7 @@ void Configuration::SaveGainCtrl(bool i_data) {
    @return none
 */
 void Configuration::SaveAgcGain(uint8_t i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save agc_gain: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save agc_gain: "), String(i_data));
   SaveUint8(EEPROM_ADDR_AGC_GAIN_START, i_data);
 }
 
@@ -766,7 +766,7 @@ void Configuration::SaveAgcGain(uint8_t i_data) {
    @return none
 */
 void Configuration::SaveLogLevel(LogLevel_enum i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save log level: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save log level: "), String(i_data));
   SaveUint8(EEPROM_ADDR_LOG_LEVEL, i_data);
 }
 
@@ -776,7 +776,7 @@ void Configuration::SaveLogLevel(LogLevel_enum i_data) {
  * @return none
 */
 void Configuration::SavePrusaConnectHostname(String i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save PrusaConnectHostanme[" + String(i_data.length()) + "]: " + i_data);
+  Log->AddEvent(LogLevel_Verbose, F("Save PrusaConnectHostanme["), String(i_data.length()) + "]: " + i_data);
   SaveString(EEPROM_ADDR_HOSTNAME_START, EEPROM_ADDR_HOSTNAME_LENGTH, i_data);
 }
 
@@ -796,7 +796,7 @@ void Configuration::SaveNetworkIpMethod(uint8_t i_data) {
    @return none
 */
 void Configuration::SaveNetworkIp(String i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save network static ip: " + i_data);
+  Log->AddEvent(LogLevel_Verbose, F("Save network static ip: "), i_data);
   SaveIpAddress(EEPROM_ADDR_NETWORK_STATIC_IP_START, i_data);
 
 }
@@ -807,7 +807,7 @@ void Configuration::SaveNetworkIp(String i_data) {
    @return none
 */
 void Configuration::SaveNetworkMask(String i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save network static mask: " + i_data);
+  Log->AddEvent(LogLevel_Verbose, F("Save network static mask: "), i_data);
   SaveIpAddress(EEPROM_ADDR_NETWORK_STATIC_MASK_START, i_data);
 }
 
@@ -817,7 +817,7 @@ void Configuration::SaveNetworkMask(String i_data) {
    @return none
 */
 void Configuration::SaveNetworkGateway(String i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save network static gateway: " + i_data);
+  Log->AddEvent(LogLevel_Verbose, F("Save network static gateway: "), i_data);
   SaveIpAddress(EEPROM_ADDR_NETWORK_STATIC_GATEWAY_START, i_data);
 }
 
@@ -827,7 +827,7 @@ void Configuration::SaveNetworkGateway(String i_data) {
    @return none
 */
 void Configuration::SaveNetworkDns(String i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save network static dns: " + i_data);
+  Log->AddEvent(LogLevel_Verbose, F("Save network static dns: "), i_data);
   SaveIpAddress(EEPROM_ADDR_NETWORK_STATIC_DNS_START, i_data);
 }
 
@@ -837,7 +837,7 @@ void Configuration::SaveNetworkDns(String i_data) {
    @return none
 */
 void Configuration::SaveCameraImageExifRotation(uint8_t i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save camera image exif rotation: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save camera image exif rotation: "), String(i_data));
   SaveUint8(EEPROM_ADDR_IMAGE_ROTATION_START, i_data);
 }
 
@@ -847,7 +847,7 @@ void Configuration::SaveCameraImageExifRotation(uint8_t i_data) {
    @return none
 */
 void Configuration::SaveTimeLapseFunctionStatus(bool i_data) {
-  Log->AddEvent(LogLevel_Verbose, "Save time lapse function status: " + String(i_data));
+  Log->AddEvent(LogLevel_Verbose, F("Save time lapse function status: "), String(i_data));
   SaveBool(EEPROM_ADDR_TIMELAPS_ENABLE_START, i_data);
 }
 
@@ -858,7 +858,7 @@ void Configuration::SaveTimeLapseFunctionStatus(bool i_data) {
 */
 uint8_t Configuration::LoadRefreshInterval() {
   uint8_t ret = EEPROM.read(EEPROM_ADDR_REFRESH_INTERVAL_START);
-  Log->AddEvent(LogLevel_Info, "Refresh interval: " + String(ret));
+  Log->AddEvent(LogLevel_Info, F("Refresh interval: "), String(ret));
 
   return ret;
 }
@@ -869,7 +869,7 @@ uint8_t Configuration::LoadRefreshInterval() {
    @return String - token
 */
 String Configuration::LoadToken() {
-  Log->AddEvent(LogLevel_Info, "Token: ", false);
+  Log->AddEvent(LogLevel_Info, F("Token: "), false);
   String ret = LoadString(EEPROM_ADDR_TOKEN_START, EEPROM_ADDR_TOKEN_LENGTH, CONSOLE_VERBOSE_DEBUG);
 
   return ret;
@@ -881,7 +881,7 @@ String Configuration::LoadToken() {
    @return String - fingerprint
 */
 String Configuration::LoadFingerprint() {
-  Log->AddEvent(LogLevel_Info, "Fingerprint: ", false);
+  Log->AddEvent(LogLevel_Info, F("Fingerprint: "), false);
   String ret = LoadString(EEPROM_ADDR_FINGERPRINT_START, EEPROM_ADDR_FINGERPRINT_LENGTH, true);
 
   return ret;
@@ -894,7 +894,7 @@ String Configuration::LoadFingerprint() {
 */
 uint8_t Configuration::LoadPhotoQuality() {
   uint8_t ret = EEPROM.read(EEPROM_ADDR_PHOTO_QUALITY_START);
-  Log->AddEvent(LogLevel_Info, "Photo quality: " + String(ret));
+  Log->AddEvent(LogLevel_Info, F("Photo quality: "), String(ret));
 
   return ret;
 }
@@ -906,7 +906,7 @@ uint8_t Configuration::LoadPhotoQuality() {
 */
 uint8_t Configuration::LoadFrameSize() {
   uint8_t ret = EEPROM.read(EEPROM_ADDR_FRAMESIZE_START);
-  Log->AddEvent(LogLevel_Info, "Framesize: " + String(ret));
+  Log->AddEvent(LogLevel_Info, F("Framesize: "), String(ret));
   return ret;
 }
 
@@ -917,7 +917,7 @@ uint8_t Configuration::LoadFrameSize() {
 */
 int8_t Configuration::LoadBrightness() {
   int8_t ret = EEPROM.read(EEPROM_ADDR_BRIGHTNESS_START);
-  Log->AddEvent(LogLevel_Info, "brightness: " + String(ret));
+  Log->AddEvent(LogLevel_Info, F("brightness: "), String(ret));
 
   return ret;
 }
@@ -929,7 +929,7 @@ int8_t Configuration::LoadBrightness() {
 */
 int8_t Configuration::LoadContrast() {
   int8_t ret = EEPROM.read(EEPROM_ADDR_CONTRAST_START);
-  Log->AddEvent(LogLevel_Info, "contrast: " + String(ret));
+  Log->AddEvent(LogLevel_Info, F("contrast: "), String(ret));
 
   return ret;
 }
@@ -941,7 +941,7 @@ int8_t Configuration::LoadContrast() {
 */
 int8_t Configuration::LoadSaturation() {
   int8_t ret = EEPROM.read(EEPROM_ADDR_SATURATION_START);
-  Log->AddEvent(LogLevel_Info, "saturation: " + String(ret));
+  Log->AddEvent(LogLevel_Info, F("saturation: "), String(ret));
 
   return ret;
 }
@@ -953,7 +953,7 @@ int8_t Configuration::LoadSaturation() {
 */
 bool Configuration::LoadHmirror() {
   bool ret = EEPROM.read(EEPROM_ADDR_HMIRROR_START);
-  Log->AddEvent(LogLevel_Info, "hmirror: " + String(ret));
+  Log->AddEvent(LogLevel_Info, F("hmirror: "), String(ret));
 
   return ret;
 }
@@ -965,7 +965,7 @@ bool Configuration::LoadHmirror() {
 */
 bool Configuration::LoadVflip() {
   bool ret = EEPROM.read(EEPROM_ADDR_VFLIP_START);
-  Log->AddEvent(LogLevel_Info, "vflip: " + String(ret));
+  Log->AddEvent(LogLevel_Info, F("vflip: "), String(ret));
 
   return ret;
 }
@@ -977,7 +977,7 @@ bool Configuration::LoadVflip() {
 */
 bool Configuration::LoadLensCorrect() {
   bool ret = EEPROM.read(EEPROM_ADDR_LENSC_START);
-  Log->AddEvent(LogLevel_Info, "lensc: " + String(ret));
+  Log->AddEvent(LogLevel_Info, F("lensc: "), String(ret));
 
   return ret;
 }
@@ -989,7 +989,7 @@ bool Configuration::LoadLensCorrect() {
 */
 bool Configuration::LoadExposureCtrl() {
   bool ret = EEPROM.read(EEPROM_ADDR_EXPOSURE_CTRL_START);
-  Log->AddEvent(LogLevel_Info, "exposure_ctrl: " + String(ret));
+  Log->AddEvent(LogLevel_Info, F("exposure_ctrl: "), String(ret));
 
   return ret;
 }
@@ -1001,7 +1001,7 @@ bool Configuration::LoadExposureCtrl() {
 */
 bool Configuration::LoadAwb() {
   bool ret = EEPROM.read(EEPROM_ADDR_AWB_ENABLE_START);
-  Log->AddEvent(LogLevel_Info, "awb: " + String(ret));
+  Log->AddEvent(LogLevel_Info, F("awb: "), String(ret));
 
   return ret;
 }
@@ -1013,7 +1013,7 @@ bool Configuration::LoadAwb() {
 */
 bool Configuration::LoadAwbGain() {
   bool ret = EEPROM.read(EEPROM_ADDR_AWB_GAIN_ENABLE_START);
-  Log->AddEvent(LogLevel_Info, "awb_gain: " + String(ret));
+  Log->AddEvent(LogLevel_Info, F("awb_gain: "), String(ret));
 
   return ret;
 }
@@ -1025,7 +1025,7 @@ bool Configuration::LoadAwbGain() {
 */
 uint8_t Configuration::LoadAwbMode() {
   uint8_t ret = EEPROM.read(EEPROM_ADDR_AWB_MODE_ENABLE_START);
-  Log->AddEvent(LogLevel_Info, "awb_mode: " + String(ret));
+  Log->AddEvent(LogLevel_Info, F("awb_mode: "), String(ret));
 
   return ret;
 }
@@ -1037,7 +1037,7 @@ uint8_t Configuration::LoadAwbMode() {
 */
 bool Configuration::LoadBpc() {
   bool ret = EEPROM.read(EEPROM_ADDR_BPC_ENABLE_START);
-  Log->AddEvent(LogLevel_Info, "bpc: " + String(ret));
+  Log->AddEvent(LogLevel_Info, F("bpc: "), String(ret));
 
   return ret;
 }
@@ -1049,7 +1049,7 @@ bool Configuration::LoadBpc() {
 */
 bool Configuration::LoadWpc() {
   bool ret = EEPROM.read(EEPROM_ADDR_WPC_ENABLE_START);
-  Log->AddEvent(LogLevel_Info, "wpc: " + String(ret));
+  Log->AddEvent(LogLevel_Info, F("wpc: "), String(ret));
 
   return ret;
 }
@@ -1061,7 +1061,7 @@ bool Configuration::LoadWpc() {
 */
 bool Configuration::LoadRawGama() {
   bool ret = EEPROM.read(EEPROM_ADDR_RAW_GAMA_ENABLE_START);
-  Log->AddEvent(LogLevel_Info, "raw_gama: " + String(ret));
+  Log->AddEvent(LogLevel_Info, F("raw_gama: "), String(ret));
 
   return ret;
 }
@@ -1072,7 +1072,7 @@ bool Configuration::LoadRawGama() {
    @return String - WI-FI SSID
 */
 String Configuration::LoadWifiSsid() {
-  Log->AddEvent(LogLevel_Info, "SSID: ", false);
+  Log->AddEvent(LogLevel_Info, F("SSID: "), false);
   String ret = LoadString(EEPROM_ADDR_WIFI_SSID_START, EEPROM_ADDR_WIFI_SSID_LENGTH, true);
 
   return ret;
@@ -1084,7 +1084,7 @@ String Configuration::LoadWifiSsid() {
    @return String - WI-FI password
 */
 String Configuration::LoadWifiPassowrd() {
-  Log->AddEvent(LogLevel_Info, "WiFi password: ", false);
+  Log->AddEvent(LogLevel_Info, F("WiFi password: "), false);
   String ret = LoadString(EEPROM_ADDR_WIFI_PASSWORD_START, EEPROM_ADDR_WIFI_PASSWORD_LENGTH, CONSOLE_VERBOSE_DEBUG);
   
   return ret;
@@ -1102,7 +1102,7 @@ bool Configuration::LoadEnableServiceAp() {
   if ((255 == tmp) || (1 == tmp)) {
     ret = true;
   } 
-  Log->AddEvent(LogLevel_Info, "Enable Service AP: " + String(ret));
+  Log->AddEvent(LogLevel_Info, F("Enable Service AP: "), String(ret));
 
   return ret;
 }
@@ -1113,7 +1113,7 @@ bool Configuration::LoadEnableServiceAp() {
    @return String - username
 */
 String Configuration::LoadBasicAuthUsername() {
-  Log->AddEvent(LogLevel_Info, "web auth user: ", false);
+  Log->AddEvent(LogLevel_Info, F("web auth user: "), false);
   String ret = LoadString(EEPROM_ADDR_BASIC_AUTH_USERNAME_START, EEPROM_ADDR_BASIC_AUTH_USERNAME_LENGTH, true);
 
   return ret;
@@ -1125,7 +1125,7 @@ String Configuration::LoadBasicAuthUsername() {
    @return String - password
 */
 String Configuration::LoadBasicAuthPassword() {
-  Log->AddEvent(LogLevel_Info, "web auth pass: ", false);
+  Log->AddEvent(LogLevel_Info, F("web auth pass: "), false);
   String ret = LoadString(EEPROM_ADDR_BASIC_AUTH_PASSWORD_START, EEPROM_ADDR_BASIC_AUTH_PASSWORD_LENGTH, CONSOLE_VERBOSE_DEBUG);
 
   return ret;
@@ -1138,7 +1138,7 @@ String Configuration::LoadBasicAuthPassword() {
 */
 bool Configuration::LoadBasicAuthFlag() {
   bool ret = EEPROM.read(EEPROM_ADDR_BASIC_AUTH_ENABLE_FLAG_START);
-  Log->AddEvent(LogLevel_Info, "web auth enable: " + String(ret));
+  Log->AddEvent(LogLevel_Info, F("web auth enable: "), String(ret));
 
   return ret;
 }
@@ -1150,7 +1150,7 @@ bool Configuration::LoadBasicAuthFlag() {
 */
 bool Configuration::LoadCameraFlashEnable() {
   bool ret = EEPROM.read(EEPROM_ADDR_CAMERA_FLASH_ENABLE_START);
-  Log->AddEvent(LogLevel_Info, "Camera flash: " + String(ret));
+  Log->AddEvent(LogLevel_Info, F("Camera flash: "), String(ret));
 
   return ret;
 }
@@ -1162,7 +1162,7 @@ bool Configuration::LoadCameraFlashEnable() {
 */
 uint16_t Configuration::LoadCameraFlashTime() {
   uint16_t ret = LoadUint16(EEPROM_ADDR_CAMERA_FLASH_TIME_START);
-  Log->AddEvent(LogLevel_Info, "Camera flash time: " + String(ret));
+  Log->AddEvent(LogLevel_Info, F("Camera flash time: "), String(ret));
 
   return ret;
 }
@@ -1173,7 +1173,7 @@ uint16_t Configuration::LoadCameraFlashTime() {
    @return String - mDNS record
 */
 String Configuration::LoadMdnsRecord() {
-  Log->AddEvent(LogLevel_Info, "mDNS: ", false);
+  Log->AddEvent(LogLevel_Info, F("mDNS: "), false);
   String ret = LoadString(EEPROM_ADDR_MDNS_RECORD_START, EEPROM_ADDR_MDNS_RECORD_LENGTH, true);
 
   return ret;
@@ -1186,7 +1186,7 @@ String Configuration::LoadMdnsRecord() {
 */
 bool Configuration::LoadAec2() {
   bool ret = EEPROM.read(EEPROM_ADDR_AEC2_START);
-  Log->AddEvent(LogLevel_Info, "aec2: " + String(ret));
+  Log->AddEvent(LogLevel_Info, F("aec2: "), String(ret));
 
   return ret;
 }
@@ -1198,7 +1198,7 @@ bool Configuration::LoadAec2() {
 */
 int8_t Configuration::LoadAeLevel() {
   int8_t ret = EEPROM.read(EEPROM_ADDR_AE_LEVEL_START);
-  Log->AddEvent(LogLevel_Info, "ae_level: " + String(ret));
+  Log->AddEvent(LogLevel_Info, F("ae_level: "), String(ret));
 
   return ret;
 }
@@ -1210,7 +1210,7 @@ int8_t Configuration::LoadAeLevel() {
 */
 uint16_t Configuration::LoadAecValue() {
   uint16_t ret = LoadUint16(EEPROM_ADDR_AEC_VALUE_START);
-  Log->AddEvent(LogLevel_Info, "aec_value: " + String(ret));
+  Log->AddEvent(LogLevel_Info, F("aec_value: "), String(ret));
 
   return ret;
 }
@@ -1222,7 +1222,7 @@ uint16_t Configuration::LoadAecValue() {
 */
 bool Configuration::LoadGainCtrl() {
   bool ret = EEPROM.read(EEPROM_ADDR_GAIN_CTRL_START);
-  Log->AddEvent(LogLevel_Info, "gain_ctrl: " + String(ret));
+  Log->AddEvent(LogLevel_Info, F("gain_ctrl: "), String(ret));
 
   return ret;
 }
@@ -1234,7 +1234,7 @@ bool Configuration::LoadGainCtrl() {
 */
 uint8_t Configuration::LoadAgcGain() {
   uint8_t ret = EEPROM.read(EEPROM_ADDR_AGC_GAIN_START);
-  Log->AddEvent(LogLevel_Info, "agc_gain: " + String(ret));
+  Log->AddEvent(LogLevel_Info, F("agc_gain: "), String(ret));
 
   return ret;
 }
@@ -1246,7 +1246,7 @@ uint8_t Configuration::LoadAgcGain() {
  */
 LogLevel_enum Configuration::LoadLogLevel() {
   LogLevel_enum ret = (LogLevel_enum) EEPROM.read(EEPROM_ADDR_LOG_LEVEL);
-  Log->AddEvent(LogLevel_Info, "LogLevel: " + String(ret));
+  Log->AddEvent(LogLevel_Info, F("LogLevel: "), String(ret));
   
   return ret;
 }
@@ -1257,7 +1257,7 @@ LogLevel_enum Configuration::LoadLogLevel() {
  * @return String - hostname
  */
 String Configuration::LoadPrusaConnectHostname() {
-  Log->AddEvent(LogLevel_Info, "PrusaConnect hostname: ", false);
+  Log->AddEvent(LogLevel_Info, F("PrusaConnect hostname: "), false);
   String ret = LoadString(EEPROM_ADDR_HOSTNAME_START, EEPROM_ADDR_HOSTNAME_LENGTH, true);
 
   return ret;
@@ -1287,7 +1287,7 @@ uint8_t Configuration::LoadNetworkIpMethod() {
  */
 String Configuration::LoadNetworkIp() {
   String ret = LoadIpAddress(EEPROM_ADDR_NETWORK_STATIC_IP_START);
-  Log->AddEvent(LogLevel_Info, "Network static IP: " + ret);
+  Log->AddEvent(LogLevel_Info, F("Network static IP: "), ret);
 
   return ret;
 }
@@ -1299,7 +1299,7 @@ String Configuration::LoadNetworkIp() {
  */
 String Configuration::LoadNetworkMask() {
   String ret = LoadIpAddress(EEPROM_ADDR_NETWORK_STATIC_MASK_START);
-  Log->AddEvent(LogLevel_Info, "Network static mask: " + ret);
+  Log->AddEvent(LogLevel_Info, F("Network static mask: "), ret);
 
   return ret;
 }
@@ -1311,7 +1311,7 @@ String Configuration::LoadNetworkMask() {
  */
 String Configuration::LoadNetworkGateway() {
   String ret = LoadIpAddress(EEPROM_ADDR_NETWORK_STATIC_GATEWAY_START);
-  Log->AddEvent(LogLevel_Info, "Network static gateway: " + ret);
+  Log->AddEvent(LogLevel_Info, F("Network static gateway: "), ret);
 
   return ret;
 }
@@ -1323,7 +1323,7 @@ String Configuration::LoadNetworkGateway() {
  */
 String Configuration::LoadNetworkDns() {
   String ret = LoadIpAddress(EEPROM_ADDR_NETWORK_STATIC_DNS_START);
-  Log->AddEvent(LogLevel_Info, "Network static DNS: " + ret);
+  Log->AddEvent(LogLevel_Info, F("Network static DNS: "), ret);
 
   return ret;
 }
@@ -1341,7 +1341,7 @@ uint8_t Configuration::LoadCameraImageExifRotation() {
     ret = 1;
   }
 
-  Log->AddEvent(LogLevel_Info, "Camera image rotation: " + String(ret));
+  Log->AddEvent(LogLevel_Info, F("Camera image rotation: "), String(ret));
 
   return ret;
 }

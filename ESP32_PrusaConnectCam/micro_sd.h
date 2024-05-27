@@ -33,14 +33,14 @@
 
 class MicroSd {
 private:
-  bool CardDetected;        ///< Card detected status
-  bool DetectAfterBoot;     ///< Card detect after boot
+  bool CardDetected;          ///< Card detected status
+  bool DetectAfterBoot;       ///< Card detect after boot
   uint32_t CardSizeMB;        ///< Card size
-  uint32_t CardTotalMB;
-  uint32_t CardUsedMB;
-  uint32_t CardFreeMB;
-  uint8_t FreeSpacePercent;
-  uint8_t UsedSpacePercent;
+  uint32_t CardTotalMB;       ///< Card total size
+  uint32_t CardUsedMB;        ///< Card used size
+  uint32_t CardFreeMB;        ///< Card free size
+  uint8_t FreeSpacePercent;   ///< Free space in percent
+  uint8_t UsedSpacePercent;   ///< Used space in percent
 
 public:
   MicroSd();
@@ -66,7 +66,7 @@ public:
   bool WritePicture(String, uint8_t *, size_t);
   bool WritePicture(String, uint8_t *, size_t, const uint8_t *, size_t);
 
-  bool CheckCardUsedStatus();
+  void CheckCardUsedStatus();
 
   bool GetCardDetectedStatus();
   bool GetCardDetectAfterBoot();

@@ -934,7 +934,7 @@ void Server_InitWebServer_Update() {
     [](AsyncWebServerRequest* request, String filename, size_t index, uint8_t* data, size_t len, bool final) {
       if (!index) {
         FirmwareUpdate.Processing = true;
-        SystemLog.AddEvent(LogLevel_Info, "Start FW update from file: " + filename);
+        SystemLog.AddEvent(LogLevel_Info, F("Start FW update from file: "), filename);
         FirmwareUpdate.UpdatingStatus = String(SYSTEM_MSG_UPDATE_PROCESS);
         if (!Update.begin(UPDATE_SIZE_UNKNOWN, U_FLASH)) {
           Update.printError(Serial);
@@ -1036,7 +1036,7 @@ void Server_handleCacheRequest(AsyncWebServerRequest* request, const char *conte
    @return none
 */
 void Server_handleNotFound(AsyncWebServerRequest* request) {
-  String message = "URL not Found\n\n";
+  String message = F("URL not Found\n\n");
 
   message += "URI: " + request->url() + "\nMethod: ";
   message += (request->method() == HTTP_GET) ? F("GET") : F("POST");

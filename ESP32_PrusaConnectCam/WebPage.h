@@ -312,7 +312,7 @@ const char page_system_html[] PROGMEM = R"rawliteral(
 <body>
 	<center>
         <table id="data">
-            <tr><td class="ps3">System status</td><td></td></tr>
+            <tr><td class="ps3">Status</td><td></td></tr>
             <tr><td class="ps1">Prusa Connect Status</td><td class="ps2" id="last_upload_status"></td></tr>
             <tr><td class="ps1">Wi-Fi mode</td><td class="ps2" id="wifi_mode"></td></tr>
 			<tr><td class="ps1">Wi-Fi service AP SSID</td><td class="ps2" id="service_ap_ssid"></td></tr>
@@ -321,9 +321,8 @@ const char page_system_html[] PROGMEM = R"rawliteral(
 			<tr><td class="ps3">Firmware</td><td></td></tr>
             <tr><td class="ps1">Version</td><td class="ps2" id="sw_ver"></td></tr>
 			<tr><td class="ps1">Build</td><td class="ps2" id="sw_build"></td></tr>
-			<tr><td class="ps1">Available update</td><td class="ps2"><span id="sw_new_ver"></span> <span class="underlined-text" onclick="checkUpdate()">Check update from cloud</span></td></tr>
             <tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
-			<tr><td class="ps3">System configuration</td><td></td></tr>
+			<tr><td class="ps3">Configuration</td><td></td></tr>
 			<tr><td class="pc1">Camera name & mDNS record</td><td ><input type="text" name="mdns" id=mdnsid ><span class=pc1>.local</span>&nbsp;<button class="btn_save" onclick="changeValue(document.getElementById('mdnsid').value, 'set_mdns?mdns=', 'system')">Save</button></td></tr>
 			<tr>
 			    <td class="pc1">Log level</td><td><label for="loglevel"></label>
@@ -348,11 +347,12 @@ const char page_system_html[] PROGMEM = R"rawliteral(
     <center>
         <table id="update">
             <tr><td class="ps3">Firmware update</td><td></td></tr>
+			<tr><td class="ps1">Available from cloud</td><td class="ps2"><span id="sw_new_ver"></span> &nbsp;<button class="btn_update" onclick="checkUpdate()">Check for Updates</button></td></tr>
             <tr><td class="ps1">Status</td><td><span class="ps2" id="status">Ready</span></td></tr>
 			<tr><td class="ps1">Progress</td><td class="ps2"><div class="progress-container"><div class="progress-bar" id="myProgressBar">0%</div></div></td></tr>
             <tr><td></td><td><input type="file" id="firmwareInput" accept=".bin"></td></tr>
-            <tr><td></td><td><input type="submit" class="btn_update" value="Update from file" onclick="uploadFile()"></td></tr>
-			<tr><td></td><td><input type="submit" class="btn_update" value="Update from cloud" onclick="updateWeb()"></td></tr>
+            <tr><td></td><td><input type="submit" class="btn_update" value="Update from File" onclick="uploadFile()"></td></tr>
+			<tr><td></td><td><input type="submit" class="btn_update" value="Update from Cloud" onclick="updateWeb()"></td></tr>
         </table>
     </center>
 </body>
@@ -1219,9 +1219,9 @@ function uploadFile() {
 
 	if (file) {
 		statusDiv.innerText = 'Updating...';
-		uploadingFirmware = true;
 		const formData = new FormData();
 		formData.append('firmware', file);
+		uploadingFirmware = true;
 
 		fetch('/upload', {
 				method: 'POST',
