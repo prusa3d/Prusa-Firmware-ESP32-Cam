@@ -18,7 +18,7 @@
 					<option value="4">1024x768</option>
 					<option value="5">1280x1024</option>
 					<option value="6">1600x1200</option>
-				</select>
+				</select> <span class="pc1">pixels</span>
 			</td>
 		</tr>
 		<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
@@ -26,6 +26,16 @@
 		<tr><td class="pc1">Contrast</td><td class="pc2">Low <input type="range" class="slider" name="contrast" id=contrastid min="-2" max="2" step="1" onchange="changeValue(this.value, 'set_int?contrast=', 'config')"> High</td></tr>
 		<tr><td class="pc1">Saturation</td><td class="pc2">Low <input type="range" class="slider" name="saturation" id=saturationid min="-2" max="2" step="1" onchange="changeValue(this.value, 'set_int?saturation=', 'config')"> High</td></tr>
 		<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
+		<tr>
+			<td class="pc1">Image rotation</td><td><label for="image_rotation"></label>
+				<select class="select" id="image_rotationid" name="image_rotation" onchange="changeValue(this.value, 'set_int?image_rotation=', 'config')">
+					<option value="1">0°</option>
+					<option value="6">90°</option>
+					<option value="3">180°</option>
+					<option value="8">270°</option>
+				</select>
+			</td>
+		</tr>
 		<tr><td class="pc1">Horizontal mirror</td><td class="pc2"><label class="switch"><input type="checkbox" name="hmirror" id=hmirrorid  onchange="changeValue(this.checked, 'set_bool?hmirror=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_hmirror"></span></td></tr>
 		<tr><td class="pc1">Vertical flip</td><td class="pc2"><label class="switch"><input type="checkbox" name="vflip" id=vflipid onchange="changeValue(this.checked, 'set_bool?vflip=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_vflip"></span></td></tr>
 		<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>

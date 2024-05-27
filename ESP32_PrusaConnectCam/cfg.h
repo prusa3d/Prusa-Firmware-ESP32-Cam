@@ -71,6 +71,7 @@ public:
   void SaveNetworkMask(String);
   void SaveNetworkGateway(String);
   void SaveNetworkDns(String);
+  void SaveCameraImageExifRotation(uint8_t);
 
   uint8_t LoadRefreshInterval();
   String LoadToken();
@@ -111,6 +112,7 @@ public:
   String LoadNetworkMask();
   String LoadNetworkGateway();
   String LoadNetworkDns();
+  uint8_t LoadCameraImageExifRotation();
 
 private:
   Logs *Log;              ///< Pointer to Logs object

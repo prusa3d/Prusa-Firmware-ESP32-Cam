@@ -38,6 +38,8 @@
 #include "wifi_mngt.h"
 #include "stream.h"
 
+#include "exif.h"
+
 extern AsyncWebServer server;  ///< global variable for web server
 
 void Server_LoadCfg();

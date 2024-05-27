@@ -22,9 +22,14 @@ Camera SystemCamera(&SystemConfig, &SystemLog, FLASH_GPIO_NUM);
 Camera::Camera(Configuration* i_conf, Logs* i_log, uint8_t i_FlashPin) {
   config = i_conf;
   log = i_log;
+
   CameraFlashPin = i_FlashPin;
   StreamOnOff = false;
   frameBufferSemaphore = xSemaphoreCreateMutex();
+
+  PhotoExifData.header = NULL;
+  PhotoExifData.len = 0;
+  PhotoExifData.offset = 0;
 }
 
 /**
@@ -101,6 +106,7 @@ void Camera::InitCameraModule() {
 
   /* Camera init */
   err = esp_camera_init(&CameraConfig);
+
   if (err != ESP_OK) {
     log->AddEvent(LogLevel_Warning, "Camera init failed. Error: " + String(err, HEX));
     log->AddEvent(LogLevel_Warning, F("Reset ESP32-cam!"));
@@ -138,6 +144,7 @@ void Camera::LoadCameraCfgFromEeprom() {
   exposure_ctrl = config->LoadExposureCtrl();
   CameraFlashEnable = config->LoadCameraFlashEnable();
   CameraFlashTime = config->LoadCameraFlashTime();
+  imageExifRotation = config->LoadCameraImageExifRotation();
 }
 
 /**
@@ -250,6 +257,7 @@ void Camera::ReinitCameraModule() {
   if (err != ESP_OK) {
     log->AddEvent(LogLevel_Warning, "Camera error deinit camera module. Error: " + String(err, HEX));
   }
+  delay(100);
   InitCameraModule();
   ApplyCameraCfg();
 }
@@ -266,6 +274,7 @@ void Camera::CapturePhoto() {
       return;
     }
 
+    CameraCaptureSuccess = false;
     /* check flash, and enable FLASH LED */
     if (true == CameraFlashEnable) {
       ledcWrite(FLASH_PWM_CHANNEL, FLASH_ON_STATUS);
@@ -277,11 +286,14 @@ void Camera::CapturePhoto() {
     if (FrameBuffer) {
       esp_camera_fb_return(FrameBuffer);
     } else {
+      esp_camera_fb_return(FrameBuffer);
       log->AddEvent(LogLevel_Error, F("Camera capture failed training photo"));
+      //ReinitCameraModule();
     }
 
     int attempts = 0;
     const int maxAttempts = 5;
+    PhotoExifData.header = NULL;
     do {
       log->AddEvent(LogLevel_Info, F("Taking photo..."));
 
@@ -303,6 +315,11 @@ void Camera::CapturePhoto() {
         FrameBuffer->len = 0;
       } else {
         log->AddEvent(LogLevel_Info, "Photo OK! " + String(ControlFlag, HEX));
+
+        update_exif_from_cfg(imageExifRotation);
+        get_exif_header(FrameBuffer, &PhotoExifData.header, &PhotoExifData.len);
+        PhotoExifData.offset = get_jpeg_data_offset(FrameBuffer);
+        CameraCaptureSuccess = true;
       }
 
       attempts++;
@@ -318,6 +335,33 @@ void Camera::CapturePhoto() {
       ledcWrite(FLASH_PWM_CHANNEL, FLASH_OFF_STATUS);
     }
     xSemaphoreGive(frameBufferSemaphore);
+/*
+    // Save picture
+    File file = SD_MMC.open("/photo.jpg", FILE_WRITE);
+
+    if (file) {
+      size_t ret = 0;
+      if (PhotoExifData.header != NULL) {
+        ret = file.write(PhotoExifData.header, PhotoExifData.len);
+        if (ret != PhotoExifData.len) {
+          Serial.println("Failed\nError while writing header to file");
+          PhotoExifData.offset = 0;
+        }
+      } else {
+        PhotoExifData.offset = 0;
+      }
+
+      ret = file.write(&FrameBuffer->buf[PhotoExifData.offset], FrameBuffer->len - PhotoExifData.offset);
+      if (ret != FrameBuffer->len - PhotoExifData.offset) {
+        Serial.println("Failed\nError while writing to file");
+      } else {
+        Serial.printf("Saved as %s\n", "photo.jpg");
+      }
+      file.close();
+    } else {
+      Serial.printf("Failed\nCould not open file: %s\n", "photo.jpg");
+    }
+    */
   }
 }
 
@@ -370,6 +414,10 @@ void Camera::SetStreamStatus(bool i_status) {
 */
 bool Camera::GetStreamStatus() {
   return StreamOnOff;
+}
+
+bool Camera::GetCameraCaptureSuccess() {
+  return CameraCaptureSuccess;
 }
 
 /**
@@ -438,6 +486,15 @@ String Camera::GetPhoto() {
 */
 camera_fb_t* Camera::GetPhotoFb() {
   return FrameBuffer;
+}
+
+/**
+   @brief Get Photo Exif Data
+   @param none
+   @return PhotoExifData_t* - photo exif data
+*/
+PhotoExifData_t* Camera::GetPhotoExifData() {
+  return &PhotoExifData;
 }
 
 /**
@@ -741,6 +798,11 @@ void Camera::SetCameraFlashTime(uint16_t i_data) {
   CameraFlashTime = i_data;
 }
 
+void Camera::SetCameraImageRotation(uint8_t i_data) {
+  config->SaveCameraImageExifRotation(i_data);
+  imageExifRotation = i_data;
+}
+
 /**
    @brief Get Photo Quality
    @param none
@@ -1028,6 +1090,10 @@ bool Camera::GetCameraFlashEnable() {
  */
 uint16_t Camera::GetCameraFlashTime() {
   return CameraFlashTime;
+}
+
+uint8_t Camera::GetCameraImageRotation() {
+  return imageExifRotation;
 }
 
 /* EOF */

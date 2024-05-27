@@ -14,7 +14,7 @@
 #define _MCU_CFG_H_
 
 /* ---------------- BASIC MCU CFG  --------------*/
-#define SW_VERSION                  "1.0.2-rc2"             ///< SW version
+#define SW_VERSION                  "1.0.2-rc3"             ///< SW version
 #define SW_BUILD                    __DATE__ " " __TIME__   ///< build number
 #define CONSOLE_VERBOSE_DEBUG       false                   ///< enable/disable verbose debug log level for console
 #define DEVICE_HOSTNAME             "Prusa-ESP32cam"        ///< device hostname
@@ -99,6 +99,11 @@
 #define NTP_GTM_OFFSET_SEC          0                       ///< GMT offset in seconds. 0 = UTC. 3600 = GMT+1
 #define NTP_DAYLIGHT_OFFSET_SEC     0                       ///< daylight offset in seconds. 0 = no daylight saving time. 3600 = +1 hour
 
+/* ------------------ EXIF CFG ------------------*/
+#define CAMERA_MAKE "OmniVision"                            ///< Camera make string
+#define CAMERA_MODEL "OV2640"                               ///< Camera model string
+#define CAMERA_SOFTWARE "Prusa ESP32-cam"                   ///< Camera software string
+
 /* ---------------- FACTORY CFG  ----------------*/
 #define FACTORY_CFG_PHOTO_REFRESH_INTERVAL    30                ///< in the second
 #define FACTORY_CFG_PHOTO_QUALITY             10                ///< 10-63, lower is better
@@ -134,6 +139,7 @@
 #define FACTORY_CFG_NETWORK_STATIC_MASK       "255.255.255.255" ///< Static Mask
 #define FACTORY_CFG_NETWORK_STATIC_GATEWAY    "255.255.255.255" ///< Static Gateway
 #define FACTORY_CFG_NETWORK_STATIC_DNS        "255.255.255.255" ///< Static DNS
+#define FACTORY_CFG_IMAGE_EXIF_ROTATION       1                 ///< Image rotation 1 - 0°, 6 - 90°, 3 - 180°, 8 - 270°
 
 /* ---------------- CFG FLAGS  ------------------*/
 #define CFG_WIFI_SETTINGS_SAVED               0x0A              ///< flag saved config
@@ -266,6 +272,8 @@
 #define EEPROM_ADDR_NETWORK_STATIC_DNS_START      (EEPROM_ADDR_NETWORK_STATIC_GATEWAY_START + EEPROM_ADDR_NETWORK_STATIC_GATEWAY_LENGTH)
 #define EEPROM_ADDR_NETWORK_STATIC_DNS_LENGTH     4
 
+#define EEPROM_ADDR_IMAGE_ROTATION_START          (EEPROM_ADDR_NETWORK_STATIC_DNS_START + EEPROM_ADDR_NETWORK_STATIC_DNS_LENGTH)
+#define EEPROM_ADDR_IMAGE_ROTATION_LENGTH         1
 
 #define EEPROM_SIZE (EEPROM_ADDR_REFRESH_INTERVAL_LENGTH + EEPROM_ADDR_FINGERPRINT_LENGTH + EEPROM_ADDR_TOKEN_LENGTH + \
                      EEPROM_ADDR_FRAMESIZE_LENGTH + EEPROM_ADDR_BRIGHTNESS_LENGTH + EEPROM_ADDR_CONTRAST_LENGTH + \
@@ -281,7 +289,7 @@
                      EEPROM_ADDR_AEC_VALUE_LENGTH + EEPROM_ADDR_GAIN_CTRL_LENGTH + EEPROM_ADDR_AGC_GAIN_LENGTH + EEPROM_ADDR_LOG_LEVEL_LENGTH + \
                      EEPROM_ADDR_HOSTNAME_LENGTH + EEPROM_ADDR_SERVICE_AP_ENABLE_LENGTH + EEPROM_ADDR_NETWORK_IP_METHOD_LENGTH +\
                      EEPROM_ADDR_NETWORK_STATIC_IP_LENGTH + EEPROM_ADDR_NETWORK_STATIC_MASK_LENGTH + EEPROM_ADDR_NETWORK_STATIC_GATEWAY_LENGTH + \
-                     EEPROM_ADDR_NETWORK_STATIC_DNS_LENGTH)    ///< how many bits do we need for eeprom memory
+                     EEPROM_ADDR_NETWORK_STATIC_DNS_LENGTH + EEPROM_ADDR_IMAGE_ROTATION_LENGTH)    ///< how many bits do we need for eeprom memory
 
 #endif
 

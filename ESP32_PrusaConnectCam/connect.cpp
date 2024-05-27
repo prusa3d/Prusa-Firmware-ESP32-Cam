@@ -122,9 +122,22 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
       if (SendPhoto == i_data_type) {
         log->AddEvent(LogLevel_Verbose, F("Sendig photo"));
 
-        /* sending photo */
+        /* get photo buffer */
+        bool SendWithExif = false;
         uint8_t *fbBuf = camera->GetPhotoFb()->buf;
         size_t fbLen = camera->GetPhotoFb()->len;
+
+        /* sending exif data */
+        if (camera->GetPhotoExifData()->header != NULL) {
+          SendWithExif = true;
+          sendet_data += client.write(camera->GetPhotoExifData()->header, camera->GetPhotoExifData()->len);
+          fbBuf += camera->GetPhotoExifData()->offset;
+          fbLen -= camera->GetPhotoExifData()->offset;
+        } else {
+          SendWithExif = false;
+        }
+
+        /* sending photo */
         for (size_t i=0; i < fbLen; i += PHOTO_FRAGMENT_SIZE) {
           if ((i + PHOTO_FRAGMENT_SIZE) < fbLen) {
             sendet_data += client.write(fbBuf, PHOTO_FRAGMENT_SIZE);
@@ -137,6 +150,13 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
         }
         client.println("\r\n");
         client.flush();
+
+        /* log message */
+        if (SendWithExif) {
+          SystemLog.AddEvent(LogLevel_Verbose, F("Photo with EXIF data sent"));
+        } else {
+          SystemLog.AddEvent(LogLevel_Warning, F("Photo without EXIF data sent"));
+        }
 
       /* sending device information */
       } else if (SendInfo == i_data_type) {
@@ -200,7 +220,14 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
 void PrusaConnect::SendPhotoToBackend() {
   log->AddEvent(LogLevel_Info, F("Start sending photo to prusaconnect"));
   String Photo = "";
-  SendDataToBackend(&Photo, camera->GetPhotoFb()->len, "image/jpg", "Photo", HOST_URL_CAM_PATH, SendPhoto);
+  size_t total_len = 0;
+
+  if (camera->GetPhotoExifData()->header != NULL) {
+    total_len = camera->GetPhotoExifData()->len + camera->GetPhotoFb()->len - camera->GetPhotoExifData()->offset;
+  } else {
+    total_len = camera->GetPhotoFb()->len;
+  }
+  SendDataToBackend(&Photo, total_len, "image/jpg", "Photo", HOST_URL_CAM_PATH, SendPhoto);
 }
 
 /**
@@ -247,7 +274,11 @@ void PrusaConnect::SendInfoToBackend() {
  */
 void PrusaConnect::TakePictureAndSendToBackend() {
   camera->CapturePhoto();
-  SendPhotoToBackend();
+  if (camera->GetCameraCaptureSuccess() == true) {
+    SendPhotoToBackend();
+  } else {
+    log->AddEvent(LogLevel_Error, F("Error capturing photo. Stop sending to backend!"));
+  }
   camera->CaptureReturnFrameBuffer();
 }
 

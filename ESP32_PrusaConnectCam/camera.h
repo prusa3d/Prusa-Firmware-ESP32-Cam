@@ -19,11 +19,21 @@
 #include "soc/rtc_cntl_reg.h"
 #include "cfg.h"
 
+#include "exif.h"
+#include "FS.h"
+#include "SD_MMC.h"
+
 #include "Camera_cfg.h"
 #include "Arduino.h"
 #include "mcu_cfg.h"
 #include "var.h"
 #include "log.h"
+
+struct PhotoExifData_t {
+  const uint8_t *header;
+  size_t len;
+  size_t offset;
+};
 
 class Camera {
 private:
@@ -51,6 +61,9 @@ private:
   uint16_t CameraFlashTime;  ///< camera fash duration time
   uint8_t CameraFlashPin;    ///< GPIO pin for LED
   framesize_t TFrameSize;    ///< framesize_t type for camera module
+  uint8_t imageExifRotation; ///< image rotation. 0 degree: value 1, 90 degree: value 6, 180 degree: value 3, 270 degree: value 8
+
+  bool CameraCaptureSuccess; ///< camera capture success
 
   /* OV2640 camera module pinout and cfg*/
   camera_config_t CameraConfig;             ///< camera configuration
@@ -60,6 +73,7 @@ private:
   SemaphoreHandle_t frameBufferSemaphore;   ///< semaphore for frame buffer
   float StreamAverageFps;                   ///< stream average fps
   uint16_t StreamAverageSize;               ///< stream average size
+  PhotoExifData_t PhotoExifData;            ///< photo exif data
 
   Configuration *config;                    ///< pointer to Configuration object
   Logs *log;                                ///< pointer to Logs object
@@ -78,6 +92,7 @@ public:
   void CaptureReturnFrameBuffer();
   void SetStreamStatus(bool);
   bool GetStreamStatus();
+  bool GetCameraCaptureSuccess();
 
   void StreamSetFrameSize(uint16_t);
   void StreamSetFrameFps(float);
@@ -92,6 +107,7 @@ public:
   int GetPhotoSize();
   String GetPhoto();
   camera_fb_t *GetPhotoFb();
+  PhotoExifData_t * GetPhotoExifData();
   framesize_t TransformFrameSizeDataType(uint8_t);
   
   void SetFlashStatus(bool);
@@ -119,6 +135,7 @@ public:
   void SetExposureCtrl(bool);
   void SetCameraFlashEnable(bool);
   void SetCameraFlashTime(uint16_t);
+  void SetCameraImageRotation(uint8_t);
 
   uint8_t GetPhotoQuality();
   uint8_t GetFrameSize();
@@ -144,6 +161,7 @@ public:
   bool GetExposureCtrl();
   bool GetCameraFlashEnable();
   uint16_t GetCameraFlashTime();
+  uint8_t GetCameraImageRotation();
 };
 
 extern Camera SystemCamera; ///< Camera object

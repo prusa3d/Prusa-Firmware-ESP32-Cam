@@ -25,6 +25,7 @@ function get_data(val) {
 				document.getElementById('brightnessid').value = obj.brightness;
 				document.getElementById('contrastid').value = obj.contrast;
 				document.getElementById('saturationid').value = obj.saturation;
+				document.getElementById('image_rotationid').value = obj.image_rotation;
 				document.getElementById('hmirrorid').checked = obj.hmirror;
 				document.getElementById('vflipid').checked = obj.vflip;
 				document.getElementById('lencid').checked = obj.lensc;

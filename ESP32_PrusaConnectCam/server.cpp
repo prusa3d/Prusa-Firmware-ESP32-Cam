@@ -40,8 +40,28 @@ void Server_InitWebServer() {
     if (Server_CheckBasicAuth(request) == false)
       return;
 
+    if (SystemCamera.GetCameraCaptureSuccess() == false) {
+      request->send_P(404, "text/plain", "Photo not found!");
+      return;
+    }
+
     SystemLog.AddEvent(LogLevel_Verbose, "Photo size: " + String(SystemCamera.GetPhotoFb()->len) + " bytes");
-    request->send_P(200, "image/jpg", SystemCamera.GetPhotoFb()->buf, SystemCamera.GetPhotoFb()->len);
+  
+    if (SystemCamera.GetPhotoExifData()->header != NULL) {
+      /* send photo with exif data */
+      SystemLog.AddEvent(LogLevel_Verbose, F("Send photo with EXIF data"));
+      size_t total_len = SystemCamera.GetPhotoExifData()->len + SystemCamera.GetPhotoFb()->len - SystemCamera.GetPhotoExifData()->offset;
+      auto response = request->beginResponseStream("image/jpg");
+      response->addHeader("Content-Length", String(total_len));
+      response->write(SystemCamera.GetPhotoExifData()->header, SystemCamera.GetPhotoExifData()->len);
+      response->write(&SystemCamera.GetPhotoFb()->buf[SystemCamera.GetPhotoExifData()->offset], SystemCamera.GetPhotoFb()->len - SystemCamera.GetPhotoExifData()->offset);
+      request->send(response);
+
+    } else {
+      /* send photo without exif data */
+      SystemLog.AddEvent(LogLevel_Verbose, F("Send photo without EXIF data"));
+      request->send_P(200, "image/jpg", SystemCamera.GetPhotoFb()->buf, SystemCamera.GetPhotoFb()->len);
+    }
   });
 
   /* route to jquery */
@@ -381,7 +401,7 @@ void Server_InitWebServer_Actions() {
       return;
     SystemCamera.CapturePhoto();
     request->send_P(200, "text/plain", "Take Photo");
-	SystemCamera.CaptureReturnFrameBuffer();
+    SystemCamera.CaptureReturnFrameBuffer();
   });
 
   /* route for send photo to prusa backend */
@@ -520,6 +540,14 @@ void Server_InitWebServer_Sets() {
     if (request->hasParam("agc_gain")) {
       SystemLog.AddEvent(LogLevel_Verbose, F("Set agc_gain"));
       SystemCamera.SetAgcGain(request->getParam("agc_gain")->value().toInt());
+      response_msg = MSG_SAVE_OK;
+      response = true;
+    }
+
+    /* set image exif rotation */
+    if (request->hasParam("image_rotation")) {
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set image EXIF rotation"));
+      SystemCamera.SetCameraImageRotation(request->getParam("image_rotation")->value().toInt());
       response_msg = MSG_SAVE_OK;
       response = true;
     }
@@ -1061,6 +1089,7 @@ String Server_GetJsonData() {
   doc_json["net_mask"] = SystemWifiMngt.GetNetStaticMask();
   doc_json["net_gw"] = SystemWifiMngt.GetNetStaticGateway();
   doc_json["net_dns"] = SystemWifiMngt.GetNetStaticDns();
+  doc_json["image_rotation"] = SystemCamera.GetCameraImageRotation();
   doc_json["sw_build"] = SW_BUILD;
   doc_json["sw_ver"] = SW_VERSION;
   doc_json["sw_new_ver"] = FirmwareUpdate.NewVersionFw;

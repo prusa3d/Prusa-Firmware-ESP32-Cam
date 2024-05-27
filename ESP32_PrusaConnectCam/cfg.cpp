@@ -166,6 +166,7 @@ void Configuration::DefaultCfg() {
   SaveNetworkMask(FACTORY_CFG_NETWORK_STATIC_MASK);
   SaveNetworkGateway(FACTORY_CFG_NETWORK_STATIC_GATEWAY);
   SaveNetworkDns(FACTORY_CFG_NETWORK_STATIC_DNS);
+  SaveCameraImageExifRotation(FACTORY_CFG_IMAGE_EXIF_ROTATION);
   Log->AddEvent(LogLevel_Warning, F("+++++++++++++++++++++++++++"));
 }
 
@@ -824,6 +825,16 @@ void Configuration::SaveNetworkDns(String i_data) {
 }
 
 /**
+   @info Save camera image rotation
+   @param uint8_t - value
+   @return none
+*/
+void Configuration::SaveCameraImageExifRotation(uint8_t i_data) {
+  Log->AddEvent(LogLevel_Verbose, "Save camera image exif rotation: " + String(i_data));
+  SaveUint8(EEPROM_ADDR_IMAGE_ROTATION_START, i_data);
+}
+
+/**
    @info load refresh interval from eeprom 
    @param none
    @return uint8_t - refresh interval
@@ -1296,6 +1307,19 @@ String Configuration::LoadNetworkGateway() {
 String Configuration::LoadNetworkDns() {
   String ret = LoadIpAddress(EEPROM_ADDR_NETWORK_STATIC_DNS_START);
   Log->AddEvent(LogLevel_Info, "Network static DNS: " + ret);
+
+  return ret;
+}
+
+uint8_t Configuration::LoadCameraImageExifRotation() {
+  uint8_t ret = EEPROM.read(EEPROM_ADDR_IMAGE_ROTATION_START);
+
+  /* check if value is 255. When value is 255, then set default value */
+  if (ret == 255) {
+    ret = 1;
+  }
+
+  Log->AddEvent(LogLevel_Info, "Camera image rotation: " + String(ret));
 
   return ret;
 }
