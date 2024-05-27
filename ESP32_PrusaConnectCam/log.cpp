@@ -101,13 +101,7 @@ void Logs::Init() {
 
   if (true == GetCardDetectedStatus()) {
     /* check maximum log file size */
-    uint32_t FileSize = GetFileSize(SD_MMC, FilePath + FileName);
-    Serial.printf("Log file size: %d\n", FileSize);
-    if (FileSize >= LOGS_FILE_MAX_SIZE) {
-      uint16_t file_count = FileCount(SD_MMC, FilePath, FileName);
-      Serial.printf("Maximum log file size.\nFile count: %d\n", file_count);
-      RenameFile(SD_MMC, FilePath + FileName, FilePath + FileName + String(file_count));
-    }
+    CheckMaxLogFileSize();
 
     /* added first message to log file after start MCU */
     String msg = F("----------------------------------------------------------------\n");
@@ -168,6 +162,30 @@ void Logs::AddEvent(LogLevel_enum level, String msg, bool newLine, bool date) {
   }
 #endif
 }
+
+ void Logs::AddEvent(LogLevel_enum level, const __FlashStringHelper *msg, String parameters, bool newLine, bool date) {
+  if (LogLevel >= level) {
+    String LogMsg = "";
+
+    if (true == date) {
+      LogMsg += GetSystemTime();
+      LogMsg += " - ";
+    }
+    LogMsg += msg;
+    LogMsg += parameters;
+    if (true == newLine) {
+      LogMsg += "\n";
+    }
+
+    AppendFile(SD_MMC, FilePath + FileName, LogMsg);
+    Serial.print(LogMsg);
+  }
+#if (true == CONSOLE_VERBOSE_DEBUG)
+  else {
+    Serial.println(msg);
+  }
+#endif
+ }
 
 /**
    @info Set file name
@@ -240,6 +258,21 @@ LogLevel_enum Logs::GetLogLevel() {
 */
 bool Logs::GetNtpTimeSynced() {
   return NtpTimeSynced;
+}
+
+/**
+   @info Check maximum log file size
+   @param none
+   @return none
+*/
+void Logs::CheckMaxLogFileSize() {
+  uint32_t FileSize = GetFileSize(SD_MMC, FilePath + FileName);
+  Serial.printf("Log file size: %d bytes\n", FileSize);
+  if (FileSize >= LOGS_FILE_MAX_SIZE) {
+    uint16_t file_count = FileCount(SD_MMC, FilePath, FileName);
+    Serial.printf("Maximum log file size.\nFile count: %d\n", file_count);
+    RenameFile(SD_MMC, FilePath + FileName, FilePath + FileName + String(file_count));
+  }
 }
 
 /**

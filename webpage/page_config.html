@@ -2,7 +2,7 @@
 <script src="jquery-3.7.0.min.js"></script>
 <body>
 	<center><table id="data">
-		<tr><td class="ps3">Basic image settings</td><td></td></tr>
+		<tr><td class="ps3">Basic settings</td><td></td></tr>
         <tr><td class="pc1">Connect Token</td><td ><input type="text" name="token" id=tokenid >&nbsp;<button class="btn_save" onclick="changeValue(encodeURIComponent(document.getElementById('tokenid').value), 'set_token?token=', 'config')">Save</button></td></tr>
         <tr><td class="pc1">Fingerprint</td><td class=pc2 id="fingerprint"></td></tr>
 		<tr><td class="pc1">Trigger Interval [s]</td><td ><input type="text" name="refresh" id=refreshid >&nbsp;<button class="btn_save" onclick="changeValue(document.getElementById('refreshid').value, 'set_int?refresh=', 'config')">Save</button></td></tr>
@@ -27,7 +27,7 @@
 		<tr><td class="pc1">Saturation</td><td class="pc2">Low <input type="range" class="slider" name="saturation" id=saturationid min="-2" max="2" step="1" onchange="changeValue(this.value, 'set_int?saturation=', 'config')"> High</td></tr>
 		<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
 		<tr>
-			<td class="pc1">Image rotation</td><td><label for="image_rotation"></label>
+			<td class="pc1">Image Rotation</td><td><label for="image_rotation"></label>
 				<select class="select" id="image_rotationid" name="image_rotation" onchange="changeValue(this.value, 'set_int?image_rotation=', 'config')">
 					<option value="1">0°</option>
 					<option value="6">90°</option>
@@ -44,13 +44,14 @@
 		<tr><td class="pc1">Flash duration</td><td class="pc2">Low <input type="range" class="slider" name="flash_time" id=flash_timeid min="50" max="1500" step="50" onchange="changeValue(this.value, 'set_int?flash_time=', 'config')">High</td></tr>
 		<tr><td class="pc1">Flash duration</td><td class="pc2"><span id="flash_time_value"></span> ms</td></tr>
 		<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
+		<tr><td class="pc1">Save images to micro SD</td><td class="pc2"><label class="switch"><input type="checkbox" name="timelaps" id=timelapsid onchange="changeValue(this.checked, 'set_bool?timelaps_enable=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_timelaps"></span></td></tr>
+		<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
 	</table></center>
-
-	<center><button class="btn_collapsible">Advanced image settings</button></center>
+	<center><button class="btn_collapsible">Advanced settings</button></center>
 	<div class="content">
 		<center><table id="data">
 			<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
-			<tr><td class="ps3">Advanced image settings</td><td></td></tr>
+			<tr><td class="ps3">Advanced settings</td><td></td></tr>
 			<tr><td class="pc1">Automatic white balancing</td><td class="pc2"><label class="switch"><input type="checkbox" name="awb" id=awbid  onchange="changeValue(this.checked, 'set_bool?awb=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_awb"></span></td></tr>
 			<tr><td class="pc1">Automatic white balancing gain</td><td class="pc2"><label class="switch"><input type="checkbox" name="awb_gain" id=awb_gainid  onchange="changeValue(this.checked, 'set_bool?awb_gain=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_awb_gain"></span></td></tr>
 			<tr>
@@ -81,7 +82,6 @@
 		</table></center>
 	</div>
 </body>
-
 <script src="scripts.js"></script>
 <script>
 	get_data("config");

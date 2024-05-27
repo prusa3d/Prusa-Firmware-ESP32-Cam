@@ -37,6 +37,7 @@ PrusaConnect::PrusaConnect(Configuration *i_conf, Logs *i_log, Camera *i_camera,
  */
 void PrusaConnect::Init() {
   log->AddEvent(LogLevel_Info, F("Init PrusaConnect lib"));
+  BackendReceivedStatus = F("Wait for first connection");
 }
 
 /**
@@ -51,6 +52,7 @@ void PrusaConnect::LoadCfgFromEeprom() {
   Fingerprint = config->LoadFingerprint();
   RefreshInterval = config->LoadRefreshInterval();
   PrusaConnectHostname = config->LoadPrusaConnectHostname();
+  EnableTimelapsPhotoSave = config->LoadTimeLapseFunctionStatus();
 }
 
 /**
@@ -86,7 +88,7 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
     //client.setInsecure();
     client.setTimeout(1000);
     client.setNoDelay(true);
-        
+
     log->AddEvent(LogLevel_Verbose, F("Connecting to server..."));
 
     /* connecting to server */
@@ -138,7 +140,7 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
         }
 
         /* sending photo */
-        for (size_t i=0; i < fbLen; i += PHOTO_FRAGMENT_SIZE) {
+        for (size_t i = 0; i < fbLen; i += PHOTO_FRAGMENT_SIZE) {
           if ((i + PHOTO_FRAGMENT_SIZE) < fbLen) {
             sendet_data += client.write(fbBuf, PHOTO_FRAGMENT_SIZE);
             fbBuf += PHOTO_FRAGMENT_SIZE;
@@ -158,7 +160,7 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
           SystemLog.AddEvent(LogLevel_Warning, F("Photo without EXIF data sent"));
         }
 
-      /* sending device information */
+        /* sending device information */
       } else if (SendInfo == i_data_type) {
         log->AddEvent(LogLevel_Verbose, F("Sending info"));
         sendet_data = client.print(*i_data);
@@ -171,7 +173,7 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
       /* read response from server */
       String response = "";
       String fullResponse = "";
-      log->AddEvent(LogLevel_Verbose, "Response:");
+      log->AddEvent(LogLevel_Verbose, F("Response:"));
       while (client.connected()) {
         if (client.available()) {
           response = client.readStringUntil('\n');
@@ -219,6 +221,7 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
  */
 void PrusaConnect::SendPhotoToBackend() {
   log->AddEvent(LogLevel_Info, F("Start sending photo to prusaconnect"));
+  camera->SetPhotoSending(true);
   String Photo = "";
   size_t total_len = 0;
 
@@ -227,7 +230,8 @@ void PrusaConnect::SendPhotoToBackend() {
   } else {
     total_len = camera->GetPhotoFb()->len;
   }
-  SendDataToBackend(&Photo, total_len, "image/jpg", "Photo", HOST_URL_CAM_PATH, SendPhoto);
+  SendDataToBackend(&Photo, total_len, F("image/jpg"), F("Photo"), HOST_URL_CAM_PATH, SendPhoto);
+  camera->SetPhotoSending(false);
 }
 
 /**
@@ -258,7 +262,7 @@ void PrusaConnect::SendInfoToBackend() {
 
     serializeJson(json_data, json_string);
     log->AddEvent(LogLevel_Info, "Data: " + json_string);
-    bool response = SendDataToBackend(&json_string, json_string.length(), "application/json", "Info", HOST_URL_INFO_PATH, SendInfo);
+    bool response = SendDataToBackend(&json_string, json_string.length(), F("application/json"), F("Info"), HOST_URL_INFO_PATH, SendInfo);
 
     if (true == response) {
       SendDeviceInformationToBackend = false;
@@ -274,11 +278,22 @@ void PrusaConnect::SendInfoToBackend() {
  */
 void PrusaConnect::TakePictureAndSendToBackend() {
   camera->CapturePhoto();
+
+  /* check if photo was captured */
   if (camera->GetCameraCaptureSuccess() == true) {
+
+    /* send photo to backend */
     SendPhotoToBackend();
+
+    /* save photo to SD card */
+    if (false == camera->GetStreamStatus()) {
+      SavePhotoToSdCard();
+    }
+
   } else {
     log->AddEvent(LogLevel_Error, F("Error capturing photo. Stop sending to backend!"));
   }
+  
   camera->CaptureReturnFrameBuffer();
 }
 
@@ -429,6 +444,51 @@ void PrusaConnect::SetPrusaConnectHostname(String i_data) {
 }
 
 /**
+ * @brief Set time laps photo save status
+ * 
+ * @param bool - status
+ */
+void PrusaConnect::SetTimeLapsPhotoSaveStatus(bool i_data) {
+  EnableTimelapsPhotoSave = i_data;
+  config->SaveTimeLapseFunctionStatus(EnableTimelapsPhotoSave);
+}
+
+/**
+   @brief Function for saving photo to SD card
+   @param none
+   @return none
+*/
+void PrusaConnect::SavePhotoToSdCard() {
+  if (EnableTimelapsPhotoSave == true) {
+    log->AddEvent(LogLevel_Info, F("Save TimeLaps photo to SD card"));
+    if (false == log->CheckDir(SD_MMC, TIMELAPS_PHOTO_FOLDER)) {
+      log->AddEvent(LogLevel_Info, F("Create folder for TimeLaps photos"));
+      log->CreateDir(SD_MMC, TIMELAPS_PHOTO_FOLDER);
+    }
+
+    String FileName = String(TIMELAPS_PHOTO_FOLDER) + "/" + String(TIMELAPS_PHOTO_PREFIX) + "_";
+    FileName += log->GetSystemTime();
+    FileName += TIMELAPS_PHOTO_SUFFIX;
+    log->AddEvent(LogLevel_Verbose, "Saving file: " + FileName);
+
+    if (camera->GetPhotoExifData()->header != NULL) {
+      if (log->WritePicture(FileName, camera->GetPhotoFb()->buf + camera->GetPhotoExifData()->offset, camera->GetPhotoFb()->len - camera->GetPhotoExifData()->offset, camera->GetPhotoExifData()->header, camera->GetPhotoExifData()->len) == true) {
+        log->AddEvent(LogLevel_Info, F("Photo saved to SD card. EXIF"));
+      } else {
+        log->AddEvent(LogLevel_Error, F("Error saving photo to SD card. EXIF"));
+      }
+
+    } else {
+      if (log->WritePicture(FileName, camera->GetPhotoFb()->buf, camera->GetPhotoFb()->len) == true) {
+        log->AddEvent(LogLevel_Info, F("Photo saved to SD card"));
+      } else {
+        log->AddEvent(LogLevel_Error, F("Error saving photo to SD card"));
+      }
+    }
+  }
+}
+
+/**
  * @brief Get refresh interval
  *
  * @param none
@@ -510,6 +570,10 @@ String PrusaConnect::CovertBackendAvailabilitStatusToString(BackendAvailabilitSt
   }
 
   return ret;
+}
+
+bool PrusaConnect::GetTimeLapsPhotoSaveStatus() {
+  return EnableTimelapsPhotoSave;
 }
 
 /**

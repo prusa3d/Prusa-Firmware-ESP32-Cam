@@ -14,7 +14,6 @@
 				$("#content").load(page);
 				setActive(this);
 			});
-
 			$("#content").load("page_config.html", function() {
 				var defaultLink = document.querySelector('a[href="page_config.html"]');
 				setActive(defaultLink);
@@ -22,7 +21,6 @@
 		});
 	</script>
 </head>
-
 <body>
     <nav>
     <img src="esp32_cam.svg" id=logo alt="Logo image" style="margin-left: 10px;" />
@@ -36,7 +34,6 @@
       </ul>
     </nav>
 	<hr>
-	
 	<section class="container">
 		<div  class="container_left-half">
 			<article>
@@ -52,23 +49,20 @@
 			</article>
 		</div>
 	</section>
-	
 	<br>
-		<cfg>
-			<cfg_bar>
+	    <div id="cfg">
+			<div id="cfg_bar">
 			<div id="links">
-				<li ><a href="page_config.html">Camera configuration</a></li>
-				<li ><a href="page_wifi.html">Wi-Fi configuration</a></li>
-				<li ><a href="page_auth.html">Authentication</a></li>
-				<li ><a href="page_system.html">System</a></li>
+				<li><a href="page_config.html">Camera configuration</a></li>
+				<li><a href="page_wifi.html">Wi-Fi configuration</a></li>
+				<li><a href="page_auth.html">Authentication</a></li>
+				<li><a href="page_system.html">System</a></li>
 				</div>
-			</cfg_bar>
-		</cfg>
+			</div>
+		</div>
 	<hr>
-	
 	<div id="content">
 	</div>
-
 	<br><br><br><br>
 	<table id=botton><tr>
 		<td><p class=p2>Prusa Connect ESP32 cam</p> </td>
@@ -77,7 +71,6 @@
 		<td><a href="https://github.com/Prusa-Development/Prusa-Firmware-ESP32-Cam/" id="github-link"><svg height="25"><image href="github-icon.svg"></svg></a></td>
 	</tr></table>
 </body>
-
 <script src="scripts.js"></script>
 <script>
 	sliderCheck();

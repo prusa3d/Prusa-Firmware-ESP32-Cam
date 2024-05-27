@@ -83,6 +83,13 @@ void Configuration::ReadCfg() {
   LoadGainCtrl();
   LoadAgcGain();
   LoadPrusaConnectHostname();
+  LoadNetworkIpMethod();
+  LoadNetworkIp();
+  LoadNetworkMask();
+  LoadNetworkGateway();
+  LoadNetworkDns();
+  LoadCameraImageExifRotation();
+  LoadTimeLapseFunctionStatus();
   Log->AddEvent(LogLevel_Info, "Active WiFi client cfg: " + String(CheckActifeWifiCfgFlag() ? "true" : "false"));
   Log->AddEvent(LogLevel_Info, F("Load CFG from EEPROM done"));
 }
@@ -167,6 +174,7 @@ void Configuration::DefaultCfg() {
   SaveNetworkGateway(FACTORY_CFG_NETWORK_STATIC_GATEWAY);
   SaveNetworkDns(FACTORY_CFG_NETWORK_STATIC_DNS);
   SaveCameraImageExifRotation(FACTORY_CFG_IMAGE_EXIF_ROTATION);
+  SaveTimeLapseFunctionStatus(FACTORY_CFG_TIMELAPS_ENABLE);
   Log->AddEvent(LogLevel_Warning, F("+++++++++++++++++++++++++++"));
 }
 
@@ -651,7 +659,6 @@ void Configuration::SaveBasicAuthUsername(String i_data) {
   SaveString(EEPROM_ADDR_BASIC_AUTH_USERNAME_START, EEPROM_ADDR_BASIC_AUTH_USERNAME_LENGTH, i_data);
 }
 
-
 /**
    @info save password fof BasicAuth to EEPROM
    @param string - password
@@ -832,6 +839,16 @@ void Configuration::SaveNetworkDns(String i_data) {
 void Configuration::SaveCameraImageExifRotation(uint8_t i_data) {
   Log->AddEvent(LogLevel_Verbose, "Save camera image exif rotation: " + String(i_data));
   SaveUint8(EEPROM_ADDR_IMAGE_ROTATION_START, i_data);
+}
+
+/**
+   @info Save time lapse function status
+   @param bool - value
+   @return none
+*/
+void Configuration::SaveTimeLapseFunctionStatus(bool i_data) {
+  Log->AddEvent(LogLevel_Verbose, "Save time lapse function status: " + String(i_data));
+  SaveBool(EEPROM_ADDR_TIMELAPS_ENABLE_START, i_data);
 }
 
 /**
@@ -1311,6 +1328,11 @@ String Configuration::LoadNetworkDns() {
   return ret;
 }
 
+/**
+ * @brief Load camera image rotation from EEPROM
+ * 
+ * @return uint8_t - rotation
+ */
 uint8_t Configuration::LoadCameraImageExifRotation() {
   uint8_t ret = EEPROM.read(EEPROM_ADDR_IMAGE_ROTATION_START);
 
@@ -1322,6 +1344,22 @@ uint8_t Configuration::LoadCameraImageExifRotation() {
   Log->AddEvent(LogLevel_Info, "Camera image rotation: " + String(ret));
 
   return ret;
+}
+
+/**
+ * @brief Load time lapse function status
+ * 
+ * @return bool - status
+ */
+bool Configuration::LoadTimeLapseFunctionStatus() {
+  uint8_t ret = EEPROM.read(EEPROM_ADDR_TIMELAPS_ENABLE_START);
+  Log->AddEvent(LogLevel_Info, F("Time lapse function status: "), String(ret));
+
+  if (ret == 255) {
+    ret = 0;
+  }
+
+  return (bool) ret;
 }
 
 /* EOF */

@@ -30,6 +30,7 @@ Camera::Camera(Configuration* i_conf, Logs* i_log, uint8_t i_FlashPin) {
   PhotoExifData.header = NULL;
   PhotoExifData.len = 0;
   PhotoExifData.offset = 0;
+  PhotoSending = false;
 }
 
 /**
@@ -185,6 +186,10 @@ framesize_t Camera::TransformFrameSizeDataType(uint8_t i_data) {
   return ret;
 }
 
+void Camera::SetPhotoSending(bool i_data) {
+  PhotoSending = i_data;
+}
+
 /**
    @brief Function set flash status
    @param bool i_data - true = on, false = off
@@ -268,6 +273,11 @@ void Camera::ReinitCameraModule() {
    @return none
 */
 void Camera::CapturePhoto() {
+
+  if (true == PhotoSending) {
+    return;
+  }
+
   if (false == StreamOnOff) {
     if (!xSemaphoreTake(frameBufferSemaphore, portMAX_DELAY)) {
       log->AddEvent(LogLevel_Error, F("Failed to take frame buffer semaphore"));
@@ -313,13 +323,21 @@ void Camera::CapturePhoto() {
       if (ControlFlag != 0x00) {
         log->AddEvent(LogLevel_Error, "Camera capture failed! photo " + String(ControlFlag, HEX));
         FrameBuffer->len = 0;
+
       } else {
         log->AddEvent(LogLevel_Info, "Photo OK! " + String(ControlFlag, HEX));
 
+        /* generate exif header */
         update_exif_from_cfg(imageExifRotation);
         get_exif_header(FrameBuffer, &PhotoExifData.header, &PhotoExifData.len);
         PhotoExifData.offset = get_jpeg_data_offset(FrameBuffer);
         CameraCaptureSuccess = true;
+        
+        if (PhotoExifData.header != NULL) {
+          log->AddEvent(LogLevel_Info, "Exif header OK! Len: " + String(PhotoExifData.len));
+        } else {
+          log->AddEvent(LogLevel_Error, "Exif header failed! " + String(PhotoExifData.len));
+        }
       }
 
       attempts++;
@@ -335,33 +353,6 @@ void Camera::CapturePhoto() {
       ledcWrite(FLASH_PWM_CHANNEL, FLASH_OFF_STATUS);
     }
     xSemaphoreGive(frameBufferSemaphore);
-/*
-    // Save picture
-    File file = SD_MMC.open("/photo.jpg", FILE_WRITE);
-
-    if (file) {
-      size_t ret = 0;
-      if (PhotoExifData.header != NULL) {
-        ret = file.write(PhotoExifData.header, PhotoExifData.len);
-        if (ret != PhotoExifData.len) {
-          Serial.println("Failed\nError while writing header to file");
-          PhotoExifData.offset = 0;
-        }
-      } else {
-        PhotoExifData.offset = 0;
-      }
-
-      ret = file.write(&FrameBuffer->buf[PhotoExifData.offset], FrameBuffer->len - PhotoExifData.offset);
-      if (ret != FrameBuffer->len - PhotoExifData.offset) {
-        Serial.println("Failed\nError while writing to file");
-      } else {
-        Serial.printf("Saved as %s\n", "photo.jpg");
-      }
-      file.close();
-    } else {
-      Serial.printf("Failed\nCould not open file: %s\n", "photo.jpg");
-    }
-    */
   }
 }
 

@@ -123,6 +123,7 @@ void setup() {
   xTaskCreatePinnedToCore(System_TaskStreamTelemetry, "PrintStreamTelemetry", 3300, NULL, 6, &Task_StreamTelemetry, 0);         /*function, description, stack size, parameters, priority, task handle, core*/
   xTaskCreatePinnedToCore(System_TaskSysLed, "SystemLed", 3000, NULL, 7, &Task_SysLed, 0);                                      /*function, description, stack size, parameters, priority, task handle, core*/
   xTaskCreatePinnedToCore(System_TaskWiFiWatchdog, "WiFiWatchdog", 3500, NULL, 8, &Task_WiFiWatchdog, 0);                       /*function, description, stack size, parameters, priority, task handle, core*/
+  //xTaskCreatePinnedToCore(System_TaskSdCardRemove, "SdCardRemove", 3000, NULL, 9, &Task_SdCardFileRemove, 0);                   /*function, description, stack size, parameters, priority, task handle, core*/
 
   /* init wdg */
   SystemLog.AddEvent(LogLevel_Info, F("Init WDG"));
@@ -136,6 +137,7 @@ void setup() {
   esp_task_wdt_add(Task_StreamTelemetry);
   esp_task_wdt_add(Task_SysLed);
   esp_task_wdt_add(Task_WiFiWatchdog);
+  //esp_task_wdt_add(Task_SdCardFileRemove);
   esp_task_wdt_reset(); /* reset wdg */
 
   SystemLog.AddEvent(LogLevel_Info, F("MCU configuration done"));

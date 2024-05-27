@@ -14,13 +14,13 @@
 #ifndef _WEB_PAGE_H_
 #define _WEB_PAGE_H_
 
-#define MSG_REBOOT_MCU        "Reboot process started, wait several seconds for mcu to boot up. You can close this window now."
+#define MSG_REBOOT_MCU        "Reboot process started, wait several seconds for mcu to boot up. You can close this window now"
 #define MSG_SAVE_OK_REBOOT    "Save OK. Please reboot MCU"            ///< WEB app msg save OK
-#define MSG_SAVE_OK_WIFI      "Save OK. Connecting to Wi-Fi. Please wait several second."
+#define MSG_SAVE_OK_WIFI      "Save OK. Connecting to Wi-Fi. Please wait several second"
 #define MSG_SAVE_OK           "Save cfg OK"                           ///< WEB app msg save OK
 #define MSG_SAVE_NOTOK        "Save cfg NOT OK!"                      ///< WEB app msg save NOT OK
 #define MSG_SCANNING          "Scanning Wi-Fi networks. Wait 8s..."   ///< WEB app msg Scanning wifi
-#define MSG_UPDATE_START      "Start updating."
+#define MSG_UPDATE_START      "Start updating"
 
 /* ------------------------------------------------------------------------------------------------------------ */
 const char index_html[] PROGMEM = R"rawliteral(
@@ -40,7 +40,6 @@ const char index_html[] PROGMEM = R"rawliteral(
 				$("#content").load(page);
 				setActive(this);
 			});
-
 			$("#content").load("page_config.html", function() {
 				var defaultLink = document.querySelector('a[href="page_config.html"]');
 				setActive(defaultLink);
@@ -48,7 +47,6 @@ const char index_html[] PROGMEM = R"rawliteral(
 		});
 	</script>
 </head>
-
 <body>
     <nav>
     <img src="esp32_cam.svg" id=logo alt="Logo image" style="margin-left: 10px;" />
@@ -62,7 +60,6 @@ const char index_html[] PROGMEM = R"rawliteral(
       </ul>
     </nav>
 	<hr>
-	
 	<section class="container">
 		<div  class="container_left-half">
 			<article>
@@ -78,23 +75,20 @@ const char index_html[] PROGMEM = R"rawliteral(
 			</article>
 		</div>
 	</section>
-	
 	<br>
-		<cfg>
-			<cfg_bar>
+	    <div id="cfg">
+			<div id="cfg_bar">
 			<div id="links">
-				<li ><a href="page_config.html">Camera configuration</a></li>
-				<li ><a href="page_wifi.html">Wi-Fi configuration</a></li>
-				<li ><a href="page_auth.html">Authentication</a></li>
-				<li ><a href="page_system.html">System</a></li>
+				<li><a href="page_config.html">Camera configuration</a></li>
+				<li><a href="page_wifi.html">Wi-Fi configuration</a></li>
+				<li><a href="page_auth.html">Authentication</a></li>
+				<li><a href="page_system.html">System</a></li>
 				</div>
-			</cfg_bar>
-		</cfg>
+			</div>
+		</div>
 	<hr>
-	
 	<div id="content">
 	</div>
-
 	<br><br><br><br>
 	<table id=botton><tr>
 		<td><p class=p2>Prusa Connect ESP32 cam</p> </td>
@@ -103,7 +97,6 @@ const char index_html[] PROGMEM = R"rawliteral(
 		<td><a href="https://github.com/Prusa-Development/Prusa-Firmware-ESP32-Cam/" id="github-link"><svg height="25"><image href="github-icon.svg"></svg></a></td>
 	</tr></table>
 </body>
-
 <script src="scripts.js"></script>
 <script>
 	sliderCheck();
@@ -118,7 +111,6 @@ const char index_html[] PROGMEM = R"rawliteral(
 const char page_auth_html[] PROGMEM = R"rawliteral(
 <style>@import url("styles.css");</style>
 <script src="jquery-3.7.0.min.js"></script>
-
 <body>
 	<center>
 		<table>
@@ -131,7 +123,6 @@ const char page_auth_html[] PROGMEM = R"rawliteral(
 		</table>
 	</center>
 </body>
-
 <script src="scripts.js"></script>
 <script>
 	get_data("auth");
@@ -145,7 +136,6 @@ const char page_auth_html[] PROGMEM = R"rawliteral(
 const char page_wifi_html[] PROGMEM = R"rawliteral(
 <style>@import url("styles.css");</style>
 <script src="jquery-3.7.0.min.js"></script>
-
 <body>
 	<table id="center_tb">
 		<tr><td></td><td style="width:40%">
@@ -156,12 +146,10 @@ const char page_wifi_html[] PROGMEM = R"rawliteral(
 			<p class="w2">IP Address: <span id="ip"></span></p>
 			<p class="w2">mDNS: http://<span id="mdns"></span>.local</p>
 		</td><td></td></tr>
-
 		<tr><td></td><td style="width:40%">
 			<br>
 			<p class="w1">Available networks</p>
 			</td><td></td></tr>
-
 			<tr><td></td><td style="width:40%">
 			<table id="wifi_ntw">
 				<colgroup>
@@ -178,12 +166,10 @@ const char page_wifi_html[] PROGMEM = R"rawliteral(
 				</tr>
 			</table>
 		</td><td></td></tr>
-
 		<tr><td></td><td style="width:40%" align="right">
 			<button class="btn" onclick="scanWifi()">Scan Wi-Fi networks</button>
 			<br>
 		</td><td></td></tr>
-
 		<tr><td></td><td style="width:40%">
 			<br>
 			<table>
@@ -193,9 +179,7 @@ const char page_wifi_html[] PROGMEM = R"rawliteral(
 				<tr><td></td><td align="center"><button class="btn_save_w" onclick="setWifi(document.getElementById('wifi_ssid_id').value, document.getElementById('wifi_pass_id').value)">Save & Connect</button></td></tr>
 			</table>
 		</td><td></td></tr>
-
 	</table>
-
 	<br>
 	<center>
 		<button class="btn_collapsible_wifi">Advanced Wi-Fi settings</button>
@@ -219,9 +203,7 @@ const char page_wifi_html[] PROGMEM = R"rawliteral(
 			<tr><td></td><td align="center"><button class="btn_save_w" onclick="setWifiNet(document.getElementById('net_ip_id').value, document.getElementById('net_mask_id').value, document.getElementById('net_gw_id').value, document.getElementById('net_dns_id').value)">Save</button></td></tr>
 		</table>
 	</div>
-		
 </body>
-
 <script src="scripts.js"></script>
 <script>
 	setTimeout(function(){GetDataAndPrintTableWiFi();}, 500);
@@ -236,7 +218,7 @@ const char page_config_html[] PROGMEM = R"rawliteral(
 <script src="jquery-3.7.0.min.js"></script>
 <body>
 	<center><table id="data">
-		<tr><td class="ps3">Basic image settings</td><td></td></tr>
+		<tr><td class="ps3">Basic settings</td><td></td></tr>
         <tr><td class="pc1">Connect Token</td><td ><input type="text" name="token" id=tokenid >&nbsp;<button class="btn_save" onclick="changeValue(encodeURIComponent(document.getElementById('tokenid').value), 'set_token?token=', 'config')">Save</button></td></tr>
         <tr><td class="pc1">Fingerprint</td><td class=pc2 id="fingerprint"></td></tr>
 		<tr><td class="pc1">Trigger Interval [s]</td><td ><input type="text" name="refresh" id=refreshid >&nbsp;<button class="btn_save" onclick="changeValue(document.getElementById('refreshid').value, 'set_int?refresh=', 'config')">Save</button></td></tr>
@@ -261,7 +243,7 @@ const char page_config_html[] PROGMEM = R"rawliteral(
 		<tr><td class="pc1">Saturation</td><td class="pc2">Low <input type="range" class="slider" name="saturation" id=saturationid min="-2" max="2" step="1" onchange="changeValue(this.value, 'set_int?saturation=', 'config')"> High</td></tr>
 		<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
 		<tr>
-			<td class="pc1">Image rotation</td><td><label for="image_rotation"></label>
+			<td class="pc1">Image Rotation</td><td><label for="image_rotation"></label>
 				<select class="select" id="image_rotationid" name="image_rotation" onchange="changeValue(this.value, 'set_int?image_rotation=', 'config')">
 					<option value="1">0°</option>
 					<option value="6">90°</option>
@@ -278,13 +260,14 @@ const char page_config_html[] PROGMEM = R"rawliteral(
 		<tr><td class="pc1">Flash duration</td><td class="pc2">Low <input type="range" class="slider" name="flash_time" id=flash_timeid min="50" max="1500" step="50" onchange="changeValue(this.value, 'set_int?flash_time=', 'config')">High</td></tr>
 		<tr><td class="pc1">Flash duration</td><td class="pc2"><span id="flash_time_value"></span> ms</td></tr>
 		<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
+		<tr><td class="pc1">Save images to micro SD</td><td class="pc2"><label class="switch"><input type="checkbox" name="timelaps" id=timelapsid onchange="changeValue(this.checked, 'set_bool?timelaps_enable=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_timelaps"></span></td></tr>
+		<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
 	</table></center>
-
-	<center><button class="btn_collapsible">Advanced image settings</button></center>
+	<center><button class="btn_collapsible">Advanced settings</button></center>
 	<div class="content">
 		<center><table id="data">
 			<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
-			<tr><td class="ps3">Advanced image settings</td><td></td></tr>
+			<tr><td class="ps3">Advanced settings</td><td></td></tr>
 			<tr><td class="pc1">Automatic white balancing</td><td class="pc2"><label class="switch"><input type="checkbox" name="awb" id=awbid  onchange="changeValue(this.checked, 'set_bool?awb=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_awb"></span></td></tr>
 			<tr><td class="pc1">Automatic white balancing gain</td><td class="pc2"><label class="switch"><input type="checkbox" name="awb_gain" id=awb_gainid  onchange="changeValue(this.checked, 'set_bool?awb_gain=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_awb_gain"></span></td></tr>
 			<tr>
@@ -315,7 +298,6 @@ const char page_config_html[] PROGMEM = R"rawliteral(
 		</table></center>
 	</div>
 </body>
-
 <script src="scripts.js"></script>
 <script>
 	get_data("config");
@@ -331,16 +313,18 @@ const char page_system_html[] PROGMEM = R"rawliteral(
 	<center>
         <table id="data">
             <tr><td class="ps3">System status</td><td></td></tr>
-            <tr><td class="ps1">PrusaConnect Status</td><td class="ps2" id="last_upload_status"></td></tr>
+            <tr><td class="ps1">Prusa Connect Status</td><td class="ps2" id="last_upload_status"></td></tr>
             <tr><td class="ps1">Wi-Fi mode</td><td class="ps2" id="wifi_mode"></td></tr>
 			<tr><td class="ps1">Wi-Fi service AP SSID</td><td class="ps2" id="service_ap_ssid"></td></tr>
             <tr><td class="ps1">Uptime</td><td class="ps2" id="uptime"></td></tr>
-            <tr><td class="ps1">Software version</td><td class="ps2" id="sw_ver"></td></tr>
-			<tr><td class="ps1">Software build</td><td class="ps2" id="sw_build"></td></tr>
-			<tr><td class="ps1">Available software update</td><td class="ps2"><span id="sw_new_ver"></span> <span class="underlined-text" onclick="checkUpdate()">Check update from cloud</span></td></tr>
+			<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
+			<tr><td class="ps3">Firmware</td><td></td></tr>
+            <tr><td class="ps1">Version</td><td class="ps2" id="sw_ver"></td></tr>
+			<tr><td class="ps1">Build</td><td class="ps2" id="sw_build"></td></tr>
+			<tr><td class="ps1">Available update</td><td class="ps2"><span id="sw_new_ver"></span> <span class="underlined-text" onclick="checkUpdate()">Check update from cloud</span></td></tr>
             <tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
 			<tr><td class="ps3">System configuration</td><td></td></tr>
-			<tr><td class="pc1">Cam name & mDNS record</td><td ><input type="text" name="mdns" id=mdnsid ><span class=pc1>.local</span>&nbsp;<button class="btn_save" onclick="changeValue(document.getElementById('mdnsid').value, 'set_mdns?mdns=', 'system')">Save</button></td></tr>
+			<tr><td class="pc1">Camera name & mDNS record</td><td ><input type="text" name="mdns" id=mdnsid ><span class=pc1>.local</span>&nbsp;<button class="btn_save" onclick="changeValue(document.getElementById('mdnsid').value, 'set_mdns?mdns=', 'system')">Save</button></td></tr>
 			<tr>
 			    <td class="pc1">Log level</td><td><label for="loglevel"></label>
 				<select class="select" id="loglevelid" name="loglevel" onchange="changeValue(this.value, 'set_int?log_level=', 'system')">
@@ -352,21 +336,26 @@ const char page_system_html[] PROGMEM = R"rawliteral(
 			   </td>
 		   </tr>
 		   <tr><td class="pc1">Get logs</td><td ><button class="btn_update" onclick="window.open('get_logs')">Get logs</button></td></tr>
+		   <tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
+		   <tr><td class="ps3">Micro SD card</td><td></td></tr>
+		   <tr><td class="ps1">Card status</td><td class="ps2" id="sd_status"></td></tr>
+		   <tr><td class="ps1">Capacity</td><td class="ps2"><span id="sd_total"></span> MB</td></tr>
+		   <tr><td class="ps1">Available</td><td class="ps2"><div class="progress-container"><div class="progress-bar" id="progress_bar_sd_free">0%</div></div></td></tr>
+		   <tr><td class="ps1">Used</td><td class="ps2"><div class="progress-container"><div class="progress-bar" id="progress_bar_sd_used">0%</div></div></td></tr>
         </table>
     </center>
     <br>
     <center>
         <table id="update">
             <tr><td class="ps3">Firmware update</td><td></td></tr>
-            <tr><td class="ps1">Status:</td><td><span class="ps2" id="status">Ready</span></td></tr>
-			<tr><td class="ps1">Processing:</td><td class="ps2"><div class="progress-container"><div class="progress-bar" id="myProgressBar">0%</div></div><!--<span class="ps2" id="progressValue">0</span>%--></td></tr>
-            <tr><td></td><td style="width:50%"><input type="file" id="firmwareInput" accept=".bin"></td></tr>
+            <tr><td class="ps1">Status</td><td><span class="ps2" id="status">Ready</span></td></tr>
+			<tr><td class="ps1">Progress</td><td class="ps2"><div class="progress-container"><div class="progress-bar" id="myProgressBar">0%</div></div></td></tr>
+            <tr><td></td><td><input type="file" id="firmwareInput" accept=".bin"></td></tr>
             <tr><td></td><td><input type="submit" class="btn_update" value="Update from file" onclick="uploadFile()"></td></tr>
 			<tr><td></td><td><input type="submit" class="btn_update" value="Update from cloud" onclick="updateWeb()"></td></tr>
         </table>
     </center>
 </body>
-
 <script src="scripts.js"></script>
 <script>
     var updateCompleted = false;
@@ -380,76 +369,75 @@ const char styles_css[] PROGMEM = R"rawliteral(
 body {
     font-family: sans-serif;
 }
-
 /* index styles */
- .p1 {
-     color: #797979;
-     font: normal normal normal 18px/5px sans-serif;
-     letter-spacing: 0px;
+.p1 {
+    color: #797979;
+    font: normal normal normal 18px/5px sans-serif;
+    letter-spacing: 0px;
 }
- .p2 {
-     text-align: left;
-     font: normal normal bold 14px/20px sans-serif;
-     letter-spacing: 0px;
-     color: #808080;
-     opacity: 1;
-     display: inline-block;
+.p2 {
+    text-align: left;
+    font: normal normal bold 14px/20px sans-serif;
+    letter-spacing: 0px;
+    color: #808080;
+    opacity: 1;
+    display: inline-block;
 }
- .p3 {
-     text-align: left;
-     font: normal normal normal 14px/20px sans-serif;
-     letter-spacing: 0px;
-     color: #808080;
-     opacity: 1;
-     display: inline-block;
+.p3 {
+    text-align: left;
+    font: normal normal normal 14px/20px sans-serif;
+    letter-spacing: 0px;
+    color: #808080;
+    opacity: 1;
+    display: inline-block;
 }
- .p4 {
-     text-align: left;
-     font: normal normal normal 14px/20px sans-serif;
-     letter-spacing: 0px;
-     color: #808080;
-     opacity: 1;
+.p4 {
+    text-align: left;
+    font: normal normal normal 14px/20px sans-serif;
+    letter-spacing: 0px;
+    color: #808080;
+    opacity: 1;
 }
- .p5 {
-     text-align: center;
-     font: normal normal bold 14px/20px sans-serif;
-     letter-spacing: 0px;
-     color: #000000;
-     opacity: 1;
+.p5 {
+    text-align: center;
+    font: normal normal bold 14px/20px sans-serif;
+    letter-spacing: 0px;
+    color: #000000;
+    opacity: 1;
 }
 /* NAVIGATION BAR */
- nav {
-     display: flex;
-     background-color: transparent;
+nav {
+    display: flex;
+    background-color: transparent;
 }
- .top_bar {
-     display: flex;
-     width: 100%;
+.top_bar {
+    display: flex;
+    width: 100%;
 }
- .top_bar li {
-     display: inline-block;
-     padding: 5px;
+.top_bar li {
+    display: inline-block;
+    padding: 5px;
 }
- .top_bar li a {
-     text-decoration: none;
-     cursor: pointer;
-     display: flex;
-     align-items: center;
+.top_bar li a {
+    text-decoration: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
 }
- .top_bar li a:hover {
-     text-decoration: underline #fa6831;
-     text-underline-position: under;
-     text-underline-offset: 8px;
-     text-decoration-thickness: 2px;
+.top_bar li a:hover {
+    text-decoration: underline #fa6831;
+    text-underline-position: under;
+    text-underline-offset: 8px;
+    text-decoration-thickness: 2px;
 }
- #links li a.active {
-     text-decoration: underline #fa6831;
-     text-underline-position: under;
-     text-underline-offset: 8px;
-     text-decoration-thickness: 2px;
+#links li a.active {
+    text-decoration: underline #fa6831;
+    text-underline-position: under;
+    text-underline-offset: 8px;
+    text-decoration-thickness: 2px;
 }
 /* CFG BAR */
-cfg {
+#cfg {
     display: flex;
     flex-direction: column;
     text-align: center;
@@ -458,18 +446,18 @@ cfg {
     color: #2A2A2A;
     opacity: 1;
 }
-cfg_bar li {
+#cfg_bar li {
     display: inline-block;
     padding: 14px;
     font-size: 16px;
     left: 50%;
 }
-cfg_bar li a {
+#cfg_bar li a {
     text-decoration: none;
     cursor: pointer;
     color: #212529;
 }
-cfg_bar li a:hover {
+#cfg_bar li a:hover {
     color: #fa6831;
 }
 /* CONTAINER */
@@ -478,110 +466,110 @@ cfg_bar li a:hover {
      height: 100%;
      width: 100%;
 }
- .container_left-half {
-     grid-column: 1;
-     display: table-cell;
-     vertical-align: middle;
-     width: 50%;
-     text-align: center;
+.container_left-half {
+    grid-column: 1;
+    display: table-cell;
+    vertical-align: middle;
+    width: 50%;
+    text-align: center;
 }
- .container_right-half {
-     grid-column: 2;
-     display: table-cell;
-     vertical-align: middle;
-     width: 50%;
+.container_right-half {
+    grid-column: 2;
+    display: table-cell;
+    vertical-align: middle;
+    width: 50%;
 }
 /* CHECKBOX SLIDER */
- .switch {
-     position: relative;
-     display: inline-block;
-     width: 30px;
-     height: 17px;
-     vertical-align: middle;
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 30px;
+    height: 17px;
+    vertical-align: middle;
 }
- .switch input {
-     opacity: 0;
-     width: 0;
-     height: 0;
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
 }
- .checkbox_slider {
-     position: absolute;
-     cursor: pointer;
-     top: 0;
-     left: 0;
-     right: 0;
-     bottom: 0;
-     background-color: #ccc;
-     -webkit-transition: .4s;
-     transition: .4s;
+.checkbox_slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
 }
- .checkbox_slider:before {
-     position: absolute;
-     content: "";
-     height: 13px;
-     width: 13px;
-     left: 2px;
-     bottom: 2px;
-     background-color: white;
-     -webkit-transition: .4s;
-     transition: .4s;
+.checkbox_slider:before {
+    position: absolute;
+    content: "";
+    height: 13px;
+    width: 13px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
 }
- input:checked+.checkbox_slider {
-     background-color: #797979;
+input:checked+.checkbox_slider {
+    background-color: #797979;
 }
- input:focus+.checkbox_slider {
-     box-shadow: 0 0 1px #797979;
+input:focus+.checkbox_slider {
+    box-shadow: 0 0 1px #797979;
 }
- input:checked+.checkbox_slider:before {
-     -webkit-transform: translateX(13px);
-     -ms-transform: translateX(13px);
-     transform: translateX(13px);
+input:checked+.checkbox_slider:before {
+    -webkit-transform: translateX(13px);
+    -ms-transform: translateX(13px);
+    transform: translateX(13px);
 }
- .checkbox_slider.round {
-     border-radius: 13px;
+.checkbox_slider.round {
+    border-radius: 13px;
 }
- .checkbox_slider.round:before {
-     border-radius: 50%;
+.checkbox_slider.round:before {
+    border-radius: 50%;
 }
 /* BUTTON */
- .btn {
-     width: 306px;
-     height: 30px;
-     text-align: center;
-     font: normal normal bold 14px/5px sans-serif;
-     color: #000000;
-     background-color: white;
-     border-radius: 5px;
-     border: 1px solid #343a40;
+.btn {
+    width: 306px;
+    height: 30px;
+    text-align: center;
+    font: normal normal bold 14px/5px sans-serif;
+    color: #000000;
+    background-color: white;
+    border-radius: 5px;
+    border: 1px solid #343a40;
 }
- .btn:hover {
-     background-color: #FA6831;
-     color: white;
+.btn:hover {
+    background-color: #FA6831;
+    color: white;
 }
 /* BOTTON table */
- #botton {
-     width: 100%;
-     text-align: center;
-     background: #F5F5F5 0% 0% no-repeat padding-box;
-     opacity: 1;
-     bottom: 0;
+#botton {
+    width: 100%;
+    text-align: center;
+    background: #F5F5F5 0% 0% no-repeat padding-box;
+    opacity: 1;
+    bottom: 0;
 }
 /* ----- styles config ----- */
- .pc1 {
-     text-align: right;
-     font: normal normal normal 11px/5px sans-serif;
-     letter-spacing: 0px;
-     color: #797979;
-     opacity: 1;
+.pc1 {
+    text-align: right;
+    font: normal normal normal 11px/5px sans-serif;
+    letter-spacing: 0px;
+    color: #797979;
+    opacity: 1;
 }
- .pc2 {
-     text-align: left;
-     font: normal normal normal 12px/5px sans-serif;
-     letter-spacing: 0px;
-     color: #000000;
-     opacity: 1;
+.pc2 {
+    text-align: left;
+    font: normal normal normal 12px/5px sans-serif;
+    letter-spacing: 0px;
+    color: #000000;
+    opacity: 1;
 }
- .pc3 {
+.pc3 {
     text-align: right;
     font: normal normal normal bold 12px/17px sans-serif;
     letter-spacing: 0px;
@@ -589,148 +577,148 @@ cfg_bar li a:hover {
     opacity: 1;
 }
 /* data table */
- #data {
-     font-family: Arial, Helvetica, sans-serif;
-     border-collapse: collapse;
-     width: 100%;
-     table-layout: fixed;
+#data {
+    font-family: Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+    table-layout: fixed;
 }
- #data td, #data th {
-     padding: 8px;
+#data td, #data th {
+    padding: 8px;
 }
- #data th {
-     padding-top: 12px;
-     padding-bottom: 12px;
-     text-align: left;
+#data th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
 }
 /* BUTTON */
- .btn_save {
-     width: 69px;
-     height: 24px;
-     text-align: center;
-     font: normal normal bold 14px/5px sans-serif;
-     color: #000000;
-     background-color: white;
-     border-radius: 5px;
-     border: 1px solid #343a40;
+.btn_save {
+    width: 69px;
+    height: 24px;
+    text-align: center;
+    font: normal normal bold 14px/5px sans-serif;
+    color: #000000;
+    background-color: white;
+    border-radius: 5px;
+    border: 1px solid #343a40;
 }
- .btn_save:hover {
-     background-color: #FA6831;
-     color: white;
+.btn_save:hover {
+    background-color: #FA6831;
+    color: white;
 }
 /* RANGE */
- .slider {
-     -webkit-appearance: none;
-     width: 133px;
-     height: 10px;
-     border-radius: 5px;
-     background: linear-gradient(to right, #d3d3d3 50%, #FA6831 50%);
-     outline: none;
+.slider {
+    -webkit-appearance: none;
+    width: 133px;
+    height: 10px;
+    border-radius: 5px;
+    background: linear-gradient(to right, #d3d3d3 50%, #FA6831 50%);
+    outline: none;
 }
- .slider::-webkit-slider-thumb {
-     -webkit-appearance: none;
-     appearance: none;
-     width: 16px;
-     height: 16px;
-     border-radius: 50%;
-     background: #FA6831;
-     cursor: pointer;
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #FA6831;
+    cursor: pointer;
 }
- .slider::-moz-range-thumb {
-     width: 16px;
-     height: 16px;
-     border-radius: 50%;
-     background: #FA6831;
-     cursor: pointer;
+.slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #FA6831;
+    cursor: pointer;
 }
 /* ----- styles wifi ----- */
- .w1 {
-     text-align: left;
-     font: normal normal bold 12px/17px sans-serif;
-     letter-spacing: 0px;
-     color: #2A2A2A;
-     opacity: 1;
+.w1 {
+    text-align: left;
+    font: normal normal bold 12px/17px sans-serif;
+    letter-spacing: 0px;
+    color: #2A2A2A;
+    opacity: 1;
 }
- .w2 {
-     font: normal normal normal 11px/5px sans-serif;
-     letter-spacing: 0px;
-     color: #797979;
-     opacity: 1;
+.w2 {
+    font: normal normal normal 11px/5px sans-serif;
+    letter-spacing: 0px;
+    color: #797979;
+    opacity: 1;
 }
- .w2 span {
-     vertical-align: middle;
+.w2 span {
+    vertical-align: middle;
 }
- #center_tb {
-     border-collapse: collapse;
-     width: 100%;
-     table-layout: fixed;
-     text-align: left;
+#center_tb {
+    border-collapse: collapse;
+    width: 100%;
+    table-layout: fixed;
+    text-align: left;
 }
 #wificfg_tb {
     margin-left: 30%;
 }
 /* wifi_ntw table */
- #wifi_ntw {
-     font: normal normal normal 12px/5px sans-serif;
-     border-collapse: collapse;
-     width: 100%;
-     table-layout: fixed;
-     text-align: left;
+#wifi_ntw {
+    font: normal normal normal 12px/5px sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+    table-layout: fixed;
+    text-align: left;
 }
- #wifi_ntw td {
-     border-bottom: 1px solid #ddd;
-     padding: 8px;
+#wifi_ntw td {
+    border-bottom: 1px solid #ddd;
+    padding: 8px;
 }
- #wifi_ntw tr:nth-child(even) {
-     background: #F8F8F8 0% 0% no-repeat padding-box;
+#wifi_ntw tr:nth-child(even) {
+    background: #F8F8F8 0% 0% no-repeat padding-box;
 }
- #wifi_ntw tr:hover {
-     background-color: #ddd;
+#wifi_ntw tr:hover {
+    background-color: #ddd;
 }
- #wifi_ntw th {
-     background-color: transparent;
-     text-align: left;
-     font: normal normal bold 13px/11px sans-serif;
-     letter-spacing: 0px;
-     color: #2A2A2A;
-     opacity: 1;
+#wifi_ntw th {
+    background-color: transparent;
+    text-align: left;
+    font: normal normal bold 13px/11px sans-serif;
+    letter-spacing: 0px;
+    color: #2A2A2A;
+    opacity: 1;
 }
- #wifi_ntw tr {
-     border-bottom: 1px solid #ccc;
+#wifi_ntw tr {
+    border-bottom: 1px solid #ccc;
 }
- #wifi_ntw img {
-     width: 19px;
-     height: 12px;
+#wifi_ntw img {
+    width: 19px;
+    height: 12px;
 }
 /* BUTTON */
- .btn_save_w {
-     width: 178px;
-     height: 24px;
-     text-align: center;
-     font: normal normal bold 14px/5px sans-serif;
-     color: #000000;
-     background-color: white;
-     border-radius: 5px;
-     border: 1px solid #343a40;
+.btn_save_w {
+    width: 178px;
+    height: 24px;
+    text-align: center;
+    font: normal normal bold 14px/5px sans-serif;
+    color: #000000;
+    background-color: white;
+    border-radius: 5px;
+    border: 1px solid #343a40;
 }
- .btn_save_w:hover {
-     background-color: #FA6831;
-     color: white;
+.btn_save_w:hover {
+    background-color: #FA6831;
+    color: white;
 }
 /* ----- styles auth ----- */
- .pa1 {
-     text-align: right;
-     font: normal normal normal 11px/5px sans-serif;
-     letter-spacing: 0px;
-     color: #797979;
-     opacity: 1;
+.pa1 {
+    text-align: right;
+    font: normal normal normal 11px/5px sans-serif;
+    letter-spacing: 0px;
+    color: #797979;
+    opacity: 1;
 }
- .pa2 {
-     text-align: left;
-     font: normal normal bold 12px/17px sans-serif;
-     letter-spacing: 0px;
-     color: #2A2A2A;
-     opacity: 1;
+.pa2 {
+    text-align: left;
+    font: normal normal bold 12px/17px sans-serif;
+    letter-spacing: 0px;
+    color: #2A2A2A;
+    opacity: 1;
 }
 .pa3 {
     text-align: right;
@@ -739,56 +727,55 @@ cfg_bar li a:hover {
     color: #2A2A2A;
     opacity: 1;
 }
-
 /* BUTTON */
- .btn_save_a {
-     width: 178px;
-     height: 24px;
-     text-align: center;
-     font: normal normal bold 14px/5px sans-serif;
-     color: #000000;
-     background-color: white;
-     border-radius: 5px;
-     border: 1px solid #343a40;
+.btn_save_a {
+    width: 178px;
+    height: 24px;
+    text-align: center;
+    font: normal normal bold 14px/5px sans-serif;
+    color: #000000;
+    background-color: white;
+    border-radius: 5px;
+    border: 1px solid #343a40;
 }
- .btn_save_a:hover {
-     background-color: #FA6831;
-     color: white;
+.btn_save_a:hover {
+    background-color: #FA6831;
+    color: white;
 }
- .toggle-password {
-     position: relative;
-     cursor: pointer;
+.toggle-password {
+    position: relative;
+    cursor: pointer;
 }
- .toggle-password img {
-     position: absolute;
-     top: 50%;
-     right: 0;
-     transform: translateY(-50%);
+.toggle-password img {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
 }
- .password-container {
-     display: flex;
-     align-items: center;
+.password-container {
+    display: flex;
+    align-items: center;
 }
- #auth_password.reveal {
-     -webkit-text-security: none;
+#auth_password.reveal {
+    -webkit-text-security: none;
 }
- #auth_password {
-     -webkit-text-security: disc;
+#auth_password {
+    -webkit-text-security: disc;
 }
 /* ----- styles system ----- */
- .ps1 {
-     text-align: right;
-     font: normal normal normal 11px/5px sans-serif;
-     letter-spacing: 0px;
-     color: #797979;
-     opacity: 1;
+.ps1 {
+    text-align: right;
+    font: normal normal normal 11px/5px sans-serif;
+    letter-spacing: 0px;
+    color: #797979;
+    opacity: 1;
 }
- .ps2 {
-     text-align: left;
-     font: normal normal normal 12px/5px sans-serif;
-     letter-spacing: 0px;
-     color: #000000;
-     opacity: 1;
+.ps2 {
+    text-align: left;
+    font: normal normal normal 12px/5px sans-serif;
+    letter-spacing: 0px;
+    color: #000000;
+    opacity: 1;
 }
 .ps3 {
     text-align: right;
@@ -797,38 +784,23 @@ cfg_bar li a:hover {
     color: #2A2A2A;
     opacity: 1;
 }
-/* data table */
- #data {
-     font-family: Arial, Helvetica, sans-serif;
-     border-collapse: collapse;
-     width: 100%;
-     table-layout: fixed;
-}
- #data td, #data th {
-     padding: 8px;
-}
- #data th {
-     padding-top: 12px;
-     padding-bottom: 12px;
-     text-align: left;
-}
 /* update table */
- update {
+#update {
      font-family: Arial, Helvetica, sans-serif;
      border-collapse: collapse;
      width: 100%;
      table-layout: fixed;
 }
- #update td, #update th {
+#update td, #update th {
      padding: 8px;
 }
- #update th {
+#update th {
      padding-top: 12px;
      padding-bottom: 12px;
      text-align: left;
 }
 /* BUTTON */
- .btn_update {
+.btn_update {
      width: 178px;
      height: 24px;
      text-align: center;
@@ -838,34 +810,33 @@ cfg_bar li a:hover {
      border-radius: 5px;
      border: 1px solid #343a40;
 }
- .btn_update:hover {
+.btn_update:hover {
      background-color: #FA6831;
      color: white;
 }
- .underlined-text {
+.underlined-text {
      text-decoration: underline;
      color: blue;
      cursor: pointer;
 }
 /* progress bar*/
- .progress-container {
-     width: 100%;
+.progress-container {
+     width: 30%;
      background-color: #ccc;
 }
- .progress-bar {
+.progress-bar {
      width: 0px;
      height: 15px;
      background-color: #FA6831;
      text-align: center;
      line-height: 15px;
      color: white;
+     padding-left: 3px;
 }
-
 /* advanced cam cfg */
 .content {
     display: none;
 }
-
 .btn_collapsible {
     width: 300px;
     height: 24px;
@@ -880,12 +851,10 @@ cfg_bar li a:hover {
     background-color: #FA6831;
     color: white;
 }
-
 /* advanced wifi cfg */
 .content_wifi {
     display: none;
 }
-
 .btn_collapsible_wifi {
     width: 300px;
     height: 24px;
@@ -952,6 +921,7 @@ function get_data(val) {
 				document.getElementById('agc_gainid').value = obj.agc_gain;
 				document.getElementById("flash_time_value").innerText = obj.flash_time;
 				document.getElementById("aec_value_value").innerText = obj.aec_value;
+				document.getElementById('timelapsid').checked = obj.timelaps;
 				$("#status_hmirror").text((obj.hmirror == "true") ? "On" : "Off");
 				$("#status_vflip").text((obj.vflip == "true") ? "On" : "Off");
 				$("#status_lensc").text((obj.lensc == "true") ? "On" : "Off");
@@ -965,6 +935,7 @@ function get_data(val) {
 				$("#status_raw_gama").text((obj.raw_gama == "true") ? "On" : "Off");
 				$("#status_aec2").text((obj.aec2 == "true") ? "On" : "Off");
 				$("#status_gain_ctrl").text((obj.gain_ctrl == "true") ? "On" : "Off");
+				$("#status_timelaps").text((obj.timelaps == "true") ? "On" : "Off");
 				sliderCheck();
 			}
 
@@ -1006,6 +977,19 @@ function get_data(val) {
 				$("#wifi_mode").text(obj.wifi_mode);
 				$("#sw_new_ver").text(obj.sw_new_ver);
 				$("#service_ap_ssid").text(obj.service_ap_ssid);
+				$("#sd_status").text(obj.sd_status);
+				$("#sd_total").text(obj.sd_total);
+				$("#sd_free_p").text(obj.sd_free_p);
+				$("#sd_used_p").text(obj.sd_used_p);
+
+				var sd_free_prog = document.getElementById("progress_bar_sd_free");
+				sd_free_prog.style.width = obj.sd_free_p + "%";
+				sd_free_prog.innerHTML = obj.sd_free_p + "%";
+
+				var sd_free_prog = document.getElementById("progress_bar_sd_used");
+				sd_free_prog.style.width = obj.sd_used_p + "%";
+				sd_free_prog.innerHTML = obj.sd_used_p + "%";
+
 				document.getElementById('mdnsid').value = obj.mdns;
         		document.getElementById('loglevelid').value = obj.log_level;
 			}

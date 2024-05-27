@@ -55,6 +55,7 @@ private:
   BackendAvailabilitStatus BackendAvailability;   ///< status of backend availability
   bool SendDeviceInformationToBackend;            ///< flag for sending device information to backend
   uint8_t SendingIntervalCounter;                 ///< counter for sending interval, represents seconds
+  bool EnableTimelapsPhotoSave;                   ///< flag for saving photo to SD card
 
   String Token;                                   ///< token for backend communication
   String Fingerprint;                             ///< fingerprint for backend communication 
@@ -86,6 +87,9 @@ public:
   void SetToken(String);
   void SetBackendAvailabilitStatus(BackendAvailabilitStatus);
   void SetPrusaConnectHostname(String);
+  void SetTimeLapsPhotoSaveStatus(bool);
+
+  void SavePhotoToSdCard();
 
   uint8_t GetRefreshInterval();
   String GetBackendReceivedStatus();
@@ -94,6 +98,7 @@ public:
   String GetPrusaConnectHostname();
   BackendAvailabilitStatus GetBackendAvailabilitStatus();
   String CovertBackendAvailabilitStatusToString(BackendAvailabilitStatus);
+  bool GetTimeLapsPhotoSaveStatus();
 
   void IncreaseSendingIntervalCounter();
   void SetSendingIntervalCounter(uint8_t);

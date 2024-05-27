@@ -74,14 +74,14 @@ void WiFiMngt::Init() {
     ServiceMode = true;
     WiFi.softAPConfig(Service_LocalIp, Service_Gateway, Service_Subnet);
     WiFi.softAP(SericeApSsid.c_str(), SERVICE_WIFI_PASS, SERVICE_WIFI_CHANNEL);
-    WiFiMode = "AP + Client";
+    WiFiMode = F("AP + Client");
     log->AddEvent(LogLevel_Info, "Service IP Address: http://" + WiFi.softAPIP().toString());
     
   } else {
     log->AddEvent(LogLevel_Warning, F("Service AP mode disabled!"));
     WiFi.mode(WIFI_STA);
     ServiceMode = false;
-    WiFiMode = "Client";
+    WiFiMode = F("Client");
   }
 
   /* Set STA IP method. Static or DHCP */
@@ -150,7 +150,7 @@ void WiFiMngt::WifiManagement() {
         esp_wifi_set_ps(WIFI_PS_NONE);
         WiFiStaConnect();
         //WiFi.begin(WifiSsid, WifiPassword);
-        WiFiMode = "Client";
+        WiFiMode = F("Client");
 
 #if (WIFI_CLIENT_WAIT_CON == true)
         while (WiFi.status() != WL_CONNECTED) {

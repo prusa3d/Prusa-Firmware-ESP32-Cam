@@ -18,7 +18,6 @@
 */
 MicroSd::MicroSd() {
   CardDetected = false;
-  CardSize = 0;
   DetectAfterBoot = false;
 }
 
@@ -50,7 +49,7 @@ void MicroSd::InitSdCard() {
   if (!SD_MMC.begin("/sdcard", true)) {
     Serial.println(F("SD Card Mount Failed"));
     CardDetected = false;
-    CardSize = 0;
+    CardSizeMB = 0;
     //DetectAfterBoot = false;
     return;
   }
@@ -60,7 +59,7 @@ void MicroSd::InitSdCard() {
   if (cardType == CARD_NONE) {
     Serial.println(F("No SD_MMC card attached"));
     CardDetected = false;
-    CardSize = 0;
+    CardSizeMB = 0;
     //DetectAfterBoot = false;
     return;
   }
@@ -77,11 +76,11 @@ void MicroSd::InitSdCard() {
     Serial.print(F("UNKNOWN"));
   }
 
-  /* calculation card size */
-  CardSize = SD_MMC.cardSize() / (1024 * 1024);
-  Serial.printf(", Card Size: %d MB\n", CardSize);
   CardDetected = true;
   DetectAfterBoot = true;
+
+  /* calculation card size */
+  CheckCardUsedStatus();
 }
 
 /**
@@ -122,6 +121,27 @@ void MicroSd::ListDir(fs::FS &fs, String DirName, uint8_t levels) {
       file = root.openNextFile();
     }
   }
+}
+
+/**
+   @brief Check directory on the micro SD card
+   @param fs::FS - card
+   @param String - dir name
+   @return bool - status
+*/
+bool MicroSd::CheckDir(fs::FS &fs, String path) {
+  bool status = false;
+  if (true == CardDetected) {
+#if (true == CONSOLE_VERBOSE_DEBUG)
+    Serial.printf("Checking Dir: %s... ", path.c_str());
+#endif
+  
+    if (fs.exists(path.c_str())) {
+      status = true;
+    }
+
+  }
+  return status;
 }
 
 /**
@@ -390,6 +410,140 @@ uint16_t MicroSd::FileCount(fs::FS &fs, String DirName, String FileName) {
 }
 
 /**
+   @brief Remove files in directory
+   @param fs::FS - card
+   @param String - dir name
+   @param int - max files
+   @return bool - status
+*/
+bool MicroSd::RemoveFilesInDir(fs::FS &fs, String path, int maxFiles) {
+  bool ret = false;
+  File dir = fs.open(path.c_str());
+  if (!dir) {
+    return ret;
+  }
+
+  int fileCount = 0;
+  File file = dir.openNextFile();
+  while (file) {
+    ret = true;
+    String fileName = path + "/" + file.name();
+    fs.remove(fileName.c_str());
+    Serial.printf("Removing file: %s\n", fileName.c_str());
+    fileCount++;
+    if (fileCount >= maxFiles) {
+      break;
+    }
+    file = dir.openNextFile();
+  }
+
+  return ret;
+}
+
+
+int MicroSd::CountFilesInDir(fs::FS &fs, String path) {
+  uint16_t file_count = FileCount(fs, path, "");
+  return file_count;
+}
+
+/**
+   @brief Check card used status
+   @param none
+   @return bool - status
+*/
+bool MicroSd::CheckCardUsedStatus() {
+
+  CardSizeMB = SD_MMC.cardSize()  / (1024 * 1024);
+  CardTotalMB = SD_MMC.totalBytes() / (1024 * 1024);
+  CardUsedMB = SD_MMC.usedBytes() / (1024 * 1024);
+  CardFreeMB = CardSizeMB - CardUsedMB;
+  FreeSpacePercent = (CardFreeMB * 100) / CardSizeMB;
+  UsedSpacePercent = 100 - FreeSpacePercent;
+
+  Serial.printf("Card size: %d MB, Total: %d MB, Used: %d MB, Free: %d GB, Free: %d %% \n", CardSizeMB, CardTotalMB, CardUsedMB, CardFreeMB, FreeSpacePercent);
+
+  return true;
+}
+
+/**
+   @brief Write picture to the SD card
+   @param fs::FS - card
+   @param String - file name
+   @return String - data
+*/  
+bool MicroSd::WritePicture(String i_PhotoName, uint8_t *i_PhotoData, size_t i_PhotoLen) {
+#if (true == CONSOLE_VERBOSE_DEBUG)  
+  Serial.println(f("WritePicture"));
+#endif
+  bool ret_stat = false;
+
+  File file = SD_MMC.open(i_PhotoName, FILE_WRITE);
+
+  if (file) {
+    size_t ret = 0;
+
+    ret = file.write(i_PhotoData, i_PhotoLen);
+    if (ret != i_PhotoLen) {
+      Serial.println(F("Failed. Error while writing to file"));
+    } else {
+      Serial.printf("Saved as %s\n", i_PhotoName.c_str());
+      ret_stat = true;
+    }
+    file.close();
+  } else {
+    Serial.printf("Failed. Could not open file: %s\n", i_PhotoName.c_str());
+  }
+  
+ return ret_stat;
+}
+
+/**
+   @brief Write picture to the SD card with EXIF data
+   @param fs::FS - card
+   @param String - file name
+   @param uint8_t - data
+   @param size_t - data length
+   @param const uint8_t - EXIF data
+   @param size_t - EXIF data length
+   @return bool - status
+*/
+bool MicroSd::WritePicture(String i_PhotoName, uint8_t *i_PhotoData, size_t i_PhotoLen, const uint8_t *i_PtohoExif, size_t i_PhotoExifLen) {
+
+#if (true == CONSOLE_VERBOSE_DEBUG)  
+  Serial.println(F("WritePicture EXIF"));
+#endif
+  bool ret_stat = false;
+
+  File file = SD_MMC.open(i_PhotoName, FILE_WRITE);
+
+  if (file) {
+    size_t ret = 0;
+
+    ret = file.write(i_PtohoExif, i_PhotoExifLen);
+    ret += file.write(i_PhotoData, i_PhotoLen);
+    if (ret != (i_PhotoLen + i_PhotoExifLen)) {
+#if (true == CONSOLE_VERBOSE_DEBUG)        
+      Serial.println(F("Failed. Error while writing to file"));
+#endif
+      ret_stat = false;
+    } else {
+#if (true == CONSOLE_VERBOSE_DEBUG)  
+      Serial.printf("Saved as %s\n", i_PhotoName.c_str());
+#endif
+      ret_stat = true;
+    }
+    file.close();
+  } else {
+#if (true == CONSOLE_VERBOSE_DEBUG)  
+    Serial.printf("Failed. Could not open file: %s\n", i_PhotoName.c_str());
+#endif
+    ret_stat = false;
+  }
+  
+ return ret_stat;
+}
+
+/**
    @brief Get card detected status
    @param none
    @return bool - status
@@ -403,8 +557,8 @@ bool MicroSd::GetCardDetectedStatus() {
    @param none
    @return uint16_t - size
 */
-uint16_t MicroSd::GetCardSize() {
-  return CardSize;
+uint16_t MicroSd::GetCardSizeMB() {
+  return CardSizeMB;
 }
 
 /**
@@ -414,6 +568,51 @@ uint16_t MicroSd::GetCardSize() {
 */
 bool MicroSd::GetCardDetectAfterBoot() {
   return DetectAfterBoot;
+}
+
+/**
+   @brief Get card total MB
+   @param none
+   @return uint16_t - size
+*/
+uint16_t MicroSd::GetCardTotalMB() {
+  return CardTotalMB;
+}
+
+/**
+   @brief Get card used MB
+   @param none
+   @return uint16_t - size
+*/
+uint16_t MicroSd::GetCardUsedMB() {
+  return CardUsedMB;
+}
+
+/**
+   @brief Get card free MB
+   @param none
+   @return uint16_t - size
+*/
+uint16_t MicroSd::GetCardFreeMB() {
+  return CardFreeMB;
+}
+
+/**
+   @brief Get free space percent
+   @param none
+   @return uint8_t - percent
+*/
+uint8_t MicroSd::GetFreeSpacePercent() {
+  return FreeSpacePercent;
+}
+
+/**
+   @brief Get used space percent
+   @param none
+   @return uint8_t - percent
+*/
+uint8_t MicroSd::GetUsedSpacePercent() {
+  return UsedSpacePercent;
 }
 
 /* EOF */

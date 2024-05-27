@@ -65,6 +65,8 @@ void Server_streamJpg(AsyncWebServerRequest *);
 void Server_GetModuleUptime(String &);
 bool Server_TransfeStringToBool(String);
 
+String Server_TranslateBoolToString(bool);
+
 #endif
 
 /* EOF */

@@ -46,6 +46,7 @@ function get_data(val) {
 				document.getElementById('agc_gainid').value = obj.agc_gain;
 				document.getElementById("flash_time_value").innerText = obj.flash_time;
 				document.getElementById("aec_value_value").innerText = obj.aec_value;
+				document.getElementById('timelapsid').checked = obj.timelaps;
 				$("#status_hmirror").text((obj.hmirror == "true") ? "On" : "Off");
 				$("#status_vflip").text((obj.vflip == "true") ? "On" : "Off");
 				$("#status_lensc").text((obj.lensc == "true") ? "On" : "Off");
@@ -59,6 +60,7 @@ function get_data(val) {
 				$("#status_raw_gama").text((obj.raw_gama == "true") ? "On" : "Off");
 				$("#status_aec2").text((obj.aec2 == "true") ? "On" : "Off");
 				$("#status_gain_ctrl").text((obj.gain_ctrl == "true") ? "On" : "Off");
+				$("#status_timelaps").text((obj.timelaps == "true") ? "On" : "Off");
 				sliderCheck();
 			}
 
@@ -100,6 +102,19 @@ function get_data(val) {
 				$("#wifi_mode").text(obj.wifi_mode);
 				$("#sw_new_ver").text(obj.sw_new_ver);
 				$("#service_ap_ssid").text(obj.service_ap_ssid);
+				$("#sd_status").text(obj.sd_status);
+				$("#sd_total").text(obj.sd_total);
+				$("#sd_free_p").text(obj.sd_free_p);
+				$("#sd_used_p").text(obj.sd_used_p);
+
+				var sd_free_prog = document.getElementById("progress_bar_sd_free");
+				sd_free_prog.style.width = obj.sd_free_p + "%";
+				sd_free_prog.innerHTML = obj.sd_free_p + "%";
+
+				var sd_free_prog = document.getElementById("progress_bar_sd_used");
+				sd_free_prog.style.width = obj.sd_used_p + "%";
+				sd_free_prog.innerHTML = obj.sd_used_p + "%";
+
 				document.getElementById('mdnsid').value = obj.mdns;
         		document.getElementById('loglevelid').value = obj.log_level;
 			}

@@ -44,6 +44,7 @@ void Server_InitWebServer() {
       request->send_P(404, "text/plain", "Photo not found!");
       return;
     }
+    SystemCamera.SetPhotoSending(true);
 
     SystemLog.AddEvent(LogLevel_Verbose, "Photo size: " + String(SystemCamera.GetPhotoFb()->len) + " bytes");
   
@@ -62,6 +63,8 @@ void Server_InitWebServer() {
       SystemLog.AddEvent(LogLevel_Verbose, F("Send photo without EXIF data"));
       request->send_P(200, "image/jpg", SystemCamera.GetPhotoFb()->buf, SystemCamera.GetPhotoFb()->len);
     }
+
+    SystemCamera.SetPhotoSending(false);
   });
 
   /* route to jquery */
@@ -434,6 +437,17 @@ void Server_InitWebServer_Actions() {
     delay(100); /* wait for sending data */
     ESP.restart();
   });
+
+    /* route for change LED status */
+  server.on("/action_sderase", HTTP_GET, [](AsyncWebServerRequest* request) {
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: /action_sderase remove files from SD card"));
+    if (Server_CheckBasicAuth(request) == false)
+      return;
+
+    StartRemoveSdCard = 1;
+
+    request->send_P(200, F("text/plain"), "Starting remove files from SD card");
+  });
 }
 
 /**
@@ -677,6 +691,12 @@ void Server_InitWebServer_Sets() {
     if (request->hasParam("serviceap_enable")) {
       SystemLog.AddEvent(LogLevel_Verbose, F("Set service AP enable"));
       SystemWifiMngt.SetEnableServiceAp(Server_TransfeStringToBool(request->getParam("serviceap_enable")->value()));
+      response = true;
+    }
+
+    if (request->hasParam("timelaps_enable")) {
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set timelaps enable"));
+      Connect.SetTimeLapsPhotoSaveStatus(Server_TransfeStringToBool(request->getParam("timelaps_enable")->value()));
       response = true;
     }
 
@@ -1004,7 +1024,7 @@ void Server_resume() {
  * @param const char* - content type
  * @param const char* - data
  */
-void Server_handleCacheRequest(AsyncWebServerRequest* request, const char* contentType, const char* data) {
+void Server_handleCacheRequest(AsyncWebServerRequest* request, const char *contentType, const char *data) {
   AsyncWebServerResponse *response = request->beginResponse_P(200, contentType, data);
   response->addHeader("Cache-Control", "public, max-age=" + String(WEB_CACHE_INTERVAL));
   request->send(response);
@@ -1019,14 +1039,14 @@ void Server_handleNotFound(AsyncWebServerRequest* request) {
   String message = "URL not Found\n\n";
 
   message += "URI: " + request->url() + "\nMethod: ";
-  message += (request->method() == HTTP_GET) ? "GET" : "POST";
+  message += (request->method() == HTTP_GET) ? F("GET") : F("POST");
   message += "\nArguments: " + String(request->args()) + "\n";
 
   for (uint8_t i = 0; i < request->args(); i++) {
     message += " " + request->argName(i) + ": " + request->arg(i) + "\n";
   }
 
-  request->send(404, "text/plain", message);
+  request->send(404, F("text/plain"), message);
 }
 
 /**
@@ -1048,23 +1068,23 @@ String Server_GetJsonData() {
   doc_json["brightness"] = String(SystemCamera.GetBrightness());
   doc_json["contrast"] = String(SystemCamera.GetContrast());
   doc_json["saturation"] = String(SystemCamera.GetSaturation());
-  doc_json["hmirror"] = (SystemCamera.GetHMirror() == true) ? "true" : "";
-  doc_json["vflip"] = (SystemCamera.GetVFlip() == true) ? "true" : "";
-  doc_json["lensc"] = (SystemCamera.GetLensC() == true) ? "true" : "";
-  doc_json["exposure_ctrl"] = (SystemCamera.GetExposureCtrl() == true) ? "true" : "";
-  doc_json["awb"] = (SystemCamera.GetAwb() == true) ? "true" : "";
-  doc_json["awb_gain"] = (SystemCamera.GetAwbGain() == true) ? "true" : "";
+  doc_json["hmirror"] = Server_TranslateBoolToString(SystemCamera.GetHMirror());
+  doc_json["vflip"] = Server_TranslateBoolToString(SystemCamera.GetVFlip());
+  doc_json["lensc"] = Server_TranslateBoolToString(SystemCamera.GetLensC());
+  doc_json["exposure_ctrl"] = Server_TranslateBoolToString(SystemCamera.GetExposureCtrl());
+  doc_json["awb"] = Server_TranslateBoolToString(SystemCamera.GetAwb());
+  doc_json["awb_gain"] = Server_TranslateBoolToString(SystemCamera.GetAwbGain());
   doc_json["wb_mode"] = String(SystemCamera.GetAwbMode());
-  doc_json["bpc"] = (SystemCamera.GetBpc() == true) ? "true" : "";
-  doc_json["wpc"] = (SystemCamera.GetWpc() == true) ? "true" : "";
-  doc_json["raw_gama"] = (SystemCamera.GetRawGama() == true) ? "true" : "";
-  doc_json["aec2"] = (SystemCamera.GetAec2() == true) ? "true" : "";
+  doc_json["bpc"] = Server_TranslateBoolToString(SystemCamera.GetBpc());
+  doc_json["wpc"] = Server_TranslateBoolToString(SystemCamera.GetWpc());
+  doc_json["raw_gama"] = Server_TranslateBoolToString(SystemCamera.GetRawGama());
+  doc_json["aec2"] = Server_TranslateBoolToString(SystemCamera.GetAec2());
   doc_json["ae_level"] = SystemCamera.GetAeLevel();
   doc_json["aec_value"] = SystemCamera.GetAecValue();
-  doc_json["gain_ctrl"] = (SystemCamera.GetGainCtrl() == true) ? "true" : "";
+  doc_json["gain_ctrl"] = Server_TranslateBoolToString(SystemCamera.GetGainCtrl());
   doc_json["agc_gain"] = SystemCamera.GetAgcGaint();
-  doc_json["led"] = (SystemCamera.GetFlashStatus() == true) ? "true" : "";
-  doc_json["flash"] = (SystemCamera.GetCameraFlashEnable() == true) ? "true" : "";
+  doc_json["led"] = Server_TranslateBoolToString(SystemCamera.GetFlashStatus());
+  doc_json["flash"] = Server_TranslateBoolToString(SystemCamera.GetCameraFlashEnable());
   doc_json["flash_time"] = SystemCamera.GetCameraFlashTime();
   doc_json["ssid"] = SystemWifiMngt.GetStaSsid();
   doc_json["bssid"] = SystemWifiMngt.GetStaBssid();
@@ -1075,8 +1095,8 @@ String Server_GetJsonData() {
   doc_json["wifi_mode"] = SystemWifiMngt.GetWiFiMode();
   doc_json["mdns"] = SystemWifiMngt.GetMdns();
   doc_json["service_ap_ssid"] = SystemWifiMngt.GetServiceApSsid();
-  doc_json["serviceap"] = (SystemWifiMngt.GetEnableServiceAp() == true) ? "true" : "";
-  doc_json["auth"] = (WebBasicAuth.EnableAuth == true) ? "true" : "";
+  doc_json["serviceap"] = Server_TranslateBoolToString(SystemWifiMngt.GetEnableServiceAp());
+  doc_json["auth"] = Server_TranslateBoolToString(WebBasicAuth.EnableAuth);
   doc_json["auth_username"] = WebBasicAuth.UserName;
   doc_json["last_upload_status"] = Connect.GetBackendReceivedStatus();
   doc_json["wifi_network_status"] = SystemWifiMngt.GetStaStatus();
@@ -1090,6 +1110,11 @@ String Server_GetJsonData() {
   doc_json["net_gw"] = SystemWifiMngt.GetNetStaticGateway();
   doc_json["net_dns"] = SystemWifiMngt.GetNetStaticDns();
   doc_json["image_rotation"] = SystemCamera.GetCameraImageRotation();
+  doc_json["timelaps"] = Server_TranslateBoolToString(Connect.GetTimeLapsPhotoSaveStatus());
+  doc_json["sd_status"] = (SystemLog.GetCardDetectedStatus() == true) ? F("Card detected") : F("No card detected");
+  doc_json["sd_total"] = SystemLog.GetCardSizeMB();
+  doc_json["sd_free_p"] = SystemLog.GetFreeSpacePercent();
+  doc_json["sd_used_p"] = SystemLog.GetUsedSpacePercent();
   doc_json["sw_build"] = SW_BUILD;
   doc_json["sw_ver"] = SW_VERSION;
   doc_json["sw_new_ver"] = FirmwareUpdate.NewVersionFw;
@@ -1180,6 +1205,17 @@ bool Server_TransfeStringToBool(String data) {
     ret = true;
   } else if (data.indexOf("false") >= 0) {
     ret = false;
+  }
+
+  return ret;
+}
+
+String Server_TranslateBoolToString(bool i_data) {
+  String ret = "";
+  if (true == i_data) {
+    ret = "true";
+  } else {
+    ret = "";
   }
 
   return ret;

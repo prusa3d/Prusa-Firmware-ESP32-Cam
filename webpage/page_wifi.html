@@ -1,6 +1,5 @@
 <style>@import url("styles.css");</style>
 <script src="jquery-3.7.0.min.js"></script>
-
 <body>
 	<table id="center_tb">
 		<tr><td></td><td style="width:40%">
@@ -11,12 +10,10 @@
 			<p class="w2">IP Address: <span id="ip"></span></p>
 			<p class="w2">mDNS: http://<span id="mdns"></span>.local</p>
 		</td><td></td></tr>
-
 		<tr><td></td><td style="width:40%">
 			<br>
 			<p class="w1">Available networks</p>
 			</td><td></td></tr>
-
 			<tr><td></td><td style="width:40%">
 			<table id="wifi_ntw">
 				<colgroup>
@@ -33,12 +30,10 @@
 				</tr>
 			</table>
 		</td><td></td></tr>
-
 		<tr><td></td><td style="width:40%" align="right">
 			<button class="btn" onclick="scanWifi()">Scan Wi-Fi networks</button>
 			<br>
 		</td><td></td></tr>
-
 		<tr><td></td><td style="width:40%">
 			<br>
 			<table>
@@ -48,9 +43,7 @@
 				<tr><td></td><td align="center"><button class="btn_save_w" onclick="setWifi(document.getElementById('wifi_ssid_id').value, document.getElementById('wifi_pass_id').value)">Save & Connect</button></td></tr>
 			</table>
 		</td><td></td></tr>
-
 	</table>
-
 	<br>
 	<center>
 		<button class="btn_collapsible_wifi">Advanced Wi-Fi settings</button>
@@ -74,9 +67,7 @@
 			<tr><td></td><td align="center"><button class="btn_save_w" onclick="setWifiNet(document.getElementById('net_ip_id').value, document.getElementById('net_mask_id').value, document.getElementById('net_gw_id').value, document.getElementById('net_dns_id').value)">Save</button></td></tr>
 		</table>
 	</div>
-		
 </body>
-
 <script src="scripts.js"></script>
 <script>
 	setTimeout(function(){GetDataAndPrintTableWiFi();}, 500);

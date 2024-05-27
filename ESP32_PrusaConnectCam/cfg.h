@@ -25,7 +25,7 @@
 
 class Configuration {
 public:
-  Configuration(Logs*);
+  Configuration(Logs *);
   ~Configuration(){};
   void Init();
   bool CheckActifeWifiCfgFlag();
@@ -72,6 +72,7 @@ public:
   void SaveNetworkGateway(String);
   void SaveNetworkDns(String);
   void SaveCameraImageExifRotation(uint8_t);
+  void SaveTimeLapseFunctionStatus(bool);
 
   uint8_t LoadRefreshInterval();
   String LoadToken();
@@ -113,6 +114,7 @@ public:
   String LoadNetworkGateway();
   String LoadNetworkDns();
   uint8_t LoadCameraImageExifRotation();
+  bool LoadTimeLapseFunctionStatus();
 
 private:
   Logs *Log;              ///< Pointer to Logs object

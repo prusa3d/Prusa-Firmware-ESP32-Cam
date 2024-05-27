@@ -33,10 +33,10 @@
 #include "serial_cfg.h"
 #include "sys_led.h"
 
-#define SYSTEM_MSG_UPDATE_DONE    "FW update successfully done! Please reboot the MCU."
-#define SYSTEM_MSG_UPDATE_FAIL    "FW update failed! Please reboot MCU, and try again."
-#define SYSTEM_MSG_UPDATE_PROCESS "FW update in progress"
-#define SYSTEM_MSG_UPDATE_NO_FW   "No new FW version available!"
+#define SYSTEM_MSG_UPDATE_DONE    F("FW update successfully done! Please reboot the MCU.")
+#define SYSTEM_MSG_UPDATE_FAIL    F("FW update failed! Please reboot MCU, and try again.")
+#define SYSTEM_MSG_UPDATE_PROCESS F("FW update in progress")
+#define SYSTEM_MSG_UPDATE_NO_FW   F("No new FW version available!")
 
 void System_Init();
 void System_LoadCfg();
@@ -63,6 +63,7 @@ void System_TaskSerialCfg(void *);
 void System_TaskStreamTelemetry(void *);
 void System_TaskSysLed(void *);
 void System_TaskWiFiWatchdog(void *);
+void System_TaskSdCardRemove(void *);
 
 #endif
 /* EOF */

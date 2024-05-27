@@ -64,6 +64,7 @@ private:
   uint8_t imageExifRotation; ///< image rotation. 0 degree: value 1, 90 degree: value 6, 180 degree: value 3, 270 degree: value 8
 
   bool CameraCaptureSuccess; ///< camera capture success
+  bool PhotoSending;         ///< photo sending
 
   /* OV2640 camera module pinout and cfg*/
   camera_config_t CameraConfig;             ///< camera configuration
@@ -109,6 +110,7 @@ public:
   camera_fb_t *GetPhotoFb();
   PhotoExifData_t * GetPhotoExifData();
   framesize_t TransformFrameSizeDataType(uint8_t);
+  void SetPhotoSending(bool);
   
   void SetFlashStatus(bool);
   bool GetFlashStatus();

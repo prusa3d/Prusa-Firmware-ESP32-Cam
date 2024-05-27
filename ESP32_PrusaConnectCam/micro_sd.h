@@ -33,9 +33,14 @@
 
 class MicroSd {
 private:
-  bool CardDetected;      ///< Card detected status
-  uint16_t CardSize;      ///< Card size
-  bool DetectAfterBoot;   ///< Card detect after boot
+  bool CardDetected;        ///< Card detected status
+  bool DetectAfterBoot;     ///< Card detect after boot
+  uint32_t CardSizeMB;        ///< Card size
+  uint32_t CardTotalMB;
+  uint32_t CardUsedMB;
+  uint32_t CardFreeMB;
+  uint8_t FreeSpacePercent;
+  uint8_t UsedSpacePercent;
 
 public:
   MicroSd();
@@ -45,6 +50,7 @@ public:
   void ReinitCard();
 
   void ListDir(fs::FS &, String, uint8_t);
+  bool CheckDir(fs::FS &, String);
   bool CreateDir(fs::FS &, String);
   bool RemoveDir(fs::FS &, String);
   void ReadFileConsole(fs::FS &, String);
@@ -54,10 +60,23 @@ public:
   bool DeleteFile(fs::FS &, String);
   uint32_t GetFileSize(fs::FS &, String);
   uint16_t FileCount(fs::FS &, String, String);
+  bool RemoveFilesInDir(fs::FS &, String, int );
+  int CountFilesInDir(fs::FS &, String );
+
+  bool WritePicture(String, uint8_t *, size_t);
+  bool WritePicture(String, uint8_t *, size_t, const uint8_t *, size_t);
+
+  bool CheckCardUsedStatus();
 
   bool GetCardDetectedStatus();
-  uint16_t GetCardSize();
   bool GetCardDetectAfterBoot();
+  uint16_t GetCardSizeMB();
+  uint16_t GetCardTotalMB();
+  uint16_t GetCardUsedMB();
+  uint16_t GetCardFreeMB();
+  uint32_t GetFreeSpaceMB();
+  uint8_t GetFreeSpacePercent();
+  uint8_t GetUsedSpacePercent();
 };
 
 #endif

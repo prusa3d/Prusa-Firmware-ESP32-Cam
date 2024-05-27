@@ -14,7 +14,7 @@
 #define _MCU_CFG_H_
 
 /* ---------------- BASIC MCU CFG  --------------*/
-#define SW_VERSION                  "1.0.2-rc3"             ///< SW version
+#define SW_VERSION                  "1.0.3-rc1"             ///< SW version
 #define SW_BUILD                    __DATE__ " " __TIME__   ///< build number
 #define CONSOLE_VERBOSE_DEBUG       false                   ///< enable/disable verbose debug log level for console
 #define DEVICE_HOSTNAME             "Prusa-ESP32cam"        ///< device hostname
@@ -50,12 +50,13 @@
 #define TASK_STREAM_TELEMETRY       30000                   ///< stream telemetry task interval [ms]
 #define TASK_WIFI_WATCHDOG          20000                   ///< wifi watchdog task interval [ms]
 #define TASK_PHOTO_SEND             1000                    ///< photo send task interval [ms]
+#define TASK_SDCARD_FILE_REMOVE     30000                   ///< sd card file remove task interval [ms]
 
 /* --------------- WEB SERVER CFG  --------------*/
 #define WEB_SERVER_PORT             80                      ///< WEB server port 
 #define SERIAL_PORT_SPEED           115200                  ///< baud rate 
 #define WDG_TIMEOUT                 40                      ///< wdg timeout [second]
-#define PHOTO_FRAGMENT_SIZE         1024                    ///< photo fragmentation size [bytes]
+#define PHOTO_FRAGMENT_SIZE         2048                    ///< photo fragmentation size [bytes]
 #define LOOP_DELAY                  100                     ///< loop delay [ms]
 #define WIFI_CLIENT_WAIT_CON        false                   ///< wait for connecting to WiFi network
 #define DYNMIC_JSON_SIZE            1024                    ///< maximum size for dynamic json [bytes]
@@ -63,8 +64,8 @@
 
 /* --------------- OTA UPDATE CFG  --------------*/
 #define OTA_UPDATE_API_SERVER       "api.github.com"        ///< OTA update server URL
-#define OTA_UPDATE_API_URL          "/repos/prusa3d/Prusa-Firmware-ESP32-Cam/releases/latest"  ///< path to file with OTA update
-#define OTA_UPDATE_FW_FILE          "ESP32_PrusaConnectCam.ino.bin" ///< OTA update firmware file name
+#define OTA_UPDATE_API_URL          F("/repos/prusa3d/Prusa-Firmware-ESP32-Cam/releases/latest")  ///< path to file with OTA update
+#define OTA_UPDATE_FW_FILE          PSTR("ESP32_PrusaConnectCam.ino.bin") ///< OTA update firmware file name
 
 /* ---------- RESET CFG CONFIGURATION  ----------*/
 #define CFG_RESET_PIN               12                      ///< GPIO 16 is for reset CFG to default
@@ -74,18 +75,19 @@
 /* ---------------- MicroSD Logs ----------------*/
 #define LOGS_FILE_NAME              "SysLog.log"            ///< syslog file name
 #define LOGS_FILE_PATH              "/"                     ///< directory for log files
-#define LOGS_FILE_MAX_SIZE          1024                    ///< maximum file size in the [kb]
+#define LOGS_FILE_MAX_SIZE          512                     ///< maximum file size in the [kb]
+#define FILE_REMOVE_MAX_COUNT       5                       ///< maximum count for remove files from sd card
 
 /* ---------------- AP MODE CFG  ----------------*/
 #define STA_AP_MODE_TIMEOUT         300000                  ///< how long is AP enable after start, when is module in the STA mode [ms]
 #define SERVICE_WIFI_SSID_UID       true                    ///< enable/disable added UID to service SSID name
-#define SERVICE_WIFI_SSID           "ESP32_camera"          ///< service WI-FI SSID name. Maximum length SERVICE_WIFI_SSID + UID = 32
-#define SERVICE_WIFI_PASS           "12345678"              ///< service WI-FI password
+#define SERVICE_WIFI_SSID           F("ESP32_camera")       ///< service WI-FI SSID name. Maximum length SERVICE_WIFI_SSID + UID = 32
+#define SERVICE_WIFI_PASS           F("12345678")           ///< service WI-FI password
 #define SERVICE_WIFI_CHANNEL        10                      ///< service WI-FI channel
-#define SERVICE_LOCAL_IP            "192.168.0.1"           ///< service WI-FI module IP address
-#define SERVICE_LOCAL_GATEWAY       "192.168.0.1"           ///< service WI-FI module gateway
-#define SERVICE_LOCAL_MASK          "255.255.255.0"         ///< service WI-FI module mask
-#define SERVICE_LOCAL_DNS           "192.168.0.1"           ///< service WI-FI module DNS
+#define SERVICE_LOCAL_IP            F("192.168.0.1")        ///< service WI-FI module IP address
+#define SERVICE_LOCAL_GATEWAY       F("192.168.0.1")        ///< service WI-FI module gateway
+#define SERVICE_LOCAL_MASK          F("255.255.255.0")      ///< service WI-FI module mask
+#define SERVICE_LOCAL_DNS           F("192.168.0.1")        ///< service WI-FI module DNS
 
 /* ----------------- IPv4 CFG -------------------*/
 #define IPV4_ADDR_MAX_LENGTH        15                      ///< maximum length for IPv4 address
@@ -100,9 +102,14 @@
 #define NTP_DAYLIGHT_OFFSET_SEC     0                       ///< daylight offset in seconds. 0 = no daylight saving time. 3600 = +1 hour
 
 /* ------------------ EXIF CFG ------------------*/
-#define CAMERA_MAKE "OmniVision"                            ///< Camera make string
-#define CAMERA_MODEL "OV2640"                               ///< Camera model string
-#define CAMERA_SOFTWARE "Prusa ESP32-cam"                   ///< Camera software string
+#define CAMERA_MAKE                 "OmniVision"            ///< Camera make string
+#define CAMERA_MODEL                "OV2640"                ///< Camera model string
+#define CAMERA_SOFTWARE             "Prusa ESP32-cam"       ///< Camera software string
+
+/* ---------------- TIMELAPS CFG ----------------*/
+#define TIMELAPS_PHOTO_FOLDER       "/timelaps"             ///< folder for timelaps photos
+#define TIMELAPS_PHOTO_PREFIX       "photo"                 ///< photo name for timelaps
+#define TIMELAPS_PHOTO_SUFFIX       ".jpg"                  ///< photo file type for timelaps
 
 /* ---------------- FACTORY CFG  ----------------*/
 #define FACTORY_CFG_PHOTO_REFRESH_INTERVAL    30                ///< in the second
@@ -121,25 +128,26 @@
 #define FACTORY_CFG_BPC                       1                 ///< bad pixel detection
 #define FACTORY_CFG_WPC                       1                 ///< white pixel correction
 #define FACTORY_CFG_RAW_GAMA                  1                 ///< raw gama
-#define FACTORY_CFG_WEB_AUTH_USERNAME         "admin"           ///< user name for login to WEB interface. definition WEB_ENABLE_BASIC_AUTH must be true
-#define FACTORY_CFG_WEB_AUTH_PASSWORD         "admin"           ///< password for login to WEB interface. definition WEB_ENABLE_BASIC_AUTH must be true
+#define FACTORY_CFG_WEB_AUTH_USERNAME         F("admin")        ///< user name for login to WEB interface. definition WEB_ENABLE_BASIC_AUTH must be true
+#define FACTORY_CFG_WEB_AUTH_PASSWORD         F("admin")        ///< password for login to WEB interface. definition WEB_ENABLE_BASIC_AUTH must be true
 #define FACTORY_CFG_WEB_AUTH_ENABLE           false             ///< enable web auth for login to WEB interface. definition WEB_ENABLE_BASIC_AUTH must be 
 #define FACTORY_CFG_CAMERA_FLASH_ENABLE       false             ///< enable camera flash functionality
 #define FACTORY_CFG_CAMERA_FLASH_TIME         200               ///< time for camera flash duration time [ms]
-#define FACTORY_CFG_MDNS_RECORD_HOST          "prusa-esp32cam"  ///< mdns record http://MDNS_RECORD_HOST.local
+#define FACTORY_CFG_MDNS_RECORD_HOST          F("prusa-esp32cam") ///< mdns record http://MDNS_RECORD_HOST.local
 #define FACTORY_CFG_AEC2                      0                 ///< enable automatic exposition
 #define FACTORY_CFG_AE_LEVEL                  0                 ///< automatic exposition level
 #define FACTORY_CFG_AEC_VALUE                 300               ///< automatic exposition time
 #define FACTORY_CFG_GAIN_CTRL                 1                 ///< enable automatic gain
 #define FACTORY_CFG_AGC_GAIN                  0                 ///< automatic gain controll gain
-#define FACTORY_CFG_HOSTNAME                  "connect.prusa3d.com"  ///< hostname for Prusa Connect
+#define FACTORY_CFG_HOSTNAME                  F("connect.prusa3d.com")  ///< hostname for Prusa Connect
 #define FACTORY_CFG_ENABLE_SERVICE_AP         1                 ///< enable service AP mode
 #define FACTORY_CFG_NETWORK_IP_METHOD         0                 ///< 0 - DHCP, 1 - Static IP
-#define FACTORY_CFG_NETWORK_STATIC_IP         "255.255.255.255" ///< Static IP address
-#define FACTORY_CFG_NETWORK_STATIC_MASK       "255.255.255.255" ///< Static Mask
-#define FACTORY_CFG_NETWORK_STATIC_GATEWAY    "255.255.255.255" ///< Static Gateway
-#define FACTORY_CFG_NETWORK_STATIC_DNS        "255.255.255.255" ///< Static DNS
+#define FACTORY_CFG_NETWORK_STATIC_IP         F("255.255.255.255") ///< Static IP address
+#define FACTORY_CFG_NETWORK_STATIC_MASK       F("255.255.255.255") ///< Static Mask
+#define FACTORY_CFG_NETWORK_STATIC_GATEWAY    F("255.255.255.255") ///< Static Gateway
+#define FACTORY_CFG_NETWORK_STATIC_DNS        F("255.255.255.255") ///< Static DNS
 #define FACTORY_CFG_IMAGE_EXIF_ROTATION       1                 ///< Image rotation 1 - 0°, 6 - 90°, 3 - 180°, 8 - 270°
+#define FACTORY_CFG_TIMELAPS_ENABLE           0                 ///< enable timelaps functionality
 
 /* ---------------- CFG FLAGS  ------------------*/
 #define CFG_WIFI_SETTINGS_SAVED               0x0A              ///< flag saved config
@@ -275,6 +283,9 @@
 #define EEPROM_ADDR_IMAGE_ROTATION_START          (EEPROM_ADDR_NETWORK_STATIC_DNS_START + EEPROM_ADDR_NETWORK_STATIC_DNS_LENGTH)
 #define EEPROM_ADDR_IMAGE_ROTATION_LENGTH         1
 
+#define EEPROM_ADDR_TIMELAPS_ENABLE_START         (EEPROM_ADDR_IMAGE_ROTATION_START + EEPROM_ADDR_IMAGE_ROTATION_LENGTH)
+#define EEPROM_ADDR_TIMELAPS_ENABLE_LENGTH        1
+
 #define EEPROM_SIZE (EEPROM_ADDR_REFRESH_INTERVAL_LENGTH + EEPROM_ADDR_FINGERPRINT_LENGTH + EEPROM_ADDR_TOKEN_LENGTH + \
                      EEPROM_ADDR_FRAMESIZE_LENGTH + EEPROM_ADDR_BRIGHTNESS_LENGTH + EEPROM_ADDR_CONTRAST_LENGTH + \
                      EEPROM_ADDR_SATURATION_LENGTH + EEPROM_ADDR_HMIRROR_LENGTH + EEPROM_ADDR_VFLIP_LENGTH + \
@@ -289,7 +300,7 @@
                      EEPROM_ADDR_AEC_VALUE_LENGTH + EEPROM_ADDR_GAIN_CTRL_LENGTH + EEPROM_ADDR_AGC_GAIN_LENGTH + EEPROM_ADDR_LOG_LEVEL_LENGTH + \
                      EEPROM_ADDR_HOSTNAME_LENGTH + EEPROM_ADDR_SERVICE_AP_ENABLE_LENGTH + EEPROM_ADDR_NETWORK_IP_METHOD_LENGTH +\
                      EEPROM_ADDR_NETWORK_STATIC_IP_LENGTH + EEPROM_ADDR_NETWORK_STATIC_MASK_LENGTH + EEPROM_ADDR_NETWORK_STATIC_GATEWAY_LENGTH + \
-                     EEPROM_ADDR_NETWORK_STATIC_DNS_LENGTH + EEPROM_ADDR_IMAGE_ROTATION_LENGTH)    ///< how many bits do we need for eeprom memory
+                     EEPROM_ADDR_NETWORK_STATIC_DNS_LENGTH + EEPROM_ADDR_IMAGE_ROTATION_LENGTH + EEPROM_ADDR_TIMELAPS_ENABLE_LENGTH)    ///< how many bits do we need for eeprom memory
 
 #endif
 

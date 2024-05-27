@@ -117,14 +117,14 @@ void System_CheckNewVersion() {
     WiFiClientSecure client;
     client.setCACert(root_CAs_ota);
     //client.setInsecure();
-    FirmwareUpdate.CheckNewVersionFwStatus = "N/A";
-    FirmwareUpdate.NewVersionFw = "Unknown";
+    FirmwareUpdate.CheckNewVersionFwStatus = F("N/A");
+    FirmwareUpdate.NewVersionFw = F("Unknown");
     FirmwareUpdate.OtaUpdateFwUrl = "";
     FirmwareUpdate.OtaUpdateFwAvailable = false;
 
     /* connect to server and get json */
-    if (!client.connect("api.github.com", 443)) {
-      FirmwareUpdate.CheckNewVersionFwStatus = "Failed connect to OTA server!";
+    if (!client.connect(OTA_UPDATE_API_SERVER, 443)) {
+      FirmwareUpdate.CheckNewVersionFwStatus = F("Failed connect to OTA server!");
       SystemLog.AddEvent(LogLevel_Info, FirmwareUpdate.CheckNewVersionFwStatus);
 
     } else {
@@ -181,7 +181,7 @@ void System_CheckNewVersion() {
             SystemLog.AddEvent(LogLevel_Info, "Assets[" + String(i) + "]: " + String(name));
 
             /* get FW file and URL */
-            if (strcmp(name, OTA_UPDATE_FW_FILE) == 0) {
+            if (strcmp_P(name, OTA_UPDATE_FW_FILE) == 0) {
               /* get download URL */
               const char* download_url = asset["browser_download_url"];
               FirmwareUpdate.OtaUpdateFwUrl = download_url;
@@ -544,6 +544,19 @@ void System_TaskSdCardCheck(void *pvParameters) {
       SystemLog.ReinitCard();
       SystemLog.AddEvent(LogLevel_Warning, F("Reinit micro SD card done!"));
     }
+
+    /* check card free space */
+    if (true == SystemLog.GetCardDetectedStatus()) {
+      SystemLog.AddEvent(LogLevel_Verbose, "Check card free space");
+      SystemLog.CheckCardUsedStatus();
+    }
+
+    /* check maximum log file size */
+    if (true == SystemLog.GetCardDetectedStatus()) {
+      SystemLog.AddEvent(LogLevel_Verbose, "Check maximum log file size");
+      SystemLog.CheckMaxLogFileSize();
+    }
+
     SystemLog.AddEvent(LogLevel_Verbose, "MicroSdCard task. Stack free size: " + String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
 
     /* reset wdg */
@@ -646,6 +659,46 @@ void System_TaskWiFiWatchdog(void *pvParameters) {
 
     /* next start task */
     vTaskDelayUntil(&xLastWakeTime, TASK_WIFI_WATCHDOG / portTICK_PERIOD_MS);
+  }
+}
+
+/**
+ * @brief Function for micro SD card remove files task
+ * 
+ * @param void *pvParameters
+ * @return none
+ */
+void System_TaskSdCardRemove(void *pvParameters) {
+  SystemLog.AddEvent(LogLevel_Info, "TaskSdCardRemove. core: " + String(xPortGetCoreID()));
+  TickType_t xLastWakeTime = xTaskGetTickCount();
+  SdCardRemoveTime = TASK_SDCARD_FILE_REMOVE;
+
+    while (1) {
+      esp_task_wdt_reset();
+      if (0 != StartRemoveSdCard) {
+        if (1 == StartRemoveSdCard) {
+          SdCardRemoveTime = 5000;
+          SystemLog.AddEvent(LogLevel_Info, "Start remove timelaps photo");
+          uint16_t file_count = SystemLog.CountFilesInDir(SD_MMC, TIMELAPS_PHOTO_FOLDER);
+          SystemLog.AddEvent(LogLevel_Info, "Files in dir: " + String(file_count));
+          esp_task_wdt_reset();
+          StartRemoveSdCard = 2;
+        }
+
+        if ( false == SystemLog.RemoveFilesInDir(SD_MMC, TIMELAPS_PHOTO_FOLDER, FILE_REMOVE_MAX_COUNT)) {
+          SystemLog.AddEvent(LogLevel_Info, "Remove files in dir done");
+          StartRemoveSdCard = 0;
+          SdCardRemoveTime = TASK_SDCARD_FILE_REMOVE;
+        }
+      }
+    
+    SystemLog.AddEvent(LogLevel_Verbose, "MicroSdCard task. Stack free size: " + String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
+
+    /* reset wdg */
+    esp_task_wdt_reset();
+
+    /* next start task */
+    vTaskDelayUntil(&xLastWakeTime, SdCardRemoveTime / portTICK_PERIOD_MS);
   }
 }
 
