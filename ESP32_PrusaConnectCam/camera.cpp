@@ -31,6 +31,7 @@ Camera::Camera(Configuration* i_conf, Logs* i_log, uint8_t i_FlashPin) {
   PhotoExifData.len = 0;
   PhotoExifData.offset = 0;
   PhotoSending = false;
+  CameraCaptureFailedCounter = 0;
 }
 
 /**
@@ -312,6 +313,7 @@ void Camera::CapturePhoto() {
       if (!FrameBuffer) {
         log->AddEvent(LogLevel_Error, F("Camera capture failed! photo"));
         xSemaphoreGive(frameBufferSemaphore);  // Release semaphore before returning
+        CameraCaptureFailedCounter++;
         return;
       }
 
@@ -326,6 +328,7 @@ void Camera::CapturePhoto() {
 
       } else {
         log->AddEvent(LogLevel_Info, F("Photo OK! "), String(ControlFlag, HEX));
+        CameraCaptureFailedCounter = 0;
 
         /* generate exif header */
         update_exif_from_cfg(imageExifRotation);
@@ -353,6 +356,13 @@ void Camera::CapturePhoto() {
       ledcWrite(FLASH_PWM_CHANNEL, FLASH_OFF_STATUS);
     }
     xSemaphoreGive(frameBufferSemaphore);
+  }
+
+  /* Reinit camera module if photo capture failed */
+  if (CameraCaptureFailedCounter > CAMERA_MAX_FAIL_CAPTURE) { 
+    log->AddEvent(LogLevel_Error, F("Camera capture failed! photo max attempts"));
+    CameraCaptureFailedCounter = 0;
+    ReinitCameraModule();
   }
 }
 

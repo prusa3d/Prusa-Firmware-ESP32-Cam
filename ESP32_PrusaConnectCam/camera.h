@@ -75,6 +75,7 @@ private:
   float StreamAverageFps;                   ///< stream average fps
   uint16_t StreamAverageSize;               ///< stream average size
   PhotoExifData_t PhotoExifData;            ///< photo exif data
+  uint8_t CameraCaptureFailedCounter;       ///< camera capture failed counter
 
   Configuration *config;                    ///< pointer to Configuration object
   Logs *log;                                ///< pointer to Logs object
