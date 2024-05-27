@@ -314,6 +314,7 @@ void Camera::CapturePhoto() {
         CameraCaptureFailedCounter++;
         log->AddEvent(LogLevel_Error, F("Camera capture failed! photo. Attempt: "), String(CameraCaptureFailedCounter));
         xSemaphoreGive(frameBufferSemaphore);  // Release semaphore before returning
+        CameraCaptureFailedCounter++;
         return;
       }
 
