@@ -223,7 +223,7 @@ While we are on the ESP camera's configuration page, let's take a quick look at 
   - Setting a Hostname (mDNS record) for easier future access to the configuration page over the local network.
   - For a manual firmware update, select the firmware file **ESP32_PrusaConnectCam.ino.bin** and click **Upload file & Update**. Afterwards, reboot the camera.
   - Update from cloud. To check for firmware updates, select **Check Update from cloud**. If a newer version is available, click **Update from cloud**. Note that the camera has to be connected to the Internet, before using these functions.
-  - Setting **log level** and getting logs from the camera. To get the logos, it is necessary to have a micro SD card formatted to **FAT32** inserted in the camera!
+  - Setting **log level** and getting logs from the camera. To get the logs, it is necessary to have a micro SD card formatted to **FAT32** inserted in the camera!
   - Check the status of uploading the image to Prusa Connect using the **PrusaConnect Status:** variable
 
 **Interesting improvements.** There is a protective film on the camera module. The protective film needs to be removed from the lens.
