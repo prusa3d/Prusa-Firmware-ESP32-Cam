@@ -542,7 +542,9 @@ void System_TaskSdCardCheck(void *pvParameters) {
     esp_task_wdt_reset();
     /* check micro SD card */
     if ((true == SystemLog.GetCardDetectAfterBoot()) && (false == SystemLog.GetCardDetectedStatus())) {
+      SystemLog.LogCloseFile();
       SystemLog.ReinitCard();
+      SystemLog.LogOpenFile();
       SystemLog.AddEvent(LogLevel_Warning, F("Reinit micro SD card done!"));
     }
 
@@ -558,6 +560,16 @@ void System_TaskSdCardCheck(void *pvParameters) {
       SystemLog.CheckMaxLogFileSize();
     }
 
+    /* check if log file is opened */
+    if (true == SystemLog.GetCardDetectedStatus()) {
+      SystemLog.LogCheckOpenedFile();
+      if (false == SystemLog.GetLogFileOpened()) {
+        SystemLog.LogOpenFile();
+        SystemLog.AddEvent(LogLevel_Warning, F("Log file is not opened!"));
+      }
+    }
+
+    SystemLog.AddEvent(LogLevel_Info, "CardStatus: " + String(SystemLog.GetCardDetectedStatus()) + " FileStatus: " + String(SystemLog.GetLogFileOpened()));
     SystemLog.AddEvent(LogLevel_Verbose, F("MicroSdCard task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + "B");
 
     /* reset wdg */

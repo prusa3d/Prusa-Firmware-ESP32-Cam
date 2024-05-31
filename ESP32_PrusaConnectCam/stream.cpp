@@ -226,7 +226,7 @@ size_t AsyncJpegStreamResponse::_content(uint8_t *buffer, size_t maxLen, size_t 
       char buf[50] = { '\0' };
       camera->StreamSetFrameSize(_frame.fb->len / 1024);
       camera->StreamSetFrameFps(fps);
-      //sprintf(buf, "Size: %uKB, Time: %ums (%.1f fps)", _frame.fb->len / 1024, fp, fps);
+      ////sprintf(buf, "Size: %uKB, Time: %ums (%.1f fps)", _frame.fb->len / 1024, fp, fps);
       sprintf(buf, "Size: %uKB, FPS: %.1f", _frame.fb->len / 1024, fps);
       Serial.println(buf);
       lastAsyncRequest = end;

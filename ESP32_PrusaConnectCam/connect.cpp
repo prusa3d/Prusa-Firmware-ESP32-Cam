@@ -130,7 +130,7 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
         size_t fbLen = camera->GetPhotoFb()->len;
 
         /* sending exif data */
-        if (camera->GetPhotoExifData()->header != NULL) {
+        if ((camera->GetPhotoExifData()->header != NULL) && (camera->GetStreamStatus() == false)) {
           SendWithExif = true;
           sendet_data += client.write(camera->GetPhotoExifData()->header, camera->GetPhotoExifData()->len);
           fbBuf += camera->GetPhotoExifData()->offset;
@@ -151,7 +151,6 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
           }
         }
         client.println("\r\n");
-        client.flush();
 
         /* log message */
         if (SendWithExif) {
@@ -164,15 +163,24 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
       } else if (SendInfo == i_data_type) {
         log->AddEvent(LogLevel_Verbose, F("Sending info"));
         sendet_data = client.print(*i_data);
-        client.flush();
       }
 
+      client.flush();
       log->AddEvent(LogLevel_Info, "Send done: " + String(i_data_length) + "/" + String(sendet_data) + " bytes");
-      esp_task_wdt_reset();
+
+      /* check if all data was sent */
+      if (i_data_length != sendet_data) {
+        BackendReceivedStatus = F("INCOMPLETE DATA SEND TO SERVER!");
+        log->AddEvent(LogLevel_Error, F("ERROR SEND DATA TO SERVER! INCORRECT DATA LENGTH!"));
+        client.stop();
+        return false;
+      }
+      //esp_task_wdt_reset();
 
       /* read response from server */
       String response = "";
       String fullResponse = "";
+      delay(10); // wait for response
       log->AddEvent(LogLevel_Verbose, F("Response:"));
       while (client.connected()) {
         if (client.available()) {
@@ -225,7 +233,7 @@ void PrusaConnect::SendPhotoToBackend() {
   String Photo = "";
   size_t total_len = 0;
 
-  if (camera->GetPhotoExifData()->header != NULL) {
+  if ((camera->GetPhotoExifData()->header != NULL) && (camera->GetStreamStatus() == false)) {
     total_len = camera->GetPhotoExifData()->len + camera->GetPhotoFb()->len - camera->GetPhotoExifData()->offset;
   } else {
     total_len = camera->GetPhotoFb()->len;
@@ -294,7 +302,9 @@ void PrusaConnect::TakePictureAndSendToBackend() {
     log->AddEvent(LogLevel_Error, F("Error capturing photo. Stop sending to backend!"));
   }
   
-  camera->CaptureReturnFrameBuffer();
+  if (camera->GetStreamStatus() == false) {
+    camera->CaptureReturnFrameBuffer();
+  }
 }
 
 /**
@@ -459,18 +469,29 @@ void PrusaConnect::SetTimeLapsPhotoSaveStatus(bool i_data) {
    @return none
 */
 void PrusaConnect::SavePhotoToSdCard() {
+  /* check if time laps photo save is enabled */
   if (EnableTimelapsPhotoSave == true) {
     log->AddEvent(LogLevel_Info, F("Save TimeLaps photo to SD card"));
+    
+    /* check if SD card is detected */
+    if (log->GetCardDetectedStatus() == false) {
+      log->AddEvent(LogLevel_Error, F("SD card not detected!"));
+      return;
+    }
+
+    /* check if folder for time laps photos exists */
     if (false == log->CheckDir(SD_MMC, TIMELAPS_PHOTO_FOLDER)) {
       log->AddEvent(LogLevel_Info, F("Create folder for TimeLaps photos"));
       log->CreateDir(SD_MMC, TIMELAPS_PHOTO_FOLDER);
     }
 
+    /* create file name */
     String FileName = String(TIMELAPS_PHOTO_FOLDER) + "/" + String(TIMELAPS_PHOTO_PREFIX) + "_";
     FileName += log->GetSystemTime();
     FileName += TIMELAPS_PHOTO_SUFFIX;
     log->AddEvent(LogLevel_Verbose, F("Saving file: "), FileName);
 
+    /* save photo to SD card */
     if (camera->GetPhotoExifData()->header != NULL) {
       if (log->WritePicture(FileName, camera->GetPhotoFb()->buf + camera->GetPhotoExifData()->offset, camera->GetPhotoFb()->len - camera->GetPhotoExifData()->offset, camera->GetPhotoExifData()->header, camera->GetPhotoExifData()->len) == true) {
         log->AddEvent(LogLevel_Info, F("Photo saved to SD card. EXIF"));

@@ -14,7 +14,7 @@
 #define _MCU_CFG_H_
 
 /* ---------------- BASIC MCU CFG  --------------*/
-#define SW_VERSION                  "1.0.3-rc1"             ///< SW version
+#define SW_VERSION                  "1.0.3-rc2"             ///< SW version
 #define SW_BUILD                    __DATE__ " " __TIME__   ///< build number
 #define CONSOLE_VERBOSE_DEBUG       false                   ///< enable/disable verbose debug log level for console
 #define DEVICE_HOSTNAME             "Prusa-ESP32cam"        ///< device hostname
@@ -44,10 +44,10 @@
 #define STATUS_LED_ERROR            100                     ///< time for blink status LED when is module in the error state [ms]
 
 /* ------------------- TASKS --------------------*/
-#define TASK_SYSTEM                 2000                    ///< system task interval [ms]
-#define TASK_SDCARD                 30000                   ///< sd card task interval [ms]
-#define TASK_WIFI                   30000                   ///< wifi reconnect interval. Checking when is signal lost [ms]
-#define TASK_SERIAL_CFG             2000                    ///< serial cfg task interval [ms]
+#define TASK_SYSTEM                 1000                    ///< system task interval [ms]
+#define TASK_SDCARD                 25000                   ///< sd card task interval [ms]
+#define TASK_WIFI                   28000                   ///< wifi reconnect interval. Checking when is signal lost [ms]
+#define TASK_SERIAL_CFG             1000                    ///< serial cfg task interval [ms]
 #define TASK_STREAM_TELEMETRY       30000                   ///< stream telemetry task interval [ms]
 #define TASK_WIFI_WATCHDOG          20000                   ///< wifi watchdog task interval [ms]
 #define TASK_PHOTO_SEND             1000                    ///< photo send task interval [ms]
@@ -57,7 +57,7 @@
 #define WEB_SERVER_PORT             80                      ///< WEB server port 
 #define SERIAL_PORT_SPEED           115200                  ///< baud rate 
 #define WDG_TIMEOUT                 40                      ///< wdg timeout [second]
-#define PHOTO_FRAGMENT_SIZE         5120                     ///< photo fragmentation size [bytes]
+#define PHOTO_FRAGMENT_SIZE         5120                    ///< photo fragmentation size [bytes]
 #define LOOP_DELAY                  100                     ///< loop delay [ms]
 #define WIFI_CLIENT_WAIT_CON        false                   ///< wait for connecting to WiFi network
 #define WEB_CACHE_INTERVAL          86400                   ///< cache interval for browser [s] 86400s = 24h
@@ -75,7 +75,7 @@
 /* ---------------- MicroSD Logs ----------------*/
 #define LOGS_FILE_NAME              "SysLog.log"            ///< syslog file name
 #define LOGS_FILE_PATH              "/"                     ///< directory for log files
-#define LOGS_FILE_MAX_SIZE          512                     ///< maximum file size in the [kb]
+#define LOGS_FILE_MAX_SIZE          1024                    ///< maximum file size in the [kb]
 #define FILE_REMOVE_MAX_COUNT       5                       ///< maximum count for remove files from sd card
 
 /* ---------------- AP MODE CFG  ----------------*/

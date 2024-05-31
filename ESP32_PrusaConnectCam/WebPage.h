@@ -72,6 +72,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 				<button class="btn" onclick="actionButton('/action_capture',true,'')">Refresh Snapshot</button> <br><br>
 				<button class="btn" onclick="actionButton('/action_send',false,'')">Send snapshot</button><br><br><br>
 				<button class="btn" onclick="window.open('saved-photo.jpg')">Download snapshot</button><br><br>
+				<button class="btn" onclick="window.open('stream.mjpg')">Start stream</button><br><br>
 			</article>
 		</div>
 	</section>

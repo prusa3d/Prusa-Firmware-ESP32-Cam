@@ -27,12 +27,15 @@ enum LogLevel_enum {
 
 class Logs : public MicroSd {
 private:
-  LogLevel_enum LogLevel;   ///< LogLevel
-  String FileName;          ///< log File name
-  String FilePath;          ///< log file patch
-  uint16_t FileMaxSize;     ///< log file max size
-  bool NtpTimeSynced;       ///< status NTP time sync
-  String LogMsg;            ///< log message
+  LogLevel_enum LogLevel;     ///< LogLevel
+  String FileName;            ///< log File name
+  String FilePath;            ///< log file patch
+  uint16_t FileMaxSize;       ///< log file max size
+  bool NtpTimeSynced;         ///< status NTP time sync
+  String LogMsg;              ///< log message
+  File LogFile;               ///< log file object
+  bool LogFileOpened;         ///< log file opened status
+  SemaphoreHandle_t LogMutex; ///< log mutex
 
 public:
   Logs();
@@ -43,6 +46,9 @@ public:
   ~Logs(){};
 
   void Init();
+  void LogOpenFile();
+  void LogCloseFile();
+  void LogCheckOpenedFile();
   void AddEvent(LogLevel_enum, String, bool = true, bool = true);
   void AddEvent(LogLevel_enum, const __FlashStringHelper*, String, bool = true, bool = true);
   void SetLogLevel(LogLevel_enum);
@@ -57,6 +63,7 @@ public:
   bool GetNtpTimeSynced();
   void CheckMaxLogFileSize();
   void CheckCardSpace();
+  bool GetLogFileOpened();
 
   String GetSystemTime();
 };

@@ -24,6 +24,7 @@ Logs::Logs() {
   FileMaxSize = 1024;
   NtpTimeSynced = false;
   LogMsg = "";
+  LogMutex = xSemaphoreCreateMutex();
 }
 
 /**
@@ -39,6 +40,7 @@ Logs::Logs(String i_FilePath, String i_FileName) {
   FileMaxSize = 1024;
   NtpTimeSynced = false;
   LogMsg = "";
+  LogMutex = xSemaphoreCreateMutex();
 }
 
 /**
@@ -55,6 +57,7 @@ Logs::Logs(LogLevel_enum i_LogLevel, String i_FilePath, String i_FileName) {
   FileMaxSize = 1024;
   NtpTimeSynced = false;
   LogMsg = "";
+  LogMutex = xSemaphoreCreateMutex();
 }
 
 /**
@@ -71,6 +74,7 @@ Logs::Logs(String i_FilePath, String i_FileName, uint16_t i_FileSize) {
   FileMaxSize = i_FileSize;
   NtpTimeSynced = false;
   LogMsg = "";
+  LogMutex = xSemaphoreCreateMutex();
 }
 
 /**
@@ -88,6 +92,7 @@ Logs::Logs(LogLevel_enum i_LogLevel, String i_FilePath, String i_FileName, uint1
   FileMaxSize = i_FileSize;
   NtpTimeSynced = false;
   LogMsg = "";
+  LogMutex = xSemaphoreCreateMutex();
 }
 
 /**
@@ -103,6 +108,7 @@ void Logs::Init() {
 
   /* init micro SD card */
   InitSdCard();
+  LogFileOpened = OpenFile(&LogFile, FilePath + FileName);
 
   if (true == GetCardDetectedStatus()) {
     /* check maximum log file size */
@@ -121,11 +127,35 @@ void Logs::Init() {
     LogMsg += F("Log level: ");
     LogMsg += String(LogLevel);
     LogMsg += "\n";
-    AppendFile(SD_MMC, FilePath + FileName, LogMsg);
+    AppendFile(&LogFile, &LogMsg);
 
   } else {
     Serial.println(F("Micro-SD card not found! Disable logs"));
   }
+}
+
+/**
+ * @brief Open log file
+ * 
+ */
+void Logs::LogOpenFile() {
+  LogFileOpened = OpenFile(&LogFile, FilePath + FileName);
+}
+
+/**
+ * @brief Close log file
+ * 
+ */
+void Logs::LogCloseFile() {
+  CloseFile(&LogFile);
+}
+
+/**
+ * @brief Function for check opened log file
+ * 
+ */
+void Logs::LogCheckOpenedFile() { 
+  LogFileOpened = CheckOpenFile(&LogFile);
 }
 
 /**
@@ -146,9 +176,13 @@ void Logs::SetLogLevel(LogLevel_enum level) {
    @return none
 */
 void Logs::AddEvent(LogLevel_enum level, String msg, bool newLine, bool date) {
+  /* mutex for log */
+  xSemaphoreTake(LogMutex, portMAX_DELAY);
+  /* check log level */
   if (LogLevel >= level) {
-    LogMsg = "";
 
+    /* create log message */
+    LogMsg = "";
     if (true == date) {
       LogMsg += GetSystemTime();
       LogMsg += " - ";
@@ -158,14 +192,27 @@ void Logs::AddEvent(LogLevel_enum level, String msg, bool newLine, bool date) {
       LogMsg += "\n";
     }
 
-    AppendFile(SD_MMC, FilePath + FileName, LogMsg);
+    /* print log message to console */
     Serial.print(LogMsg);
+
+    /* append log message to log file */
+    if (true == LogFileOpened) {
+      LogFileOpened = AppendFile(&LogFile, &LogMsg);
+      if ((false == LogFileOpened) && (true == GetCardDetectedStatus())){
+        LogCloseFile();
+        LogOpenFile();
+        if (true == LogFileOpened) {
+          LogFileOpened = AppendFile(&LogFile, &LogMsg);
+        } 
+      }
+    }
   }
 #if (true == CONSOLE_VERBOSE_DEBUG)
   else {
     Serial.println(msg);
   }
 #endif
+  xSemaphoreGive(LogMutex);
 }
 
 /**
@@ -178,9 +225,14 @@ void Logs::AddEvent(LogLevel_enum level, String msg, bool newLine, bool date) {
    @return none
 */
 void Logs::AddEvent(LogLevel_enum level, const __FlashStringHelper *msg, String parameters, bool newLine, bool date) {
-  if (LogLevel >= level) {
-    LogMsg = "";
+  /* mutex for log */
+  xSemaphoreTake(LogMutex, portMAX_DELAY);
 
+  /* check log level */
+  if (LogLevel >= level) {
+
+    /* create log message */
+    LogMsg = "";
     if (true == date) {
       LogMsg += GetSystemTime();
       LogMsg += " - ";
@@ -191,14 +243,29 @@ void Logs::AddEvent(LogLevel_enum level, const __FlashStringHelper *msg, String 
       LogMsg += "\n";
     }
 
-    AppendFile(SD_MMC, FilePath + FileName, LogMsg);
+    /* print log message to console */
     Serial.print(LogMsg);
+
+    /* append log message to log file */
+    if (true == LogFileOpened) {
+      LogFileOpened = AppendFile(&LogFile, &LogMsg);
+      if ((false == LogFileOpened) && (true == GetCardDetectedStatus())){
+        LogCloseFile();
+        LogOpenFile();
+        if (true == LogFileOpened) {
+          AppendFile(&LogFile, &LogMsg);
+        } 
+      }
+    }
   }
 #if (true == CONSOLE_VERBOSE_DEBUG)
   else {
     Serial.println(msg);
   }
 #endif
+
+  /* release mutex */
+  xSemaphoreGive(LogMutex);
  }
 
 /**
@@ -281,19 +348,29 @@ bool Logs::GetNtpTimeSynced() {
 */
 void Logs::CheckMaxLogFileSize() {
   uint32_t FileSize = GetFileSize(SD_MMC, FilePath + FileName);
-  AddEvent(LogLevel_Verbose, F("Log file size: "), String(FileSize) + " bytes");
+  AddEvent(LogLevel_Verbose, F("Log file size: "), String(FileSize) + "/" + String(LOGS_FILE_MAX_SIZE) + " B");
 
   if (FileSize >= LOGS_FILE_MAX_SIZE) {
     uint16_t file_count = FileCount(SD_MMC, FilePath, FileName);
     AddEvent(LogLevel_Info, F("Maximum log file size. File count: "), String(file_count));
+    LogCloseFile();
     RenameFile(SD_MMC, FilePath + FileName, FilePath + FileName + String(file_count));
-
+    LogOpenFile();
   }
 }
 
 void Logs::CheckCardSpace() {
   CheckCardUsedStatus();
   AddEvent(LogLevel_Verbose, "Card size: " + String(GetCardSizeMB()), + " MB, Used: " + String(GetCardUsedMB()) + " MB, Free: " + String(GetCardUsedMB()) + " MB");
+}
+
+/**
+   @info Get log file opened
+   @param none
+   @return bool - log file opened
+*/
+bool Logs::GetLogFileOpened() {
+  return LogFileOpened;
 }
 
 /**

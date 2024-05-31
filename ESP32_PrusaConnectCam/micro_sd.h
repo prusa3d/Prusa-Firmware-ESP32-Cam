@@ -33,15 +33,16 @@
 
 class MicroSd {
 private:
-  bool CardDetected;          ///< Card detected status
-  bool DetectAfterBoot;       ///< Card detect after boot
-  uint32_t CardSizeMB;        ///< Card size
-  uint32_t CardTotalMB;       ///< Card total size
-  uint32_t CardUsedMB;        ///< Card used size
-  uint32_t CardFreeMB;        ///< Card free size
-  uint8_t FreeSpacePercent;   ///< Free space in percent
-  uint8_t UsedSpacePercent;   ///< Used space in percent
-  File file;                  ///< File object
+  bool CardDetected;              ///< Card detected status
+  bool DetectAfterBoot;           ///< Card detect after boot
+  uint32_t CardSizeMB;            ///< Card size
+  uint32_t CardTotalMB;           ///< Card total size
+  uint32_t CardUsedMB;            ///< Card used size
+  uint32_t CardFreeMB;            ///< Card free size
+  uint8_t FreeSpacePercent;       ///< Free space in percent
+  uint8_t UsedSpacePercent;       ///< Used space in percent
+  File file;                      ///< File object
+  SemaphoreHandle_t sdCardMutex;  ///< Mutex for SD card
 
 public:
   MicroSd();
@@ -49,6 +50,9 @@ public:
 
   void InitSdCard();
   void ReinitCard();
+  bool OpenFile(File*, String);
+  void CloseFile(File*);
+  bool CheckOpenFile(File*);
 
   void ListDir(fs::FS &, String, uint8_t);
   bool CheckDir(fs::FS &, String);
@@ -57,6 +61,7 @@ public:
   void ReadFileConsole(fs::FS &, String);
   bool WriteFile(fs::FS &, String, String);
   bool AppendFile(fs::FS &, String, String);
+  bool AppendFile(File*, String*);
   bool RenameFile(fs::FS &, String, String);
   bool DeleteFile(fs::FS &, String);
   uint32_t GetFileSize(fs::FS &, String);
@@ -68,6 +73,7 @@ public:
   bool WritePicture(String, uint8_t *, size_t, const uint8_t *, size_t);
 
   void CheckCardUsedStatus();
+  bool isCardCorrupted();
 
   bool GetCardDetectedStatus();
   bool GetCardDetectAfterBoot();

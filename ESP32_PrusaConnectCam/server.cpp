@@ -252,6 +252,7 @@ void Server_InitWebServer_WebPages() {
 
     if (true == SystemLog.GetCardDetectedStatus()) {
       request->send(SD_MMC, SystemLog.GetFilePath() + SystemLog.GetFileName(), "text/plain");
+      //SystemLog.LogOpenFile();
     } else {
       request->send_P(404, "text/plain", "Micro SD card not found with FAT32 partition!");
     }

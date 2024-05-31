@@ -19,6 +19,7 @@
 MicroSd::MicroSd() {
   CardDetected = false;
   DetectAfterBoot = false;
+  sdCardMutex = xSemaphoreCreateMutex();
 }
 
 /**
@@ -36,6 +37,73 @@ void MicroSd::ReinitCard() {
 }
 
 /**
+ * @brief Open file
+ * 
+ * @param i_file - file
+ * @param i_path - path and file name
+ * @return true 
+ * @return false 
+ */
+bool MicroSd::OpenFile(File *i_file, String i_path) {
+    bool status = false;
+
+  if (true == CardDetected) {
+#if (true == CONSOLE_VERBOSE_DEBUG)
+    Serial.println("Opening file: " + i_path);
+#endif
+
+    if (SD_MMC.cardType() == CARD_NONE) {
+        Serial.println("No SD card detected");
+        CardDetected = false;
+    } else {
+
+      *i_file = SD_MMC.open(i_path.c_str(), FILE_APPEND);
+      if (!*i_file) {
+#if (true == CONSOLE_VERBOSE_DEBUG)
+        Serial.println("Failed to open file");
+#endif
+        CardDetected = false;
+      } else {
+        status = true;
+#if (true == CONSOLE_VERBOSE_DEBUG)
+        Serial.println("File opened");
+#endif
+      }
+    }
+  }
+  return status;
+}
+
+/**
+ * @brief Close file
+ * 
+ * @param i_file - file
+ */
+void MicroSd::CloseFile(File *i_file) {
+  if (*i_file) {
+    i_file->close();
+  }
+}
+
+/**
+ * @brief Check if file is opened
+ * 
+ * @param i_file - file
+ * @return true 
+ * @return false 
+ */
+bool MicroSd::CheckOpenFile(File *i_file) {
+  if (!*i_file) {
+#if (true == CONSOLE_VERBOSE_DEBUG)    
+    Serial.println(F("File not opened!"));
+#endif
+    return false;
+  } else {
+    return true;
+  }
+}
+
+/**
    @brief Init SD card. And check, if is SD card inserted
    @param none
    @return none
@@ -46,11 +114,11 @@ void MicroSd::InitSdCard() {
 
   /* set SD card to 1-line/1-bit mode. GPIO 4 is used for LED and for microSD card. But communication is slower. */
   /* https://github.com/espressif/arduino-esp32/blob/master/libraries/SD_MMC/src/SD_MMC.h */
+
   if (!SD_MMC.begin("/sdcard", true)) {
     Serial.println(F("SD Card Mount Failed"));
     CardDetected = false;
     CardSizeMB = 0;
-    //DetectAfterBoot = false;
     return;
   }
 
@@ -60,20 +128,19 @@ void MicroSd::InitSdCard() {
     Serial.println(F("No SD_MMC card attached"));
     CardDetected = false;
     CardSizeMB = 0;
-    //DetectAfterBoot = false;
     return;
   }
 
   /* print card type */
   Serial.print(F("Found card. Card Type: "));
   if (cardType == CARD_MMC) {
-    Serial.print(F("MMC"));
+    Serial.println(F("MMC"));
   } else if (cardType == CARD_SD) {
-    Serial.print(F("SDSC"));
+    Serial.println(F("SDSC"));
   } else if (cardType == CARD_SDHC) {
-    Serial.print(F("SDHC"));
+    Serial.println(F("SDHC"));
   } else {
-    Serial.print(F("UNKNOWN"));
+    Serial.println(F("UNKNOWN"));
   }
 
   CardDetected = true;
@@ -282,6 +349,70 @@ bool MicroSd::AppendFile(fs::FS &fs, String path, String message) {
 }
 
 /**
+   @brief Added text to end of file
+   @param File - file
+   @param String - message
+   @return bool - status
+*/
+bool MicroSd::AppendFile(File *i_file, String *i_msg) {
+  /* take mutex */
+  xSemaphoreTake(sdCardMutex, portMAX_DELAY);
+  bool status = false;
+
+  /* check if card is corrupted */
+  if (false == isCardCorrupted()) {
+    xSemaphoreGive(sdCardMutex);
+    return false;
+  }
+  
+  /* check if card is detected */
+  if (true == CardDetected) {
+#if (true == CONSOLE_VERBOSE_DEBUG)
+    Serial.printf("Appending to file:");
+#endif
+
+    /* check if file is opened */
+    if (!*i_file) {
+      Serial.println("File not opened");
+      CardDetected = false;
+
+    } else {
+      /* write to file */
+      if (i_file->print(i_msg->c_str())) {
+        if (*i_file) {
+          i_file->flush();
+
+          /* check if write was OK */
+          if (!i_file->getWriteError()) {
+#if (true == CONSOLE_VERBOSE_DEBUG)
+            Serial.println("Write OK");
+#endif
+            status = true;
+
+          } else {
+            Serial.println(F("Failed write to file"));
+
+          }
+        } else {
+          Serial.println(F("File not opened!"));
+
+        }
+      } else {
+        Serial.println(F("Failed write to file!"));
+
+      }
+#if (true == CONSOLE_VERBOSE_DEBUG)
+      Serial.println((status == true) ? "Message appended" : "Append Failed");
+#endif
+    }
+  }
+
+  /* give mutex */
+  xSemaphoreGive(sdCardMutex);
+  return status;
+}
+
+/**
    @brief Rename file on the SD card
    @param fs::FS - card
    @param String - origin file name
@@ -463,6 +594,51 @@ void MicroSd::CheckCardUsedStatus() {
 #if (true == CONSOLE_VERBOSE_DEBUG)  
   Serial.printf("Card size: %d MB, Total: %d MB, Used: %d MB, Free: %d GB, Free: %d %% \n", CardSizeMB, CardTotalMB, CardUsedMB, CardFreeMB, FreeSpacePercent);
 #endif
+}
+
+/**
+ * @brief Function to check if card is corrupted
+ * 
+ * @return true 
+ * @return false 
+ */
+bool MicroSd::isCardCorrupted() {
+  bool ret = true;
+  if (true == CardDetected) {
+#if (true == CONSOLE_VERBOSE_DEBUG)   
+    //Serial.println(F("Checking card..."));
+#endif
+
+    /* check card size */
+    uint64_t use = SD_MMC.usedBytes();
+    uint64_t size = 0;
+    if (use != 0) {
+      size = SD_MMC.cardSize();
+    }
+
+#if (true == CONSOLE_VERBOSE_DEBUG)   
+    Serial.printf("Card size: %llu, Used: %llu\n", size, use);
+#endif
+
+    /* check space on the card */
+    if (size == use) {
+      Serial.println(F("No space left on device!"));
+      CardDetected = false;
+      ret = false;
+    }
+
+    /* check another error */
+    if ((size <= 0 ) || (size == 0) || (use <= 0) || (use == 0)) {
+      Serial.println(F("No card detected!"));
+      CardDetected = false;
+      ret = false;
+    }
+
+  } else {
+    ret = false;
+  }
+
+  return ret;
 }
 
 /**
