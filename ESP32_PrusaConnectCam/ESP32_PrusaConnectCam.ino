@@ -7,12 +7,12 @@
    ESP32 lib version: 2.0.16 (ESP-IDF v4.4.7) by Espressif Systems
 
    This project uses other libraries. It is necessary to install them in the arduino IDE.
-   - Library         - License  - Version - Link
-   - ESPAsyncWebSrv  - LGPL 2.1 - 1.2.7   - https://github.com/dvarrel/ESPAsyncWebSrv
-   - AsyncTCP        - LGPL 3.0 - 1.1.4   - https://github.com/dvarrel/ESPAsyncTCP
-   - ArduinoJson     - MIT      - 7.0.4   - https://github.com/bblanchon/ArduinoJson
-   - ArduinoUniqueID - MIT      - 1.3.0   - https://github.com/ricaun/ArduinoUniqueID
-   - ESP32           - LGPL 2.1 - 2.0.16  - https://github.com/espressif/arduino-esp32
+   - Library           - License  - Version - Link
+   - ESPAsyncWebServer - LGPL 3.0 - 2.10.1  - https://github.com/mathieucarbou/ESPAsyncWebServer
+   - AsyncTCP          - LGPL 3.0 - 1.1.4   - https://github.com/dvarrel/ESPAsyncTCP
+   - ArduinoJson       - MIT      - 7.0.4   - https://github.com/bblanchon/ArduinoJson
+   - ArduinoUniqueID   - MIT      - 1.3.0   - https://github.com/ricaun/ArduinoUniqueID
+   - ESP32             - LGPL 2.1 - 2.0.16  - https://github.com/espressif/arduino-esp32
 
    Board configuration in the arduino IDE 2.3.2
    Tools -> Board -> ESP32 Arduino -> AI Thinker ESP32
@@ -115,14 +115,14 @@ void setup() {
 
   /* init tasks */
   SystemLog.AddEvent(LogLevel_Info, F("Start tasks"));
-  xTaskCreatePinnedToCore(System_TaskMain, "SystemNtpOtaUpdate", 8000, NULL, 1, &Task_SystemMain, 0);                           /*function, description, stack size, parameters, priority, task handle, core*/
-  xTaskCreatePinnedToCore(System_TaskCaptureAndSendPhoto, "CaptureAndSendPhoto", 8000, NULL, 2, &Task_CapturePhotoAndSend, 0);  /*function, description, stack size, parameters, priority, task handle, core*/
-  xTaskCreatePinnedToCore(System_TaskWifiManagement, "WiFiManagement", 3800, NULL, 3, &Task_WiFiManagement, 0);                 /*function, description, stack size, parameters, priority, task handle, core*/
-  xTaskCreatePinnedToCore(System_TaskSdCardCheck, "CheckMicroSdCard", 3300, NULL, 4, &Task_SdCardCheck, 0);                     /*function, description, stack size, parameters, priority, task handle, core*/
+  xTaskCreatePinnedToCore(System_TaskMain, "SystemNtpOtaUpdate", 6500, NULL, 1, &Task_SystemMain, 0);                           /*function, description, stack size, parameters, priority, task handle, core*/
+  xTaskCreatePinnedToCore(System_TaskCaptureAndSendPhoto, "CaptureAndSendPhoto", 4700, NULL, 2, &Task_CapturePhotoAndSend, 0);  /*function, description, stack size, parameters, priority, task handle, core*/
+  xTaskCreatePinnedToCore(System_TaskWifiManagement, "WiFiManagement", 3300, NULL, 3, &Task_WiFiManagement, 0);                 /*function, description, stack size, parameters, priority, task handle, core*/
+  xTaskCreatePinnedToCore(System_TaskSdCardCheck, "CheckMicroSdCard", 3000, NULL, 4, &Task_SdCardCheck, 0);                     /*function, description, stack size, parameters, priority, task handle, core*/
   xTaskCreatePinnedToCore(System_TaskSerialCfg, "CheckSerialConfiguration", 3300, NULL, 5, &Task_SerialCfg, 0);                 /*function, description, stack size, parameters, priority, task handle, core*/
-  xTaskCreatePinnedToCore(System_TaskStreamTelemetry, "PrintStreamTelemetry", 3300, NULL, 6, &Task_StreamTelemetry, 0);         /*function, description, stack size, parameters, priority, task handle, core*/
-  xTaskCreatePinnedToCore(System_TaskSysLed, "SystemLed", 3000, NULL, 7, &Task_SysLed, 0);                                      /*function, description, stack size, parameters, priority, task handle, core*/
-  xTaskCreatePinnedToCore(System_TaskWiFiWatchdog, "WiFiWatchdog", 3500, NULL, 8, &Task_WiFiWatchdog, 0);                       /*function, description, stack size, parameters, priority, task handle, core*/
+  xTaskCreatePinnedToCore(System_TaskStreamTelemetry, "PrintStreamTelemetry", 3000, NULL, 6, &Task_StreamTelemetry, 0);         /*function, description, stack size, parameters, priority, task handle, core*/
+  xTaskCreatePinnedToCore(System_TaskSysLed, "SystemLed", 2900, NULL, 7, &Task_SysLed, 0);                                      /*function, description, stack size, parameters, priority, task handle, core*/
+  xTaskCreatePinnedToCore(System_TaskWiFiWatchdog, "WiFiWatchdog", 3000, NULL, 8, &Task_WiFiWatchdog, 0);                       /*function, description, stack size, parameters, priority, task handle, core*/
   //xTaskCreatePinnedToCore(System_TaskSdCardRemove, "SdCardRemove", 3000, NULL, 9, &Task_SdCardFileRemove, 0);                   /*function, description, stack size, parameters, priority, task handle, core*/
 
   /* init wdg */

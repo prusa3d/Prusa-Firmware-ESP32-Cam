@@ -16,7 +16,7 @@
 #include <AsyncEventSource.h>
 #include <AsyncWebSocket.h>
 #include <AsyncWebSynchronization.h>
-#include <ESPAsyncWebSrv.h>
+#include <ESPAsyncWebServer.h>
 #include <esp_task_wdt.h>
 #include <StringArray.h>
 #include <WiFiClientSecure.h>

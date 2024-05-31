@@ -5,7 +5,8 @@ This repository includes source code and firmware releases for the ESP32-cam mod
 This project uses other libraries. It is necessary to install them in the Arduino IDE.
 - App [Arduino IDE 2.3.2](https://www.arduino.cc/en/software)
 - MCU support [ESP32 2.0.16](https://github.com/espressif/arduino-esp32)
-- Library [ESPAsyncWebSrv 1.2.7](https://github.com/dvarrel/ESPAsyncWebSrv)
+- ~~Library [ESPAsyncWebSrv 1.2.7](https://github.com/dvarrel/ESPAsyncWebSrv)~~ To version **1.3.0-rc1**
+- Library [ESPAsyncWebServer 2.10.1](https://github.com/mathieucarbou/ESPAsyncWebServer) 
 - Library [AsyncTCP 1.1.4](https://github.com/dvarrel/AsyncTCP)
 - Library [ArduinoJson 7.0.4](https://github.com/bblanchon/ArduinoJson)
 - Library [UniqueID 1.3.0](https://github.com/ricaun/ArduinoUniqueID)
