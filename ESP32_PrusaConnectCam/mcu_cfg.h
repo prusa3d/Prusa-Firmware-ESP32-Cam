@@ -107,7 +107,7 @@
 #define CAMERA_SOFTWARE             "Prusa ESP32-cam"       ///< Camera software string
 
 /* ---------------- TIMELAPS CFG ----------------*/
-#define TIMELAPS_PHOTO_FOLDER       "/timelaps"             ///< folder for timelaps photos
+#define TIMELAPS_PHOTO_FOLDER       "/timelapse"            ///< folder for timelaps photos
 #define TIMELAPS_PHOTO_PREFIX       "photo"                 ///< photo name for timelaps
 #define TIMELAPS_PHOTO_SUFFIX       ".jpg"                  ///< photo file type for timelaps
 

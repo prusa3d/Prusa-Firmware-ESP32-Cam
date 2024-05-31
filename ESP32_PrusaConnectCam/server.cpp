@@ -696,7 +696,13 @@ void Server_InitWebServer_Sets() {
 
     if (request->hasParam("timelaps_enable")) {
       SystemLog.AddEvent(LogLevel_Verbose, F("Set timelaps enable"));
-      Connect.SetTimeLapsPhotoSaveStatus(Server_TransfeStringToBool(request->getParam("timelaps_enable")->value()));
+      bool val = Server_TransfeStringToBool(request->getParam("timelaps_enable")->value());
+      if ((true == val ) && (SystemLog.GetCardDetectedStatus() == true)) {
+        Connect.SetTimeLapsPhotoSaveStatus(val);
+      } else {
+        Connect.SetTimeLapsPhotoSaveStatus(false);
+      }
+	  
       response = true;
     }
 
