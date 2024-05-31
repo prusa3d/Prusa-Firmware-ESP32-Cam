@@ -14,7 +14,8 @@ function get_data(val) {
 				img.src = (obj.led == "true") ? 'light-on-icon.svg' : 'light-off-icon.svg';
 				document.getElementById('light-icon').appendChild(img);
 			}
-
+			document.title = obj.mdns;
+			
 			if (val == "config") {
 				$("#fingerprint").text(obj.fingerprint);
 				$("#refreshInterval").text(obj.refreshInterval);

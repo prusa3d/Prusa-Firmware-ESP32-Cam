@@ -28,7 +28,6 @@ const char index_html[] PROGMEM = R"rawliteral(
 <head>
 	<meta name="Prusa ESP32-cam" content="width=device-width, initial-scale=1">
 	<link rel="icon" href="/favicon.svg" type="image/svg+xml">
-	<title>Prusa ESP32-cam</title>
 
 	<link rel="stylesheet" type="text/css" href="styles.css">
 	<script src="jquery-3.7.0.min.js"></script>
@@ -80,8 +79,8 @@ const char index_html[] PROGMEM = R"rawliteral(
 	    <div id="cfg">
 			<div id="cfg_bar">
 			<div id="links">
-				<li><a href="page_config.html">Camera configuration</a></li>
-				<li><a href="page_wifi.html">Wi-Fi configuration</a></li>
+				<li><a href="page_config.html">Camera</a></li>
+				<li><a href="page_wifi.html">Wi-Fi</a></li>
 				<li><a href="page_auth.html">Authentication</a></li>
 				<li><a href="page_system.html">System</a></li>
 				</div>
@@ -890,7 +889,8 @@ function get_data(val) {
 				img.src = (obj.led == "true") ? 'light-on-icon.svg' : 'light-off-icon.svg';
 				document.getElementById('light-icon').appendChild(img);
 			}
-
+			document.title = obj.mdns;
+			
 			if (val == "config") {
 				$("#fingerprint").text(obj.fingerprint);
 				$("#refreshInterval").text(obj.refreshInterval);
