@@ -41,6 +41,7 @@ private:
   uint32_t CardFreeMB;        ///< Card free size
   uint8_t FreeSpacePercent;   ///< Free space in percent
   uint8_t UsedSpacePercent;   ///< Used space in percent
+  File file;                  ///< File object
 
 public:
   MicroSd();

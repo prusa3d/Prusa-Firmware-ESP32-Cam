@@ -44,10 +44,10 @@
 #define STATUS_LED_ERROR            100                     ///< time for blink status LED when is module in the error state [ms]
 
 /* ------------------- TASKS --------------------*/
-#define TASK_SYSTEM                 1000                    ///< system task interval [ms]
+#define TASK_SYSTEM                 2000                    ///< system task interval [ms]
 #define TASK_SDCARD                 30000                   ///< sd card task interval [ms]
 #define TASK_WIFI                   30000                   ///< wifi reconnect interval. Checking when is signal lost [ms]
-#define TASK_SERIAL_CFG             1000                    ///< serial cfg task interval [ms]
+#define TASK_SERIAL_CFG             2000                    ///< serial cfg task interval [ms]
 #define TASK_STREAM_TELEMETRY       30000                   ///< stream telemetry task interval [ms]
 #define TASK_WIFI_WATCHDOG          20000                   ///< wifi watchdog task interval [ms]
 #define TASK_PHOTO_SEND             1000                    ///< photo send task interval [ms]

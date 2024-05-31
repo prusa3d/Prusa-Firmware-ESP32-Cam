@@ -448,10 +448,10 @@ void System_TaskWifiManagement(void *pvParameters) {
 
     /* wifi reconnect after signal lost */
     SystemWifiMngt.WiFiReconnect();
-    SystemLog.AddEvent(LogLevel_Info, "Free RAM: " + String(ESP.getFreeHeap()) + " bytes");
-    SystemLog.AddEvent(LogLevel_Info, "Free SPIRAM: " + String(ESP.getFreePsram()) + " bytes");
+    SystemLog.AddEvent(LogLevel_Info, "Free RAM: " + String(ESP.getFreeHeap()) + " B");
+    SystemLog.AddEvent(LogLevel_Info, "Free SPIRAM: " + String(ESP.getFreePsram()) + " B");
     SystemLog.AddEvent(LogLevel_Info, "Temperature: " + String(temperatureRead()) + " *C");
-    SystemLog.AddEvent(LogLevel_Verbose, F("WiFiManagement task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WiFiManagement task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + "B");
     SystemLog.AddEvent(LogLevel_Verbose, F("WiFi status: "), String(WiFi.status()));
 
     /* reset wdg */
@@ -476,7 +476,7 @@ void System_TaskMain(void *pvParameters) {
     /* for ota update */
     esp_task_wdt_reset();
     System_Main();
-    SystemLog.AddEvent(LogLevel_Verbose, F("System task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
+    SystemLog.AddEvent(LogLevel_Verbose, F("System task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + "B");
 
     /* reset wdg */
     esp_task_wdt_reset();
@@ -518,7 +518,7 @@ void System_TaskCaptureAndSendPhoto(void *pvParameters) {
       Connect.IncreaseSendingIntervalCounter();
     }
     
-    SystemLog.AddEvent(LogLevel_Verbose, F("Photo processing task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
+    SystemLog.AddEvent(LogLevel_Verbose, F("Photo processing task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + "B");
 
     /* reset wdg */
     esp_task_wdt_reset();
@@ -558,7 +558,7 @@ void System_TaskSdCardCheck(void *pvParameters) {
       SystemLog.CheckMaxLogFileSize();
     }
 
-    SystemLog.AddEvent(LogLevel_Verbose, F("MicroSdCard task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
+    SystemLog.AddEvent(LogLevel_Verbose, F("MicroSdCard task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + "B");
 
     /* reset wdg */
     esp_task_wdt_reset();
@@ -581,7 +581,7 @@ void System_TaskSerialCfg(void *pvParameters) {
   while (1) {
     esp_task_wdt_reset();
     SystemSerialCfg.ProcessIncommingData();
-    SystemLog.AddEvent(LogLevel_Verbose, F("SerialCfg task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
+    SystemLog.AddEvent(LogLevel_Verbose, F("SerialCfg task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + "B");
 
     /* reset wdg */
     esp_task_wdt_reset();
@@ -603,7 +603,7 @@ void System_TaskStreamTelemetry(void *pvParameters) {
 
   while (1) {
     esp_task_wdt_reset();
-    SystemLog.AddEvent(LogLevel_Verbose, F("StreamTelemetry task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
+    SystemLog.AddEvent(LogLevel_Verbose, F("StreamTelemetry task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + "B");
     if (SystemCamera.GetStreamStatus()) {
       char buf[80] = { '\0' };
       sprintf(buf, "Stream, average data in %dsec. FPS: %.1f, Size: %uKB", (TASK_STREAM_TELEMETRY / SECOND_TO_MILISECOND), SystemCamera.StreamGetFrameAverageFps(), SystemCamera.StreamGetFrameAverageSize());
@@ -633,7 +633,7 @@ void System_TaskSysLed(void *pvParameters) {
     system_led.toggle();
     /* reset wdg */
     esp_task_wdt_reset();
-    SystemLog.AddEvent(LogLevel_Verbose, F("SystemLed task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
+    SystemLog.AddEvent(LogLevel_Verbose, F("SystemLed task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + "B"); 
 
     /* next start task */
     vTaskDelayUntil(&xLastWakeTime, system_led.getTimer() / portTICK_PERIOD_MS);
@@ -653,7 +653,7 @@ void System_TaskWiFiWatchdog(void *pvParameters) {
   while (1) {
     esp_task_wdt_reset();
     SystemWifiMngt.WiFiWatchdog();
-    SystemLog.AddEvent(LogLevel_Verbose, F("WiFiWatchdog task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
+    SystemLog.AddEvent(LogLevel_Verbose, F("WiFiWatchdog task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + "B");
 
     /* reset wdg */
     esp_task_wdt_reset();
@@ -693,7 +693,7 @@ void System_TaskSdCardRemove(void *pvParameters) {
         }
       }
     
-    SystemLog.AddEvent(LogLevel_Verbose, F("MicroSdCard task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
+    SystemLog.AddEvent(LogLevel_Verbose, F("MicroSdCard task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + "B");
 
     /* reset wdg */
     esp_task_wdt_reset();

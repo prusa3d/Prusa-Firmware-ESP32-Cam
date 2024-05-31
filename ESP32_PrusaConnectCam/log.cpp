@@ -23,6 +23,7 @@ Logs::Logs() {
   LogLevel = LogLevel_Verbose;
   FileMaxSize = 1024;
   NtpTimeSynced = false;
+  LogMsg = "";
 }
 
 /**
@@ -37,6 +38,7 @@ Logs::Logs(String i_FilePath, String i_FileName) {
   LogLevel = LogLevel_Verbose;
   FileMaxSize = 1024;
   NtpTimeSynced = false;
+  LogMsg = "";
 }
 
 /**
@@ -52,6 +54,7 @@ Logs::Logs(LogLevel_enum i_LogLevel, String i_FilePath, String i_FileName) {
   LogLevel = i_LogLevel;
   FileMaxSize = 1024;
   NtpTimeSynced = false;
+  LogMsg = "";
 }
 
 /**
@@ -67,6 +70,7 @@ Logs::Logs(String i_FilePath, String i_FileName, uint16_t i_FileSize) {
   LogLevel = LogLevel_Verbose;
   FileMaxSize = i_FileSize;
   NtpTimeSynced = false;
+  LogMsg = "";
 }
 
 /**
@@ -83,6 +87,7 @@ Logs::Logs(LogLevel_enum i_LogLevel, String i_FilePath, String i_FileName, uint1
   LogLevel = i_LogLevel;
   FileMaxSize = i_FileSize;
   NtpTimeSynced = false;
+  LogMsg = "";
 }
 
 /**
@@ -104,19 +109,19 @@ void Logs::Init() {
     CheckMaxLogFileSize();
 
     /* added first message to log file after start MCU */
-    String msg = F("----------------------------------------------------------------\n");
-    msg += F("Start MCU!\nSW Version: ");
-    msg += String(SW_VERSION);
-    msg += F(" ,Build: ");
-    msg += String(SW_BUILD);
-    msg += "\n";
-    msg += F("Verbose mode: ");
-    msg += (true == CONSOLE_VERBOSE_DEBUG) ? "true" : "false";
-    msg += "\n";
-    msg += F("Log level: ");
-    msg += String(LogLevel);
-    msg += "\n";
-    AppendFile(SD_MMC, FilePath + FileName, msg);
+    LogMsg = F("----------------------------------------------------------------\n");
+    LogMsg += F("Start MCU!\nSW Version: ");
+    LogMsg += String(SW_VERSION);
+    LogMsg += F(" ,Build: ");
+    LogMsg += String(SW_BUILD);
+    LogMsg += "\n";
+    LogMsg += F("Verbose mode: ");
+    LogMsg += (true == CONSOLE_VERBOSE_DEBUG) ? "true" : "false";
+    LogMsg += "\n";
+    LogMsg += F("Log level: ");
+    LogMsg += String(LogLevel);
+    LogMsg += "\n";
+    AppendFile(SD_MMC, FilePath + FileName, LogMsg);
 
   } else {
     Serial.println(F("Micro-SD card not found! Disable logs"));
@@ -142,7 +147,7 @@ void Logs::SetLogLevel(LogLevel_enum level) {
 */
 void Logs::AddEvent(LogLevel_enum level, String msg, bool newLine, bool date) {
   if (LogLevel >= level) {
-    String LogMsg = "";
+    LogMsg = "";
 
     if (true == date) {
       LogMsg += GetSystemTime();
@@ -174,7 +179,7 @@ void Logs::AddEvent(LogLevel_enum level, String msg, bool newLine, bool date) {
 */
 void Logs::AddEvent(LogLevel_enum level, const __FlashStringHelper *msg, String parameters, bool newLine, bool date) {
   if (LogLevel >= level) {
-    String LogMsg = "";
+    LogMsg = "";
 
     if (true == date) {
       LogMsg += GetSystemTime();

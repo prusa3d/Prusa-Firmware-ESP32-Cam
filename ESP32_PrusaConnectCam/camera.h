@@ -17,17 +17,16 @@
 #include "img_converters.h"
 #include "soc/soc.h"
 #include "soc/rtc_cntl_reg.h"
+
 #include "cfg.h"
-
 #include "exif.h"
-#include "FS.h"
-#include "SD_MMC.h"
-
 #include "Camera_cfg.h"
 #include "Arduino.h"
 #include "mcu_cfg.h"
 #include "var.h"
 #include "log.h"
+
+class Configuration;
 
 struct PhotoExifData_t {
   const uint8_t *header;

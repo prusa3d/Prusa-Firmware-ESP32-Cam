@@ -32,6 +32,7 @@ private:
   String FilePath;          ///< log file patch
   uint16_t FileMaxSize;     ///< log file max size
   bool NtpTimeSynced;       ///< status NTP time sync
+  String LogMsg;            ///< log message
 
 public:
   Logs();
