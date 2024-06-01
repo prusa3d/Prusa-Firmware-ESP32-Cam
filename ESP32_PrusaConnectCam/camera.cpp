@@ -6,6 +6,9 @@
    @author Miroslav Pivovarsky
    Contact: miroslav.pivovarsky@gmail.com
 
+   https://github.com/espressif/esp32-camera
+
+
    @bug: no know bug
 */
 #include "camera.h"
@@ -49,6 +52,7 @@ void Camera::Init() {
 
   InitCameraModule();
   ApplyCameraCfg();
+  GetCameraModel();
 }
 
 /**
@@ -80,7 +84,7 @@ void Camera::InitCameraModule() {
   CameraConfig.pin_sccb_scl = SIOC_GPIO_NUM;
   CameraConfig.pin_pwdn = PWDN_GPIO_NUM;
   CameraConfig.pin_reset = RESET_GPIO_NUM;
-  CameraConfig.xclk_freq_hz = 16500000;       // or 3000000; 16500000; 20000000
+  CameraConfig.xclk_freq_hz = 20000000;       // or 3000000; 16500000; 20000000
   CameraConfig.pixel_format = PIXFORMAT_JPEG; /* YUV422,GRAYSCALE,RGB565,JPEG */
 
   /* OV2640
@@ -91,13 +95,17 @@ void Camera::InitCameraModule() {
     FRAMESIZE_XGA (1024 x 768)
     FRAMESIZE_SXGA (1280 x 1024)
     FRAMESIZE_UXGA (1600 x 1200)
+
+    CAMERA_GRAB_WHEN_EMPTY - Fills buffers when they are empty. Less resources but first 'fb_count' frames might be old
+    CAMERA_GRAB_LATEST     - Except when 1 frame buffer is used, queue will always contain the last 'fb_count' frames
   */
 
-  CameraConfig.frame_size = TFrameSize;        /* FRAMESIZE_ + QVGA|CIF|VGA|SVGA|XGA|SXGA|UXGA */
-  CameraConfig.jpeg_quality = PhotoQuality;    /* 10-63 lower number means higher quality */
-  CameraConfig.fb_count = 1;                   /* picture frame buffer alocation */
-  CameraConfig.grab_mode = CAMERA_GRAB_LATEST; /* CAMERA_GRAB_WHEN_EMPTY or CAMERA_GRAB_LATEST */
-
+  CameraConfig.frame_size = TFrameSize;             /* FRAMESIZE_ + QVGA|CIF|VGA|SVGA|XGA|SXGA|UXGA */
+  CameraConfig.jpeg_quality = PhotoQuality;         /* 10-63 lower number means higher quality */
+  CameraConfig.fb_count = 1;                        /* picture frame buffer alocation */
+  CameraConfig.grab_mode = CAMERA_GRAB_LATEST;      /* CAMERA_GRAB_WHEN_EMPTY or CAMERA_GRAB_LATEST */
+  //CameraConfig.fb_location = CAMERA_FB_IN_PSRAM;    /* CAMERA_FB_IN_PSRAM or CAMERA_FB_IN_DRAM  */
+  
   if (CameraConfig.fb_location == CAMERA_FB_IN_DRAM) {
     log->AddEvent(LogLevel_Verbose, F("Camera frame buffer location: DRAM"));
   } else if (CameraConfig.fb_location == CAMERA_FB_IN_PSRAM) {
@@ -113,7 +121,7 @@ void Camera::InitCameraModule() {
     log->AddEvent(LogLevel_Warning, F("Camera init failed. Error: "), String(err, HEX));
     log->AddEvent(LogLevel_Warning, F("Reset ESP32-cam!"));
     ESP.restart();
-  }
+  } 
 }
 
 /**
@@ -187,6 +195,11 @@ framesize_t Camera::TransformFrameSizeDataType(uint8_t i_data) {
   return ret;
 }
 
+/**
+   @brief Function set photo sending status
+   @param bool i_data - true = on, false = off
+   @return none
+*/
 void Camera::SetPhotoSending(bool i_data) {
   PhotoSending = i_data;
 }
@@ -228,7 +241,7 @@ void Camera::ApplyCameraCfg() {
   log->AddEvent(LogLevel_Info, F("Set camera CFG"));
 
   /* sensor configuration */
-  sensor_t* sensor = esp_camera_sensor_get();
+  sensor = esp_camera_sensor_get();
   sensor->set_brightness(sensor, brightness);         // -2 to 2
   sensor->set_contrast(sensor, contrast);             // -2 to 2
   sensor->set_saturation(sensor, saturation);         // -2 to 2
@@ -266,6 +279,34 @@ void Camera::ReinitCameraModule() {
   delay(100);
   InitCameraModule();
   ApplyCameraCfg();
+}
+
+/**
+   @brief Function for get camera model and type
+   @param void
+   @return none
+*/
+void Camera::GetCameraModel() {
+  log->AddEvent(LogLevel_Info, F("Get camera model and type"));
+  if (sensor == NULL) {
+    log->AddEvent(LogLevel_Error, F("Camera sensor is NULL"));
+    return;
+  } 
+  
+  camera_sensor_info_t *info = esp_camera_sensor_get_info(&sensor->id);
+  if (info == NULL) {
+    log->AddEvent(LogLevel_Error, F("Camera sensor info is NULL"));
+    return;
+  }
+
+  CameraType = (camera_pid_t) sensor->id.PID;
+  CameraName = info->name;
+  log->AddEvent(LogLevel_Info, F("Camera type: "), String(CameraType));
+  log->AddEvent(LogLevel_Info, F("Camera name: "), String(CameraName));
+  log->AddEvent(LogLevel_Info, F("Camera model: "), String(info->model));
+  log->AddEvent(LogLevel_Info, F("Camera PID: "), String(info->pid));
+  log->AddEvent(LogLevel_Info, F("Camera MAX framesize: "), String(info->max_size));
+  log->AddEvent(LogLevel_Info, F("Camera support jpeg: "), String(info->support_jpeg));
 }
 
 /**

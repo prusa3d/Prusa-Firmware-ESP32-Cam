@@ -68,6 +68,7 @@ private:
   /* OV2640 camera module pinout and cfg*/
   camera_config_t CameraConfig;             ///< camera configuration
   camera_fb_t *FrameBuffer;                 ///< frame buffer
+  sensor_t* sensor;                         ///< sensor
   String Photo;                             ///< photo in string format
   bool StreamOnOff;                         ///< stream on/off
   SemaphoreHandle_t frameBufferSemaphore;   ///< semaphore for frame buffer
@@ -75,6 +76,8 @@ private:
   uint16_t StreamAverageSize;               ///< stream average size
   PhotoExifData_t PhotoExifData;            ///< photo exif data
   uint8_t CameraCaptureFailedCounter;       ///< camera capture failed counter
+  camera_pid_t CameraType;                  ///< camera type
+  String CameraName;                        ///< camera name
 
   Configuration *config;                    ///< pointer to Configuration object
   Logs *log;                                ///< pointer to Logs object
@@ -88,6 +91,7 @@ public:
   void ApplyCameraCfg();
   void LoadCameraCfgFromEeprom();
   void ReinitCameraModule();
+  void GetCameraModel();
   void CapturePhoto();
   void CaptureStream(camera_fb_t *);
   void CaptureReturnFrameBuffer();
