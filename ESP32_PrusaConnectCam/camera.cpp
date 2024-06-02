@@ -86,7 +86,7 @@ void Camera::InitCameraModule() {
   CameraConfig.pin_sccb_scl = SIOC_GPIO_NUM;
   CameraConfig.pin_pwdn = PWDN_GPIO_NUM;
   CameraConfig.pin_reset = RESET_GPIO_NUM;
-  CameraConfig.xclk_freq_hz = 20000000;       // or 3000000; 16500000; 20000000
+  CameraConfig.xclk_freq_hz = 16500000;       // or 3000000; 16500000; 20000000
   CameraConfig.pixel_format = PIXFORMAT_JPEG; /* YUV422,GRAYSCALE,RGB565,JPEG */
 
   /* OV2640
@@ -318,10 +318,13 @@ void Camera::GetCameraModel() {
 */
 void Camera::CapturePhoto() {
 
+  /* Check if photo is already sending */
   if (true == PhotoSending) {
+    log->AddEvent(LogLevel_Info, F("Sending photo"));
     return;
   }
 
+  /* Check if stream is on */
   if (false == StreamOnOff) {
     if (!xSemaphoreTake(frameBufferSemaphore, portMAX_DELAY)) {
       log->AddEvent(LogLevel_Error, F("Failed to take frame buffer semaphore"));
@@ -335,10 +338,15 @@ void Camera::CapturePhoto() {
       delay(CameraFlashTime);
     }
 
+    if (FrameBuffer) {
+      esp_camera_fb_return(FrameBuffer);
+    }
+
     /* Capturing a training photo. Without this sequence, the camera will not obtain the current photo but photo from the previous cycle. */
     FrameBuffer = esp_camera_fb_get();
     if (FrameBuffer) {
       esp_camera_fb_return(FrameBuffer);
+      log->AddEvent(LogLevel_Verbose, F("Camera capture training photo"));
     } else {
       esp_camera_fb_return(FrameBuffer);
       log->AddEvent(LogLevel_Error, F("Camera capture failed training photo"));
@@ -351,7 +359,6 @@ void Camera::CapturePhoto() {
     do {
       log->AddEvent(LogLevel_Info, F("Taking photo..."));
 
-      delay(5);  // delay for camera stabilization. test it
       FrameBuffer = esp_camera_fb_get();
       if (!FrameBuffer) {
         CameraCaptureFailedCounter++;
@@ -395,7 +402,7 @@ void Camera::CapturePhoto() {
 
     /* Disable flash */
     if (true == CameraFlashEnable) {
-      delay(CameraFlashTime);
+      //delay(CameraFlashTime);
       ledcWrite(FLASH_PWM_CHANNEL, FLASH_OFF_STATUS);
     }
     xSemaphoreGive(frameBufferSemaphore);
@@ -489,6 +496,9 @@ void Camera::CaptureReturnFrameBuffer() {
 */
 void Camera::SetStreamStatus(bool i_status) {
   StreamOnOff = i_status;
+  if (FrameBuffer) {
+    esp_camera_fb_return(FrameBuffer);
+  }
   log->AddEvent(LogLevel_Info, F("Camera video stream: "), String(StreamOnOff));
 }
 

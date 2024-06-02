@@ -314,10 +314,7 @@ void PrusaConnect::TakePictureAndSendToBackend() {
   }
   
   /* return frame buffer */
-  if (camera->GetStreamStatus() == false) {
-    /* return frame buffer when photo is not sent during stream */
-    camera->CaptureReturnFrameBuffer();
-  } else {
+  if (camera->GetStreamStatus() == true) {
     /* set stream flag for sending photo to false */
     camera->StreamSetSendingPhoto(false);
   }
