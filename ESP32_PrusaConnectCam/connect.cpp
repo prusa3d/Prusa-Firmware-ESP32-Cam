@@ -126,8 +126,17 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
 
         /* get photo buffer */
         bool SendWithExif = false;
-        uint8_t *fbBuf = camera->GetPhotoFb()->buf;
-        size_t fbLen = camera->GetPhotoFb()->len;
+        uint8_t *fbBuf = NULL;
+        size_t fbLen = 0;
+        if (camera->GetStreamStatus() == true) {
+          /* get duplicate photo buffer from camera */
+          fbBuf = camera->GetPhotoFbDuplicate()->buf;
+          fbLen = camera->GetPhotoFbDuplicate()->len;
+        } else {
+          /* get original photo buffer from camera */
+          fbBuf = camera->GetPhotoFb()->buf;
+          fbLen = camera->GetPhotoFb()->len;
+        }
 
         /* sending exif data */
         if ((camera->GetPhotoExifData()->header != NULL) && (camera->GetStreamStatus() == false)) {
@@ -235,8 +244,10 @@ void PrusaConnect::SendPhotoToBackend() {
 
   if ((camera->GetPhotoExifData()->header != NULL) && (camera->GetStreamStatus() == false)) {
     total_len = camera->GetPhotoExifData()->len + camera->GetPhotoFb()->len - camera->GetPhotoExifData()->offset;
-  } else {
+  } else if (camera->GetStreamStatus() == false) {
     total_len = camera->GetPhotoFb()->len;
+  } else {
+    total_len = camera->GetPhotoFbDuplicate()->len;
   }
   SendDataToBackend(&Photo, total_len, F("image/jpg"), F("Photo"), HOST_URL_CAM_PATH, SendPhoto);
   camera->SetPhotoSending(false);
@@ -302,8 +313,13 @@ void PrusaConnect::TakePictureAndSendToBackend() {
     log->AddEvent(LogLevel_Error, F("Error capturing photo. Stop sending to backend!"));
   }
   
+  /* return frame buffer */
   if (camera->GetStreamStatus() == false) {
+    /* return frame buffer when photo is not sent during stream */
     camera->CaptureReturnFrameBuffer();
+  } else {
+    /* set stream flag for sending photo to false */
+    camera->StreamSetSendingPhoto(false);
   }
 }
 

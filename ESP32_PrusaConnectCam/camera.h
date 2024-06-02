@@ -68,9 +68,11 @@ private:
   /* OV2640 camera module pinout and cfg*/
   camera_config_t CameraConfig;             ///< camera configuration
   camera_fb_t *FrameBuffer;                 ///< frame buffer
+  camera_fb_t *FrameBufferDuplicate;        ///< frame buffer duplicate
   sensor_t* sensor;                         ///< sensor
   String Photo;                             ///< photo in string format
   bool StreamOnOff;                         ///< stream on/off
+  bool StreamSendingPhoto;                  ///< sending photo to Prusa Connect during stream
   SemaphoreHandle_t frameBufferSemaphore;   ///< semaphore for frame buffer
   float StreamAverageFps;                   ///< stream average fps
   uint16_t StreamAverageSize;               ///< stream average size
@@ -104,6 +106,7 @@ public:
   uint16_t StreamGetFrameAverageSize();
   float StreamGetFrameAverageFps();
   void StreamClearFrameData();
+  void StreamSetSendingPhoto(bool);
   
   void CopyPhoto(camera_fb_t *);
   void CopyPhoto(String*);
@@ -112,6 +115,7 @@ public:
   int GetPhotoSize();
   String GetPhoto();
   camera_fb_t *GetPhotoFb();
+  camera_fb_t* GetPhotoFbDuplicate();
   PhotoExifData_t * GetPhotoExifData();
   framesize_t TransformFrameSizeDataType(uint8_t);
   void SetPhotoSending(bool);

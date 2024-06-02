@@ -29,6 +29,8 @@ Camera::Camera(Configuration* i_conf, Logs* i_log, uint8_t i_FlashPin) {
   CameraFlashPin = i_FlashPin;
   StreamOnOff = false;
   frameBufferSemaphore = xSemaphoreCreateMutex();
+  FrameBufferDuplicate = (camera_fb_t*)heap_caps_malloc(sizeof(camera_fb_t), MALLOC_CAP_SPIRAM);
+  StreamSendingPhoto = false;
 
   PhotoExifData.header = NULL;
   PhotoExifData.len = 0;
@@ -397,6 +399,13 @@ void Camera::CapturePhoto() {
       ledcWrite(FLASH_PWM_CHANNEL, FLASH_OFF_STATUS);
     }
     xSemaphoreGive(frameBufferSemaphore);
+
+  } else {
+    /* Stream is on, set flag for sending photo */
+    if (xSemaphoreTake(frameBufferSemaphore, portMAX_DELAY)) {
+      StreamSendingPhoto = true;
+      xSemaphoreGive(frameBufferSemaphore);
+    }
   }
 
   /* Reinit camera module if photo capture failed */
@@ -426,6 +435,40 @@ void Camera::CaptureStream(camera_fb_t* i_buf) {
       /* check if photo is correctly saved */
     } while (!(FrameBuffer->len > 100));
     *i_buf = *FrameBuffer;
+
+    /* copy the frame buffer to the duplicate frame buffer. For sending photo to Prusa Connect */
+    if (false == StreamSendingPhoto) {
+      /* memory allocation release */
+      if (FrameBufferDuplicate != NULL) {
+        if (FrameBufferDuplicate->buf != NULL) {
+          free(FrameBufferDuplicate->buf);
+          FrameBufferDuplicate->buf = NULL; /* Set to NULL after freeing */
+        }
+
+        free(FrameBufferDuplicate);
+        FrameBufferDuplicate = NULL; /* Set to NULL after freeing */
+      }
+      
+      /* Allocate memory for the duplicate frame structure */
+      FrameBufferDuplicate = (camera_fb_t*)heap_caps_malloc(sizeof(camera_fb_t), MALLOC_CAP_SPIRAM);
+
+      /* Copy the metadata */
+      memcpy(FrameBufferDuplicate, FrameBuffer, sizeof(camera_fb_t));
+
+      /* Allocate memory for the image data */
+      FrameBufferDuplicate->buf = (uint8_t*)heap_caps_malloc(FrameBuffer->len, MALLOC_CAP_SPIRAM);
+
+      /* Check if memory allocation was successful */
+      if (!FrameBufferDuplicate->buf) {
+        /* Handle error */
+        free(FrameBufferDuplicate);
+        Serial.println("Failed to allocate memory for the duplicate frame buffer");
+      } else {
+        /* Copy the image data */
+        memcpy(FrameBufferDuplicate->buf, FrameBuffer->buf, FrameBuffer->len);
+      }
+    }
+
     xSemaphoreGive(frameBufferSemaphore);
   }
 }
@@ -509,6 +552,15 @@ void Camera::StreamClearFrameData() {
 }
 
 /**
+   @brief Set Sending Photo for Stream
+   @param bool - sending photo
+   @return none
+*/
+void Camera::StreamSetSendingPhoto(bool i_data) {
+  StreamSendingPhoto = i_data;
+}
+
+/**
    @brief Get Photo
    @param none
    @return String - photo
@@ -528,6 +580,15 @@ String Camera::GetPhoto() {
 */
 camera_fb_t* Camera::GetPhotoFb() {
   return FrameBuffer;
+}
+
+/**
+   @brief Get Photo Frame Buffer Duplicate
+   @param none
+   @return camera_fb_t* - photo frame buffer duplicate
+*/
+camera_fb_t* Camera::GetPhotoFbDuplicate() {
+  return FrameBufferDuplicate;
 }
 
 /**
