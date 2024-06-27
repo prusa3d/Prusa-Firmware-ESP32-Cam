@@ -11,12 +11,14 @@
    @bug: no know bug
 */
 
-#ifndef _STREAM_H_
-#define _STREAM_H_
+#pragma once
 
-#include "ESPAsyncWebServer.h"
+#include <Arduino.h>
+#include <WiFi.h>
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
 
-#include "Arduino.h"
+#include "WebServer.h"
 #include "mcu_cfg.h"
 #include "var.h"
 #include "log.h"
@@ -71,5 +73,4 @@ public:
   size_t _content(uint8_t *, size_t , size_t );
 };
 
-#endif
 /* EOF */

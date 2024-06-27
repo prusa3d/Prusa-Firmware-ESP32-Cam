@@ -9,12 +9,13 @@
    @bug: no know bug
 */
 
-#ifndef _SYS_LED_H_
-#define _SYS_LED_H_
+#pragma once
 
+#include <Arduino.h>
 #include "log.h"
 #include "mcu_cfg.h"
-#include "arduino.h"
+
+class Logs;
 
 class sys_led {
 private:
@@ -37,7 +38,5 @@ public:
 };
 
 extern sys_led system_led;
-
-#endif
 
 /* EOF */

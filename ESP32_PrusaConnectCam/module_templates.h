@@ -10,8 +10,7 @@
 
 */
 
-#ifndef __MODULE_TEMPLATES_H__
-#define __MODULE_TEMPLATES_H__
+#pragma once
 
 #include "mcu_cfg.h"
 
@@ -23,5 +22,4 @@
 #include "module_ESP32-WROVER-DEV.h"
 #endif
 
-#endif // MODULE_TEMPLATES_H
 /* EOF */

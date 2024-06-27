@@ -9,10 +9,9 @@
    @bug: no know bug
 */
 
-#ifndef _SERIAL_CFG_H
-#define _SERIAL_CFG_H
+#pragma once
 
-#include "Arduino.h"
+#include <Arduino.h>
 
 #include "mcu_cfg.h"
 #include "var.h"
@@ -47,7 +46,5 @@ public:
 };
 
 extern SerialCfg SystemSerialCfg; ///< SerialCfg object
-
-#endif
 
 /* EOF */

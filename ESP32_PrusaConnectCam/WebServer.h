@@ -10,21 +10,16 @@
 
 */
 
-#ifndef _SERVER_H_
-#define _SERVER_H_
+#pragma once
 
-#include <AsyncEventSource.h>
-#include <AsyncWebSocket.h>
-#include <AsyncWebSynchronization.h>
+#include <Arduino.h>
+#include <WiFi.h>
+#include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
-#include <esp_task_wdt.h>
-#include <StringArray.h>
-#include <WiFiClientSecure.h>
-#include <HTTPClient.h>
-#include <EEPROM.h>
-#include <Update.h>
 #include <ArduinoJson.h>
 
+#include "micro_sd.h"
+#include "log.h"
 #include "WebPage.h"
 #include "WebPage_Icons.h"
 #include "mcu_cfg.h"
@@ -33,12 +28,9 @@
 #include "cfg.h"
 #include "jquery.h"
 #include "system.h"
-#include "log.h"
 #include "connect.h"
 #include "wifi_mngt.h"
-#include "stream.h"
-
-#include "exif.h"
+#include "WebStream.h"
 
 extern AsyncWebServer server;  ///< global variable for web server
 
@@ -66,7 +58,5 @@ void Server_GetModuleUptime(String &);
 bool Server_TransfeStringToBool(String);
 
 String Server_TranslateBoolToString(bool);
-
-#endif
 
 /* EOF */

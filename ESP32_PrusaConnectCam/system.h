@@ -9,18 +9,17 @@
    @bug: no know bug
 */
 
-#ifndef _SYSTEM_H_
-#define _SYSTEM_H_
+#pragma once
 
 #include <WiFi.h>
 #include <Update.h>
-#include "Arduino.h"
+#include <Arduino.h>
 #include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 #include <HTTPUpdate.h>
 #include <ArduinoJson.h>
 #include <esp_wifi.h>
-#include "esp32/rom/rtc.h"
+#include <esp32/rom/rtc.h>
 #include <esp_task_wdt.h>
 
 #include "mcu_cfg.h"
@@ -65,5 +64,4 @@ void System_TaskSysLed(void *);
 void System_TaskWiFiWatchdog(void *);
 void System_TaskSdCardRemove(void *);
 
-#endif
 /* EOF */

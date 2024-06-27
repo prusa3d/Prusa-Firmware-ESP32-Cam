@@ -9,8 +9,7 @@
    @bug: no know bug
 */
 
-#ifndef _CAMERA_H_
-#define _CAMERA_H_
+#pragma once
 
 #include "esp_camera.h"
 #include "esp_timer.h"
@@ -18,13 +17,13 @@
 #include "soc/soc.h"
 #include "soc/rtc_cntl_reg.h"
 
+#include "micro_sd.h"
+#include "log.h"
 #include "cfg.h"
 #include "exif.h"
 #include "module_templates.h"
-#include "Arduino.h"
 #include "mcu_cfg.h"
 #include "var.h"
-#include "log.h"
 
 class Configuration;
 
@@ -175,7 +174,5 @@ public:
 };
 
 extern Camera SystemCamera; ///< Camera object
-
-#endif
 
 /* EOF */

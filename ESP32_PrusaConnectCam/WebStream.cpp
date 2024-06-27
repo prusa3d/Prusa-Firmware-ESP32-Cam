@@ -10,7 +10,7 @@
 
    @bug: no know bug
 */
-#include "stream.h"
+#include "WebStream.h"
 
 #define PART_BOUNDARY "123456789000000000000987654321"                                          ///< Must be unique for each stream
 static const char *STREAM_CONTENT_TYPE = "multipart/x-mixed-replace;boundary=" PART_BOUNDARY;   ///< content type for stream

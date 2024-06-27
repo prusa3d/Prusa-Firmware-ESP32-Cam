@@ -11,8 +11,7 @@
    @bug: no know bug
 */
 
-#ifndef _WEB_PAGE_H_
-#define _WEB_PAGE_H_
+#pragma once
 
 #define MSG_REBOOT_MCU        "Reboot process started, wait several seconds for mcu to boot up. You can close this window now"
 #define MSG_SAVE_OK_REBOOT    "Save OK. Please reboot MCU"            ///< WEB app msg save OK
@@ -1411,7 +1410,5 @@ const char cookies_html[] PROGMEM = R"rawliteral(
     addClickListener('cookies-link');
 </script>
 )rawliteral";
-
-#endif
 
 /* EOF  */

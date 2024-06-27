@@ -9,8 +9,7 @@
    @bug: no know bug
 */
 
-#ifndef _CERTIFICATE_OTA_H_
-#define _CERTIFICATE_OTA_H_
+#pragma once
 
 /* 
  echo -n | openssl s_client -servername github.com -connect github.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > github_com.crt 
@@ -134,7 +133,5 @@ zzuqQhFkoJ2UOQIReVx7Hfpkue4WQrO/isIJxOzksU0CMQDpKmFHjFJKS04YcPbW
 RNZu9YO6bVi9JNlWSOrvxKJGgYhqOkbRqZtNyWHa0V1Xahg=
 -----END CERTIFICATE-----
   )rawliteral";
-
-#endif
 
 /* EOF */

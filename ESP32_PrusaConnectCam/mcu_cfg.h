@@ -50,7 +50,7 @@
 /* --------------- WEB SERVER CFG  --------------*/
 #define WEB_SERVER_PORT             80                      ///< WEB server port 
 #define SERIAL_PORT_SPEED           115200                  ///< baud rate 
-#define WDG_TIMEOUT                 40                      ///< wdg timeout [second]
+#define WDG_TIMEOUT                 40 ///< wdg timeout [second]
 #define PHOTO_FRAGMENT_SIZE         5120                    ///< photo fragmentation size [bytes]
 #define LOOP_DELAY                  100                     ///< loop delay [ms]
 #define WIFI_CLIENT_WAIT_CON        false                   ///< wait for connecting to WiFi network

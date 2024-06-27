@@ -8,16 +8,14 @@
 
    @bug: no know bug
 */
-
-#ifndef _WIFI_MNGT_H_
-#define _WIFI_MNGT_H_
+#pragma once
 
 #include <WiFi.h>
-#include "Arduino.h"
+#include <Arduino.h>
 #include <esp_task_wdt.h>
 #include <ESPmDNS.h>
 #include <esp_wifi.h>
-#include "esp32-hal-cpu.h"
+#include <esp32-hal-cpu.h>
 
 #include "mcu_cfg.h"
 #include "var.h"
@@ -142,7 +140,5 @@ public:
 };
 
 extern WiFiMngt SystemWifiMngt;   ///< global variable for wifi management
-
-#endif
 
 /* EOF */

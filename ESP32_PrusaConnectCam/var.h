@@ -9,10 +9,9 @@
    @bug: no know bug
 */
 
-#ifndef _VARIABLE_H_
-#define _VARIABLE_H_
+#pragma once
 
-#include "Arduino.h"
+#include <Arduino.h>
 #include "mcu_cfg.h"
 
 struct WebBasicAuth_struct {
@@ -52,7 +51,5 @@ extern TaskHandle_t Task_WiFiWatchdog;               ///< task handle for wifi w
 
 extern uint8_t StartRemoveSdCard;
 extern uint32_t SdCardRemoveTime;
-
-#endif
 
 /* EOF */

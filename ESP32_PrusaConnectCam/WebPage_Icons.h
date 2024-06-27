@@ -10,8 +10,7 @@
    @bug: no know bug
 */
 
-#ifndef _WEB_PAGE_ICONS_H_
-#define _WEB_PAGE_ICONS_H_
+#pragma once
 
 /* ------------------------------------------------------------------------------------------------------------ */
 const char esp32_cam_logo_svg[] PROGMEM = R"rawliteral(
@@ -88,8 +87,5 @@ const char favicon_svg[] PROGMEM = R"rawliteral(
 <path d="M0 0 C0.66 0 1.32 0 2 0 C1.38461538 5.53846154 1.38461538 5.53846154 -0.5625 7.875 C-1.2740625 8.431875 -1.2740625 8.431875 -2 9 C-2.99 8.67 -3.98 8.34 -5 8 C-4.360625 7.236875 -3.72125 6.47375 -3.0625 5.6875 C-0.85767219 3.11753287 -0.85767219 3.11753287 0 0 Z " fill="#4F4541" transform="translate(38,29)"/>
 </svg>
 )rawliteral";
-
-
-#endif
 
 /* EOF  */

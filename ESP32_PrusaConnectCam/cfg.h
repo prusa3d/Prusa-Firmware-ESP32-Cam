@@ -9,19 +9,20 @@
    @bug: no know bug
 */
 
-#ifndef _CFG_H_
-#define _CFG_H_
-#include <WiFi.h>
-#include <EEPROM.h>
+#pragma once
 
-#include "Arduino.h"
+#include <EEPROM.h>
+#include <Arduino.h>
 #include <ArduinoUniqueID.h>
 #include <base64.h>
 
+#include "micro_sd.h"
+#include "log.h"
+#include "log_level.h"
 #include "mcu_cfg.h"
 #include "module_templates.h"
 #include "var.h"
-#include "log.h"
+#include "wifi_mngt.h"
 
 class Configuration {
 public:
@@ -138,7 +139,5 @@ private:
 };
 
 extern Configuration SystemConfig;  ///< Configuration object
-
-#endif
 
 /* EOF */

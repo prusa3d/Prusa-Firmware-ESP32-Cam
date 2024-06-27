@@ -48,9 +48,8 @@ void Camera::Init() {
   log->AddEvent(LogLevel_Info, F("Init camera lib"));
 
   log->AddEvent(LogLevel_Info, F("Init GPIO"));
-  ledcSetup(FLASH_PWM_CHANNEL, FLASH_PWM_FREQ, FLASH_PWM_RESOLUTION);
-  ledcAttachPin(FLASH_GPIO_NUM, FLASH_PWM_CHANNEL);
-  ledcWrite(FLASH_PWM_CHANNEL, FLASH_OFF_STATUS);
+  ledcAttach(FLASH_GPIO_NUM, FLASH_PWM_FREQ, FLASH_PWM_RESOLUTION);
+  ledcWrite(FLASH_GPIO_NUM, FLASH_OFF_STATUS);
 
   InitCameraModule();
   ApplyCameraCfg();
@@ -213,9 +212,9 @@ void Camera::SetPhotoSending(bool i_data) {
 */
 void Camera::SetFlashStatus(bool i_data) {
   if (true == i_data) {
-    ledcWrite(FLASH_PWM_CHANNEL, FLASH_ON_STATUS);
+    ledcWrite(FLASH_GPIO_NUM, FLASH_ON_STATUS);
   } else if (false == i_data) {
-    ledcWrite(FLASH_PWM_CHANNEL, FLASH_OFF_STATUS);
+    ledcWrite(FLASH_GPIO_NUM, FLASH_OFF_STATUS);
   }
 }
 
@@ -225,9 +224,9 @@ void Camera::SetFlashStatus(bool i_data) {
    @return bool - true = on, false = off
 */
 bool Camera::GetFlashStatus() {
-  if (ledcRead(FLASH_PWM_CHANNEL) == FLASH_OFF_STATUS) {
+  if (ledcRead(FLASH_GPIO_NUM) == FLASH_OFF_STATUS) {
     return false;
-  } else if (ledcRead(FLASH_PWM_CHANNEL) == FLASH_ON_STATUS) {
+  } else if (ledcRead(FLASH_GPIO_NUM) == FLASH_ON_STATUS) {
     return true;
   }
 
@@ -334,7 +333,7 @@ void Camera::CapturePhoto() {
     CameraCaptureSuccess = false;
     /* check flash, and enable FLASH LED */
     if (true == CameraFlashEnable) {
-      ledcWrite(FLASH_PWM_CHANNEL, FLASH_ON_STATUS);
+      ledcWrite(FLASH_GPIO_NUM, FLASH_ON_STATUS);
       delay(CameraFlashTime);
     }
 
@@ -403,7 +402,7 @@ void Camera::CapturePhoto() {
     /* Disable flash */
     if (true == CameraFlashEnable) {
       //delay(CameraFlashTime);
-      ledcWrite(FLASH_PWM_CHANNEL, FLASH_OFF_STATUS);
+      ledcWrite(FLASH_GPIO_NUM, FLASH_OFF_STATUS);
     }
     xSemaphoreGive(frameBufferSemaphore);
 

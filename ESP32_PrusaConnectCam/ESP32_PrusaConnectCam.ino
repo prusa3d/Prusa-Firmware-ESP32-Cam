@@ -9,10 +9,10 @@
    This project uses other libraries. It is necessary to install them in the arduino IDE.
    - Library           - License  - Version - Link
    - ESPAsyncWebServer - LGPL 3.0 - 2.10.8  - https://github.com/mathieucarbou/ESPAsyncWebServer
-   - AsyncTCP          - LGPL 3.0 - 1.1.4   - https://github.com/dvarrel/ESPAsyncTCP
+   - AsyncTCP          - LGPL 3.0 - 3.1.4   - https://github.com/mathieucarbou/AsyncTCP
    - ArduinoJson       - MIT      - 7.0.4   - https://github.com/bblanchon/ArduinoJson
    - ArduinoUniqueID   - MIT      - 1.3.0   - https://github.com/ricaun/ArduinoUniqueID
-   - ESP32             - LGPL 2.1 - 2.0.16  - https://github.com/espressif/arduino-esp32
+   - ESP32             - LGPL 2.1 - 3.0.1   - https://github.com/espressif/arduino-esp32
 
    Arduino IDE configuration for the MCU are stored in the module_XXX.h file.
 
@@ -38,14 +38,12 @@
 */
 
 /* includes */
-#include <WiFi.h>
 #include "Arduino.h"
 #include <esp_task_wdt.h>
 #include <ESPmDNS.h>
-#include <esp_wifi.h>
 #include "esp32-hal-cpu.h"
 
-#include "server.h"
+#include "WebServer.h"
 #include "cfg.h"
 #include "var.h"
 #include "mcu_cfg.h"
@@ -107,43 +105,47 @@ void setup() {
   /* init class for communication with PrusaConnect */
   Connect.Init();
 
+  /* init wdg */
+  SystemLog.AddEvent(LogLevel_Info, F("Init WDG"));
+  esp_task_wdt_config_t twdt_config;
+  twdt_config.timeout_ms = 60000;
+  twdt_config.idle_core_mask = (1 << portNUM_PROCESSORS) - 1,    /* Bitmask of all cores */
+  twdt_config.trigger_panic = true;
+	
+  esp_task_wdt_reconfigure(&twdt_config);
+  //ESP_ERROR_CHECK(esp_task_wdt_init(&twdt_config));     /* enable panic so ESP32 restarts */
+  ESP_ERROR_CHECK(esp_task_wdt_add(NULL));                /* add current thread to WDT watch */
+  ESP_ERROR_CHECK(esp_task_wdt_reset());                  /* reset wdg */
+
   /* init tasks */
   SystemLog.AddEvent(LogLevel_Info, F("Start tasks"));
   xTaskCreatePinnedToCore(System_TaskMain, "SystemNtpOtaUpdate", 6200, NULL, 1, &Task_SystemMain, 0);                           /*function, description, stack size, parameters, priority, task handle, core*/
+  ESP_ERROR_CHECK(esp_task_wdt_add(Task_SystemMain));
   xTaskCreatePinnedToCore(System_TaskCaptureAndSendPhoto, "CaptureAndSendPhoto", 4400, NULL, 2, &Task_CapturePhotoAndSend, 0);  /*function, description, stack size, parameters, priority, task handle, core*/
+  ESP_ERROR_CHECK(esp_task_wdt_add(Task_CapturePhotoAndSend));
   xTaskCreatePinnedToCore(System_TaskWifiManagement, "WiFiManagement", 2800, NULL, 3, &Task_WiFiManagement, 0);                 /*function, description, stack size, parameters, priority, task handle, core*/
+  ESP_ERROR_CHECK(esp_task_wdt_add(Task_WiFiManagement));
 #if (true == ENABLE_SD_CARD)  
   xTaskCreatePinnedToCore(System_TaskSdCardCheck, "CheckMicroSdCard", 3000, NULL, 4, &Task_SdCardCheck, 0);                     /*function, description, stack size, parameters, priority, task handle, core*/
+  ESP_ERROR_CHECK(esp_task_wdt_add(Task_SdCardCheck));
 #endif
   xTaskCreatePinnedToCore(System_TaskSerialCfg, "CheckSerialConfiguration", 2600, NULL, 5, &Task_SerialCfg, 0);                 /*function, description, stack size, parameters, priority, task handle, core*/
+  ESP_ERROR_CHECK(esp_task_wdt_add(Task_SerialCfg));
   xTaskCreatePinnedToCore(System_TaskStreamTelemetry, "PrintStreamTelemetry", 2200, NULL, 6, &Task_StreamTelemetry, 0);         /*function, description, stack size, parameters, priority, task handle, core*/
+  ESP_ERROR_CHECK(esp_task_wdt_add(Task_StreamTelemetry));
   xTaskCreatePinnedToCore(System_TaskSysLed, "SystemLed", 2100, NULL, 7, &Task_SysLed, 0);                                      /*function, description, stack size, parameters, priority, task handle, core*/
+  ESP_ERROR_CHECK(esp_task_wdt_add(Task_SysLed));
   xTaskCreatePinnedToCore(System_TaskWiFiWatchdog, "WiFiWatchdog", 2200, NULL, 8, &Task_WiFiWatchdog, 0);                       /*function, description, stack size, parameters, priority, task handle, core*/
+  ESP_ERROR_CHECK(esp_task_wdt_add(Task_WiFiWatchdog));
   //xTaskCreatePinnedToCore(System_TaskSdCardRemove, "SdCardRemove", 3000, NULL, 9, &Task_SdCardFileRemove, 0);                   /*function, description, stack size, parameters, priority, task handle, core*/
-
-  /* init wdg */
-  SystemLog.AddEvent(LogLevel_Info, F("Init WDG"));
-  esp_task_wdt_init(WDG_TIMEOUT, true); /* enable panic so ESP32 restarts */
-  esp_task_wdt_add(NULL);               /* add current thread to WDT watch */
-  esp_task_wdt_add(Task_CapturePhotoAndSend);
-  esp_task_wdt_add(Task_WiFiManagement);
-  esp_task_wdt_add(Task_SystemMain);
-#if (true == ENABLE_SD_CARD)    
-  esp_task_wdt_add(Task_SdCardCheck);
-#endif
-  esp_task_wdt_add(Task_SerialCfg);
-  esp_task_wdt_add(Task_StreamTelemetry);
-  esp_task_wdt_add(Task_SysLed);
-  esp_task_wdt_add(Task_WiFiWatchdog);
   //esp_task_wdt_add(Task_SdCardFileRemove);
-  esp_task_wdt_reset(); /* reset wdg */
 
   SystemLog.AddEvent(LogLevel_Info, F("MCU configuration done"));
 }
 
 void loop() {
   /* reset wdg */
-  esp_task_wdt_reset();
+  ESP_ERROR_CHECK(esp_task_wdt_reset());
 }
 
 /* EOF */

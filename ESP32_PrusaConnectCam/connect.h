@@ -8,14 +8,12 @@
 
    @bug: no know bug
 */
-
-#ifndef _PRUSA_CONNECT_H_
-#define _PRUSA_CONNECT_H_
+#pragma once
 
 #include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 #include <esp_task_wdt.h>
-#include "Arduino.h"
+#include <Arduino.h>
 #include <ArduinoJson.h>
 
 #include "wifi_mngt.h"
@@ -26,27 +24,11 @@
 #include "cfg.h"
 #include "Certificate.h"
 #include "server.h"
+#include "connect_types.h"
 
 class WiFiMngt;
-
-/**
- * @brief BackendAvailabilitStatus enum
- * status of backend availability
- */
-enum BackendAvailabilitStatus {
-  WaitForFirstConnection = 0,     ///< waiting for first connection to backend
-  BackendAvailable = 1,           ///< backend is available
-  BackendUnavailable = 2,         ///< backend is unavailable
-};
-
-/**
- * @brief SendDataToBackendType enum
- * type of data to send to backend
- */
-enum SendDataToBackendType {
-  SendPhoto = 0,                  ///< send photo to backend
-  SendInfo = 1,                   ///< send device information to backend
-};
+class Configuration;
+class Camera;
 
 class PrusaConnect {
 private:
@@ -109,4 +91,4 @@ public:
 
 extern PrusaConnect Connect;  ///< PrusaConnect object
 
-#endif
+/* EOF */

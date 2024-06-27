@@ -21,8 +21,7 @@
 
 */
 
-#ifndef __MODULE_AI_THINKER_ESP32_CAM_H__
-#define __MODULE_AI_THINKER_ESP32_CAM_H__
+#pragma once
 
 #include "mcu_cfg.h"
 
@@ -70,5 +69,4 @@
 #define STATUS_LED_OFF_PIN_LEVEL     LOW     ///< GPIO pin level for status LED ON
 
 #endif  // AI_THINKER_ESP32_CAM
-#endif // MODULE_AI_THINKER_ESP32_CAM_H
 /* EOF */

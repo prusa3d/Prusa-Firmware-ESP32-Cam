@@ -21,12 +21,11 @@
     D1       4
 */
 
-#ifndef _MICRO_SD_H_
-#define _MICRO_SD_H_
+#pragma once
 
-#include "Arduino.h"
-#include "FS.h"
-#include "SD_MMC.h"
+#include <Arduino.h>
+#include <FS.h>
+#include <SD_MMC.h>
 
 #include "mcu_cfg.h"
 #include "module_templates.h"
@@ -86,7 +85,5 @@ public:
   uint8_t GetFreeSpacePercent();
   uint8_t GetUsedSpacePercent();
 };
-
-#endif
 
 /* EOF */

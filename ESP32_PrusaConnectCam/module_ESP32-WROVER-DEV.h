@@ -21,8 +21,7 @@
 
 */
 
-#ifndef __MODULE_ESP32_WROVER_DEV_H__
-#define __MODULE_ESP32_WROVER_DEV_H__
+#pragma once
 
 #include "mcu_cfg.h"
 
@@ -70,5 +69,4 @@
 #define STATUS_LED_OFF_PIN_LEVEL    HIGH    ///< GPIO pin level for status LED ON
 
 #endif  // ESP32_WROVER_DEV
-#endif // MODULE_ESP32_WROVER_DEV_H
 /* EOF */

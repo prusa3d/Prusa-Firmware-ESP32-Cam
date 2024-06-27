@@ -9,22 +9,12 @@
    @bug: no know bug
 */
 
-#ifndef _LOG_H_
-#define _LOG_H_
+#pragma once
 
-#include "Arduino.h"
+#include <Arduino.h>
 
-#include "mcu_cfg.h"
-#include "var.h"
 #include "micro_sd.h"
-#include "module_templates.h"
-
-enum LogLevel_enum {
-  LogLevel_Error = 0,       ///< Error
-  LogLevel_Warning = 1,     ///< Warning
-  LogLevel_Info = 2,        ///< Info
-  LogLevel_Verbose = 3      ///< Verbose
-};
+#include "log_level.h"
 
 class Logs : public MicroSd {
 private:
@@ -70,7 +60,5 @@ public:
 };
 
 extern Logs SystemLog;  ///< log object
-
-#endif
 
 /* EOF */
