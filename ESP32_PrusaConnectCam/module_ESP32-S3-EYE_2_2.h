@@ -19,10 +19,10 @@
    Tools -> Arduino Runs On -> Core 0
    Tools -> USB Firmware MSC On Boot -> Disable
    Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)
-   Tools -> PSRAM -> QSPI PSRAM
+   Tools -> PSRAM -> OPI PSRAM
    Tools -> Upload Mode -> USB-OTG CDC (TinyUSB)
    Tools -> Upload Speed -> 921600
-   Tools -> USB Mode -> USB-OTG (TinyUSB)
+   Tools -> USB Mode -> Hardware CDC and JTAG
    Tools -> Zigbee mode -> Disable
 
    https://github.com/espressif/esp-who/blob/master/docs/en/get-started/ESP32-S3-EYE_Getting_Started_Guide.md
@@ -57,6 +57,7 @@
 
 /* ------------------ MCU CFG  ------------------*/
 #define ENABLE_BROWN_OUT_DETECTION  false   ///< Enable brown out detection
+#define ENABLE_PSRAM                true    ///< Enable PSRAM   
 
 /* --------------- OTA UPDATE CFG  --------------*/
 #define OTA_UPDATE_FW_FILE          PSTR("ESP32_S3_EYE_22_PrusaConnectCam.ino.bin") ///< OTA update firmware file name
@@ -71,18 +72,18 @@
 #define FLASH_PWM_RESOLUTION        8       ///< range 1-20bit. 8bit = 0-255 range
 
 /* --------------- SD CARD CFG  ---------------*/
-#define ENABLE_SD_CARD              true   ///< Enable SD card function
+#define ENABLE_SD_CARD              true    ///< Enable SD card function
 #define SD_PIN_CLK                  39      ///< GPIO pin for SD card clock
 #define SD_PIN_CMD                  38      ///< GPIO pin for SD card command
 #define SD_PIN_DATA0                40      ///< GPIO pin for SD card data 0
 
 /* ---------- RESET CFG CONFIGURATION  ----------*/
-#define CFG_RESET_PIN               2      ///< GPIO 16 is for reset CFG to default
+#define CFG_RESET_PIN               1       ///< GPIO 16 is for reset CFG to default
 
 /* -------------- STATUS LED CFG ----------------*/
 #define STATUS_LED_ENABLE           true    ///< enable/disable status LED
-#define STATUS_LED_GPIO_NUM         34      ///< GPIO pin for status LED
-#define STATUS_LED_OFF_PIN_LEVEL    LOW    ///< GPIO pin level for status LED ON
+#define STATUS_LED_GPIO_NUM         3       ///< GPIO pin for status LED
+#define STATUS_LED_OFF_PIN_LEVEL    HIGH    ///< GPIO pin level for status LED ON
 
 #endif  // ESP32_WROVER_DEV
 /* EOF */

@@ -110,7 +110,11 @@ void Camera::InitCameraModule() {
   CameraConfig.jpeg_quality = PhotoQuality;         /* 10-63 lower number means higher quality */
   CameraConfig.fb_count = 1;                        /* picture frame buffer alocation */
   CameraConfig.grab_mode = CAMERA_GRAB_LATEST;      /* CAMERA_GRAB_WHEN_EMPTY or CAMERA_GRAB_LATEST */
+#if (true == ENABLE_PSRAM)
   CameraConfig.fb_location = CAMERA_FB_IN_PSRAM;    /* CAMERA_FB_IN_PSRAM or CAMERA_FB_IN_DRAM  */
+#else
+  CameraConfig.fb_location = CAMERA_FB_IN_DRAM;     /* CAMERA_FB_IN_PSRAM or CAMERA_FB_IN_DRAM  */
+#endif
   
   if (CameraConfig.fb_location == CAMERA_FB_IN_DRAM) {
     log->AddEvent(LogLevel_Verbose, F("Camera frame buffer location: DRAM"));
@@ -125,7 +129,7 @@ void Camera::InitCameraModule() {
   if (err != ESP_OK) {
     log->AddEvent(LogLevel_Warning, F("Camera init failed. Error: "), String(err, HEX));
     log->AddEvent(LogLevel_Warning, F("Reset ESP32-cam!"));
-    //ESP.restart();
+    ESP.restart();
   } 
 }
 

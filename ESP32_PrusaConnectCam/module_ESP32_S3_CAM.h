@@ -57,6 +57,7 @@
 
 /* ------------------ MCU CFG  ------------------*/
 #define ENABLE_BROWN_OUT_DETECTION  false   ///< Enable brown out detection
+#define ENABLE_PSRAM               true     ///< Enable PSRAM   
 
 /* --------------- OTA UPDATE CFG  --------------*/
 #define OTA_UPDATE_FW_FILE          PSTR("ESP32_S3_CAM_PrusaConnectCam.ino.bin") ///< OTA update firmware file name
