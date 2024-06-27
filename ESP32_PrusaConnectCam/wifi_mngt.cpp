@@ -491,6 +491,15 @@ String WiFiMngt::TranslateTxPower(wifi_power_t data) {
     case WIFI_POWER_19_5dBm:
       ret = F("19.5dBm");
       break;
+    case WIFI_POWER_20dBm:
+      ret = F("20dBm");
+      break;
+    case WIFI_POWER_20_5dBm:
+      ret = F("20.5dBm");
+      break;
+    case WIFI_POWER_21dBm:
+      ret = F("21dBm");
+      break;
   }
 
   return ret;

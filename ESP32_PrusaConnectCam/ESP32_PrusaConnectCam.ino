@@ -12,7 +12,7 @@
    - AsyncTCP          - LGPL 3.0 - 3.1.4   - https://github.com/mathieucarbou/AsyncTCP
    - ArduinoJson       - MIT      - 7.0.4   - https://github.com/bblanchon/ArduinoJson
    - ArduinoUniqueID   - MIT      - 1.3.0   - https://github.com/ricaun/ArduinoUniqueID
-   - ESP32             - LGPL 2.1 - 3.0.1   - https://github.com/espressif/arduino-esp32
+   - ESP32             - LGPL 2.1 - 3.0.2   - https://github.com/espressif/arduino-esp32
 
    Arduino IDE configuration for the MCU are stored in the module_XXX.h file.
 
