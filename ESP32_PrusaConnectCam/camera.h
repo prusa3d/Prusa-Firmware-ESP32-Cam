@@ -68,6 +68,7 @@ private:
   camera_config_t CameraConfig;             ///< camera configuration
   camera_fb_t *FrameBuffer;                 ///< frame buffer
   camera_fb_t *FrameBufferDuplicate;        ///< frame buffer duplicate
+  camera_fb_t *FrameBufferExif;             ///< frame buffer with exif data
   sensor_t* sensor;                         ///< sensor
   String Photo;                             ///< photo in string format
   bool StreamOnOff;                         ///< stream on/off

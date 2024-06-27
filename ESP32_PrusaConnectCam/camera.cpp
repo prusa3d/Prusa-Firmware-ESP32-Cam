@@ -30,6 +30,7 @@ Camera::Camera(Configuration* i_conf, Logs* i_log, uint8_t i_FlashPin) {
   StreamOnOff = false;
   frameBufferSemaphore = xSemaphoreCreateMutex();
   FrameBufferDuplicate = (camera_fb_t*)heap_caps_malloc(sizeof(camera_fb_t), MALLOC_CAP_SPIRAM);
+  FrameBufferExif = (camera_fb_t*)heap_caps_malloc(sizeof(camera_fb_t), MALLOC_CAP_SPIRAM);
   StreamSendingPhoto = false;
 
   PhotoExifData.header = NULL;
@@ -438,7 +439,64 @@ void Camera::CaptureStream(camera_fb_t* i_buf) {
 
       /* check if photo is correctly saved */
     } while (!(FrameBuffer->len > 100));
+
+    /* check if the photo is rotated */
+    bool ExifStatus = false;
+#if false
+    if (1 != imageExifRotation) { /* 1 = image rotation 0 degree */
+      /* generate exif header */
+      update_exif_from_cfg(imageExifRotation);
+      get_exif_header(FrameBuffer, &PhotoExifData.header, &PhotoExifData.len);
+      PhotoExifData.offset = get_jpeg_data_offset(FrameBuffer);
+      if (PhotoExifData.header != NULL) {
+        /* memory allocation release */
+        if (FrameBufferExif != NULL) {
+          if (FrameBufferExif->buf != NULL) {
+            free(FrameBufferExif->buf);
+            FrameBufferExif->buf = NULL; /* Set to NULL after freeing */
+          }
+
+          free(FrameBufferExif);
+          FrameBufferExif = NULL; /* Set to NULL after freeing */
+        }
+
+        /* Allocate memory for the duplicate frame structure */
+        FrameBufferExif = (camera_fb_t*)heap_caps_malloc(sizeof(camera_fb_t), MALLOC_CAP_SPIRAM);
+
+        /* Calculate the total size of the buffer */
+        size_t totalSize = PhotoExifData.len + FrameBuffer->len - PhotoExifData.offset;
+
+        /* Allocate memory for the image data */
+        FrameBufferExif->buf = (uint8_t*)heap_caps_malloc(totalSize, MALLOC_CAP_SPIRAM);
+        if (FrameBufferExif->buf == NULL) {
+          log->AddEvent(LogLevel_Error, F("Failed to allocate memory for EXIF buffer"));
+          return;
+        }
+
+        /* copy the EXIF data to the buffer */
+        memcpy(FrameBufferExif->buf, PhotoExifData.header, PhotoExifData.len);
+
+        /* copy the image data to the buffer */
+        memcpy(FrameBufferExif->buf + PhotoExifData.len, FrameBuffer->buf + PhotoExifData.offset, FrameBuffer->len - PhotoExifData.offset);
+
+        /* Set the length of the buffer */
+        FrameBufferExif->len = totalSize;
+
+        *i_buf = *FrameBufferExif;
+        ExifStatus = true;
+        
+      } else {
+        /* copy the frame buffer to the buffer */
+        *i_buf = *FrameBuffer;
+      }
+
+    } else {
+      /* copy the frame buffer to the buffer */
+      *i_buf = *FrameBuffer;
+    }
+#else
     *i_buf = *FrameBuffer;
+#endif
 
     /* copy the frame buffer to the duplicate frame buffer. For sending photo to Prusa Connect */
     if (false == StreamSendingPhoto) {
@@ -457,10 +515,18 @@ void Camera::CaptureStream(camera_fb_t* i_buf) {
       FrameBufferDuplicate = (camera_fb_t*)heap_caps_malloc(sizeof(camera_fb_t), MALLOC_CAP_SPIRAM);
 
       /* Copy the metadata */
-      memcpy(FrameBufferDuplicate, FrameBuffer, sizeof(camera_fb_t));
+      if (true == ExifStatus) {
+        memcpy(FrameBufferDuplicate, FrameBufferExif, sizeof(camera_fb_t));
+      } else {
+        memcpy(FrameBufferDuplicate, FrameBuffer, sizeof(camera_fb_t));
+      }
 
       /* Allocate memory for the image data */
-      FrameBufferDuplicate->buf = (uint8_t*)heap_caps_malloc(FrameBuffer->len, MALLOC_CAP_SPIRAM);
+      if (true == ExifStatus) {
+        FrameBufferDuplicate->buf = (uint8_t*)heap_caps_malloc(FrameBufferExif->len, MALLOC_CAP_SPIRAM);
+      } else {
+        FrameBufferDuplicate->buf = (uint8_t*)heap_caps_malloc(FrameBuffer->len, MALLOC_CAP_SPIRAM);
+      }
 
       /* Check if memory allocation was successful */
       if (!FrameBufferDuplicate->buf) {
@@ -469,7 +535,12 @@ void Camera::CaptureStream(camera_fb_t* i_buf) {
         Serial.println("Failed to allocate memory for the duplicate frame buffer");
       } else {
         /* Copy the image data */
-        memcpy(FrameBufferDuplicate->buf, FrameBuffer->buf, FrameBuffer->len);
+        if (true == ExifStatus) {
+          memcpy(FrameBufferDuplicate->buf, FrameBufferExif->buf, FrameBufferExif->len);
+          
+        } else {
+          memcpy(FrameBufferDuplicate->buf, FrameBuffer->buf, FrameBuffer->len);
+        }
       }
     }
 
