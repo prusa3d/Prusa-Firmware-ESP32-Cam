@@ -15,9 +15,9 @@
 
 /* ----------------- CAMERA TYPE  ---------------*/
 //#define AI_THINKER_ESP32_CAM
-//#define ESP32_WROVER_DEV
+#define ESP32_WROVER_DEV
 //#define CAMERA_MODEL_ESP32_S3_CAM
-#define CAMERA_MODEL_ESP32_S3_EYE_2_2
+//#define CAMERA_MODEL_ESP32_S3_EYE_2_2
 //#CAMERA_MODEL_XIAO_ESP32_S3_CAM
 
 /* ---------------- BASIC MCU CFG  --------------*/

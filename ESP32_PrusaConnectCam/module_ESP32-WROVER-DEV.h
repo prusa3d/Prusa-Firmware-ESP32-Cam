@@ -54,21 +54,24 @@
 #define FW_STATUS_LED_LEVEL_ON      LOW    ///< GPIO pin level for status LED ON
 
 /* --------------- FLASH LED CFG  ---------------*/
-#define ENABLE_CAMERA_FLASH         false   ///< Enable camera flash function
-#define CAMERA_FLASH_DIGITAL_CTRL   false   ///< Enable camera flash digital control
+#define ENABLE_CAMERA_FLASH         true    ///< Enable camera flash function
+#define CAMERA_FLASH_DIGITAL_CTRL   true    ///< Enable camera flash digital control
 #define CAMERA_FLASH_PWM_CTRL       false   ///< Enable camera flash PWM control
-#define FLASH_GPIO_NUM              -1      ///< Flash control pin
-#define FLASH_OFF_STATUS            0       ///< PWM intensity LED for OFF. 0-2^FLASH_PWM_RESOLUTION = 0-255
-#define FLASH_ON_STATUS             205     ///< PWM intensity LED for ON. limitation to 80%. 2^FLASH_PWM_RESOLUTION * 0.8% = 204
-#define FLASH_PWM_FREQ              2000    ///< frequency of pwm [240MHz / (100 prescale * pwm cycles)] = frequency
-#define FLASH_PWM_CHANNEL           0       ///< channel 0
-#define FLASH_PWM_RESOLUTION        8       ///< range 1-20bit. 8bit = 0-255 range
+#define FLASH_GPIO_NUM              14      ///< Flash control pin
+#define FLASH_OFF_STATUS            LOW     ///< PWM intensity LED for OFF. 0-2^FLASH_PWM_RESOLUTION = 0-255
+#define FLASH_ON_STATUS             HIGH    ///< PWM intensity LED for ON. limitation to 80%. 2^FLASH_PWM_RESOLUTION * 0.8% = 204
+//#define FLASH_PWM_FREQ              2000    ///< frequency of pwm [240MHz / (100 prescale * pwm cycles)] = frequency
+//#define FLASH_PWM_CHANNEL           0       ///< channel 0
+//#define FLASH_PWM_RESOLUTION        8       ///< range 1-20bit. 8bit = 0-255 range
 
 /* --------------- SD CARD CFG  ---------------*/
 #define ENABLE_SD_CARD              false   ///< Enable SD card function
+#define SD_PIN_CLK                  -1      ///< GPIO pin for SD card clock
+#define SD_PIN_CMD                  -1      ///< GPIO pin for SD card command
+#define SD_PIN_DATA0                -1      ///< GPIO pin for SD card data 0
 
 /* ---------- RESET CFG CONFIGURATION  ----------*/
-#define CFG_RESET_PIN               12      ///< GPIO 16 is for reset CFG to default
+#define CFG_RESET_PIN               12      ///< GPIO 12 is for reset CFG to default
 #define CFG_RESET_LED_PIN           2       ///< GPIO for indication of reset CFG
 #define CFG_RESET_LED_LEVEL_ON      LOW     ///< GPIO pin level for status LED ON
 
