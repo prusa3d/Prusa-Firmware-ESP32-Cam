@@ -101,6 +101,7 @@
 #define CAMERA_MAKE                 "OmniVision"            ///< Camera make string
 #define CAMERA_MODEL                "OV2640"                ///< Camera model string
 #define CAMERA_SOFTWARE             "Prusa ESP32-cam"       ///< Camera software string
+#define CAMERA_EXIF_ROTATION_STREAM false                   ///< enable camera exif rotation for stream
 
 /* ---------------- TIMELAPS CFG ----------------*/
 #define TIMELAPS_PHOTO_FOLDER       "/timelapse"            ///< folder for timelaps photos

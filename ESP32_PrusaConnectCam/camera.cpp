@@ -488,7 +488,8 @@ void Camera::CaptureStream(camera_fb_t* i_buf) {
 
     /* check if the photo is rotated */
     bool ExifStatus = false;
-#if false
+
+#if (true == CAMERA_EXIF_ROTATION_STREAM)
     if (1 != imageExifRotation) { /* 1 = image rotation 0 degree */
       /* generate exif header */
       update_exif_from_cfg(imageExifRotation);
