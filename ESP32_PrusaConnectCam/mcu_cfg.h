@@ -13,6 +13,10 @@
 #ifndef _MCU_CFG_H_
 #define _MCU_CFG_H_
 
+// Uncomment this to switch from ESP32-Cam to ESP32-WROVER board.  You also have to do it in the
+// Camera_cfg.h file.
+// #define USE_ESP32_WROVER 1
+
 /* ---------------- BASIC MCU CFG  --------------*/
 #define SW_VERSION                  "1.0.3"             ///< SW version
 #define SW_BUILD                    __DATE__ " " __TIME__   ///< build number
@@ -27,7 +31,13 @@
 #define REFRESH_INTERVAL_MAX        240                     ///< maximum refresh interval for sending photo to prusa connect [s]
 
 /* --------------- FLASH LED CFG  ---------------*/
+
+#if USE_ESP32_WROVER
+#define FLASH_GPIO_NUM              32                       ///< GPIO pin for light
+#else
 #define FLASH_GPIO_NUM              4                       ///< GPIO pin for light
+#endif //USE_ESP32_WROVER
+
 #define FLASH_OFF_STATUS            0                       ///< PWM intensity LED for OFF. 0-2^FLASH_PWM_RESOLUTION = 0-255
 #define FLASH_ON_STATUS             205                     ///< PWM intensity LED for ON. limitation to 80%. 2^FLASH_PWM_RESOLUTION * 0.8% = 204
 #define FLASH_PWM_FREQ              2000                    ///< frequency of pwm [240MHz / (100 prescale * pwm cycles)] = frequency
@@ -35,7 +45,12 @@
 #define FLASH_PWM_RESOLUTION        8                       ///< range 1-20bit. 8bit = 0-255 range
 
 /* -------------- STATUS LED CFG ----------------*/
+#if USE_ESP32_WROVER
+#define STATUS_LED_GPIO_NUM         2                      ///< GPIO pin for status LED
+#else
 #define STATUS_LED_GPIO_NUM         33                      ///< GPIO pin for status LED
+#endif //USE_ESP32_WROVER
+
 #define STATUS_LED_ENABLE           true                    ///< enable/disable status LED
 #define STATUS_LED_ON_DURATION      100                     ///< time for blink status LED when is module in the ON state [ms]
 #define STATUS_LED_WIFI_AP          400                     ///< time for blink status LED when is module in the AP mode [ms]
