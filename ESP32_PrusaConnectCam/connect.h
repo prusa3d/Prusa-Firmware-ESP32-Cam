@@ -23,7 +23,7 @@
 #include "camera.h"
 #include "cfg.h"
 #include "Certificate.h"
-#include "server.h"
+#include "WebServer.h"
 #include "connect_types.h"
 
 class WiFiMngt;

@@ -24,6 +24,8 @@
 #include "log.h"
 #include "camera.h"
 
+class Camera;
+
 typedef struct {
   camera_fb_t *fb;  ///< pointer to frame buffer
   size_t index;     ///< index of frame
