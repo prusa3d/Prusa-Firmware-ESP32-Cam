@@ -78,12 +78,13 @@ void System_UpdateInit() {
   Update.onProgress([](int progress, size_t total) {
     /* update from file */
     SystemCamera.SetFlashStatus(true);
+    digitalWrite(FW_STATUS_LED_PIN, FW_STATUS_LED_LEVEL_ON);
     uint8_t updateProgress = (progress * 100) / FirmwareUpdate.FirmwareSize;
     SystemLog.AddEvent(LogLevel_Info, "Updating: " + String(FirmwareUpdate.FirmwareSize) + "/" + String(progress) + " -> " + String(updateProgress) + "%");
     FirmwareUpdate.PercentProcess = updateProgress;
     FirmwareUpdate.TransferedBytes = progress;
     delay(10);
-    SystemCamera.SetFlashStatus(false);
+    digitalWrite(FW_STATUS_LED_PIN, !FW_STATUS_LED_LEVEL_ON);
   });
 }
 
@@ -252,7 +253,7 @@ bool System_OtaUpdateStart() {
   /* mcu configuration */
   httpUpdate.rebootOnUpdate(false);
   FirmwareUpdate.UpdatingStatus = SYSTEM_MSG_UPDATE_PROCESS;
-  httpUpdate.setLedPin(4, HIGH);
+  httpUpdate.setLedPin(FW_STATUS_LED_PIN, FW_STATUS_LED_LEVEL_ON);
 
   SystemLog.AddEvent(LogLevel_Info, F("Start OTA update URL: "), FirmwareUpdate.OtaUpdateFwUrl + ";");
 

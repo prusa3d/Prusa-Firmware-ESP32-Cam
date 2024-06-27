@@ -12,6 +12,7 @@
    Tools -> CPU Frequency -> 240MHz (WiFi/BT)
    Tools -> Core debug level -> None
    Tools -> USB DFU on BOOT -> Disable
+   Tools -> Erase all Flash Before Sketch Upload -> Disable (first flash, new board = enable. otherwise = disable)
    Tools -> Events Run On -> Core 0
    Tools -> Flash Mode -> DIO 80MHz
    Tools -> Flash Size -> 8MB
@@ -61,6 +62,8 @@
 
 /* --------------- OTA UPDATE CFG  --------------*/
 #define OTA_UPDATE_FW_FILE          PSTR("ESP32S3_EYE22_PrusaConnectCam.ino.bin") ///< OTA update firmware file name
+#define FW_STATUS_LED_PIN           3      ///< GPIO pin for status FW update LED
+#define FW_STATUS_LED_LEVEL_ON      LOW    ///< GPIO pin level for status LED ON
 
 /* --------------- FLASH LED CFG  ---------------*/
 #define ENABLE_CAMERA_FLASH         true    ///< Enable camera flash function
@@ -89,5 +92,5 @@
 #define STATUS_LED_GPIO_NUM         3       ///< GPIO pin for status LED
 #define STATUS_LED_OFF_PIN_LEVEL    HIGH    ///< GPIO pin level for status LED ON
 
-#endif  // ESP32_WROVER_DEV
+#endif  // CAMERA_MODEL_ESP32_S3_EYE_2_2
 /* EOF */

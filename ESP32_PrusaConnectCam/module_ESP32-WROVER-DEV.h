@@ -8,7 +8,6 @@
 
    https://github.com/Freenove/Freenove_ESP32_WROVER_Board
 
-
    Board configuration in the arduino IDE 2.3.2
    Tools -> Board -> ESP32 Arduino -> ESP32 Wrover Module
    Tools -> CPU Frequency -> 240MHz (WiFi/BT)
@@ -51,6 +50,8 @@
 
 /* --------------- OTA UPDATE CFG  --------------*/
 #define OTA_UPDATE_FW_FILE          PSTR("ESP32_WROVERDEV_PrusaConnectCam.ino.bin") ///< OTA update firmware file name
+#define FW_STATUS_LED_PIN           2      ///< GPIO pin for status FW update LED
+#define FW_STATUS_LED_LEVEL_ON      LOW    ///< GPIO pin level for status LED ON
 
 /* --------------- FLASH LED CFG  ---------------*/
 #define ENABLE_CAMERA_FLASH         false   ///< Enable camera flash function
