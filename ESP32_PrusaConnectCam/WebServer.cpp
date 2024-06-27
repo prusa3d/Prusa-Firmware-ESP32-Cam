@@ -1170,6 +1170,7 @@ String Server_GetJsonData() {
   doc_json["sd_total"] = SystemLog.GetCardSizeMB();
   doc_json["sd_free_p"] = SystemLog.GetFreeSpacePercent();
   doc_json["sd_used_p"] = SystemLog.GetUsedSpacePercent();
+  doc_json["mcu_temp"] = String(McuTemperature.TemperatureCelsius) + " *C";
   doc_json["sw_build"] = SW_BUILD;
   doc_json["sw_ver"] = SW_VERSION;
   doc_json["sw_new_ver"] = FirmwareUpdate.NewVersionFw;

@@ -316,6 +316,7 @@ const char page_system_html[] PROGMEM = R"rawliteral(
             <tr><td class="ps1">Wi-Fi mode</td><td class="ps2" id="wifi_mode"></td></tr>
 			<tr><td class="ps1">Wi-Fi service AP SSID</td><td class="ps2" id="service_ap_ssid"></td></tr>
             <tr><td class="ps1">Uptime</td><td class="ps2" id="uptime"></td></tr>
+			<tr><td class="ps1">ESP32 Temperature</td><td class="ps2" id="mcu_temp"></td></tr>
 			<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
 			<tr><td class="ps3">Firmware</td><td></td></tr>
             <tr><td class="ps1">Version</td><td class="ps2" id="sw_ver"></td></tr>
@@ -981,6 +982,7 @@ function get_data(val) {
 				$("#sd_total").text(obj.sd_total);
 				$("#sd_free_p").text(obj.sd_free_p);
 				$("#sd_used_p").text(obj.sd_used_p);
+				$("#mcu_temp").text(obj.mcu_temp);
 
 				var sd_free_prog = document.getElementById("progress_bar_sd_free");
 				sd_free_prog.style.width = obj.sd_free_p + "%";

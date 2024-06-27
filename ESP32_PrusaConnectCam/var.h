@@ -36,8 +36,13 @@ struct FirmwareUpdate_struct {
   bool OtaUpdateFwAvailable;              ///< flag for available new FW version
 };
 
+struct McuTemperature_struct {
+  float TemperatureCelsius;               ///< MCU temperature
+};
+
 extern struct WebBasicAuth_struct WebBasicAuth;      ///< structure with configuration for basic auth
 extern struct FirmwareUpdate_struct FirmwareUpdate;  ///< firmware update status and process
+extern struct McuTemperature_struct McuTemperature;  ///< MCU temperature
 
 extern TaskHandle_t Task_CapturePhotoAndSend;        ///< task handle for capture photo and send
 extern TaskHandle_t Task_WiFiManagement;             ///< task handle for wifi management

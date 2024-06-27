@@ -446,12 +446,13 @@ void System_TaskWifiManagement(void *pvParameters) {
   while (1) {
     /* wifi management. Enable/disable AP_STA mode and STA mode*/
     SystemWifiMngt.WifiManagement();
+    McuTemperature.TemperatureCelsius = temperatureRead();
 
     /* wifi reconnect after signal lost */
     SystemWifiMngt.WiFiReconnect();
     SystemLog.AddEvent(LogLevel_Info, "Free RAM: " + String(ESP.getFreeHeap()) + " B");
     SystemLog.AddEvent(LogLevel_Info, "Free SPIRAM: " + String(ESP.getFreePsram()) + " B");
-    SystemLog.AddEvent(LogLevel_Info, "Temperature: " + String(temperatureRead()) + " *C");
+    SystemLog.AddEvent(LogLevel_Info, "Temperature: " + String(McuTemperature.TemperatureCelsius) + " *C");
     SystemLog.AddEvent(LogLevel_Verbose, F("WiFiManagement task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + "B");
     SystemLog.AddEvent(LogLevel_Verbose, F("WiFi status: "), String(WiFi.status()));
 

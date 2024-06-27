@@ -10,7 +10,7 @@
    - Library           - License  - Version - Link
    - ESPAsyncWebServer - LGPL 3.0 - 2.10.8  - https://github.com/mathieucarbou/ESPAsyncWebServer
    - AsyncTCP          - LGPL 3.0 - 3.1.4   - https://github.com/mathieucarbou/AsyncTCP
-   - ArduinoJson       - MIT      - 7.0.4   - https://github.com/bblanchon/ArduinoJson
+   - ArduinoJson       - MIT      - 7.1.0   - https://github.com/bblanchon/ArduinoJson
    - ArduinoUniqueID   - MIT      - 1.3.0   - https://github.com/ricaun/ArduinoUniqueID
    - arduino-esp32     - LGPL 2.1 - 3.0.2   - https://github.com/espressif/arduino-esp32
 
