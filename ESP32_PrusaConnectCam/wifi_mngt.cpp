@@ -332,7 +332,7 @@ uint8_t WiFiMngt::ScanWifiNetwork(String ssid) {
 
       // Print SSID and RSSI for each network found
       char formattedString[100] = { '\0' };
-      sprintf(formattedString, "%2d | %-32.32s | %4d | %2d | %-17s | %s", i + 1,
+      sprintf(formattedString, "%2d | %-32.32s | %4ld | %2ld | %-17s | %s", i + 1,
               WiFi.SSID(i).c_str(), WiFi.RSSI(i), WiFi.channel(i), WiFi.BSSIDstr(i).c_str(), TranslateWiFiEncrypion(WiFi.encryptionType(i)).c_str());
       log->AddEvent(LogLevel_Info, formattedString);
     }

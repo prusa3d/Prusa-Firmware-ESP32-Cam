@@ -23,6 +23,9 @@
 #elif defined(CAMERA_MODEL_ESP32_S3_CAM)
 #include "module_ESP32_S3_CAM.h"
 
+#elif defined(CAMERA_MODEL_ESP32_S3_EYE_2_2)
+#include "module_ESP32-S3-EYE_2_2.h"
+
 #else
 #error "No module selected"
 
