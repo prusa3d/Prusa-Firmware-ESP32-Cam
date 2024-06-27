@@ -1,3 +1,14 @@
+/**
+   @file connect_types.h
+
+   @brief Here are defined types for communication with prusa connect backend
+
+   @author Miroslav Pivovarsky
+   Contact: miroslav.pivovarsky@gmail.com
+
+   @bug: no know bug
+*/
+
 #pragma once
 
 /**

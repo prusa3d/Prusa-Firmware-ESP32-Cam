@@ -428,6 +428,52 @@ void Server_InitWebServer_Actions() {
     request->send_P(200, "text/plain", "Change LED status");
   });
 
+  /* route for change LED status */
+  server.on("/light", HTTP_GET, [](AsyncWebServerRequest* request) {
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: /light set LED status"));
+    if (Server_CheckBasicAuth(request) == false)
+      return;
+
+    if (request->hasArg("on")) {
+      SystemLog.AddEvent(LogLevel_Verbose, F("Turning light ON"));
+      SystemCamera.SetFlashStatus(true);
+      SystemCamera.SetCameraFlashEnable(false);
+      request->send_P(200, "text/plain", "Light ON");
+
+    } else if (request->hasArg("off")) {
+      SystemLog.AddEvent(LogLevel_Verbose, F("Turning light OFF"));
+      SystemCamera.SetFlashStatus(false);
+      SystemCamera.SetCameraFlashEnable(false);
+      request->send_P(200, "text/plain", "Light OFF");
+
+    } else {
+      request->send_P(400, "text/plain", "Invalid request");
+    }
+  });
+
+  /* route for change FLASH status */
+  server.on("/flash", HTTP_GET, [](AsyncWebServerRequest* request) {
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: /flash set flash status"));
+    if (Server_CheckBasicAuth(request) == false)
+      return;
+
+    if (request->hasArg("on")) {
+      SystemLog.AddEvent(LogLevel_Verbose, F("Turning flash ON"));
+      SystemCamera.SetCameraFlashEnable(true);
+      SystemCamera.SetFlashStatus(false);
+      request->send_P(200, "text/plain", "Flash ON");
+
+    } else if (request->hasArg("off")) {
+      SystemLog.AddEvent(LogLevel_Verbose, F("Turning flash OFF"));
+      SystemCamera.SetCameraFlashEnable(false);
+      SystemCamera.SetFlashStatus(false);
+      request->send_P(200, "text/plain", "Flash OFF");
+    
+    } else {
+      request->send_P(400, "text/plain", "Invalid request");
+    }
+  });
+
   /* reboot MCU */
   server.on("/action_reboot", HTTP_GET, [](AsyncWebServerRequest* request) {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: /action_reboo reboot MCU!"));

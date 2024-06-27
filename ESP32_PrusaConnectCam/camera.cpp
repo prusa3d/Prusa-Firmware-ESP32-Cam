@@ -49,7 +49,7 @@ void Camera::Init() {
 
   log->AddEvent(LogLevel_Info, F("Init GPIO"));
   ledcAttach(FLASH_GPIO_NUM, FLASH_PWM_FREQ, FLASH_PWM_RESOLUTION);
-  ledcWrite(FLASH_GPIO_NUM, FLASH_OFF_STATUS);
+  SetFlashStatus(false);
 
   InitCameraModule();
   ApplyCameraCfg();
@@ -117,7 +117,6 @@ void Camera::InitCameraModule() {
 
   /* Camera init */
   err = esp_camera_init(&CameraConfig);
-
   if (err != ESP_OK) {
     log->AddEvent(LogLevel_Warning, F("Camera init failed. Error: "), String(err, HEX));
     log->AddEvent(LogLevel_Warning, F("Reset ESP32-cam!"));
@@ -333,7 +332,7 @@ void Camera::CapturePhoto() {
     CameraCaptureSuccess = false;
     /* check flash, and enable FLASH LED */
     if (true == CameraFlashEnable) {
-      ledcWrite(FLASH_GPIO_NUM, FLASH_ON_STATUS);
+      SetFlashStatus(true);
       delay(CameraFlashTime);
     }
 
@@ -401,8 +400,7 @@ void Camera::CapturePhoto() {
 
     /* Disable flash */
     if (true == CameraFlashEnable) {
-      //delay(CameraFlashTime);
-      ledcWrite(FLASH_GPIO_NUM, FLASH_OFF_STATUS);
+      SetFlashStatus(false);
     }
     xSemaphoreGive(frameBufferSemaphore);
 
