@@ -30,7 +30,17 @@ Camera::Camera(Configuration* i_conf, Logs* i_log, int8_t i_FlashPin) {
   StreamOnOff = false;
   frameBufferSemaphore = xSemaphoreCreateMutex();
   FrameBufferDuplicate = (camera_fb_t*)heap_caps_malloc(sizeof(camera_fb_t), MALLOC_CAP_SPIRAM);
+  if (FrameBufferDuplicate != NULL) {
+    memset(FrameBufferDuplicate, 0, sizeof(camera_fb_t)); 
+    FrameBufferDuplicate->buf = NULL;
+  }
+
   FrameBufferExif = (camera_fb_t*)heap_caps_malloc(sizeof(camera_fb_t), MALLOC_CAP_SPIRAM);
+  if (FrameBufferExif != NULL) {
+    memset(FrameBufferExif, 0, sizeof(camera_fb_t)); 
+    FrameBufferExif->buf = NULL;
+  }
+
   StreamSendingPhoto = false;
 
   PhotoExifData.header = NULL;
