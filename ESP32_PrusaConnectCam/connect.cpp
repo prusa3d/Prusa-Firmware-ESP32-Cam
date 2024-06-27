@@ -482,6 +482,7 @@ void PrusaConnect::SetTimeLapsPhotoSaveStatus(bool i_data) {
    @return none
 */
 void PrusaConnect::SavePhotoToSdCard() {
+#if (ENABLE_SD_CARD == true)
   /* check if time laps photo save is enabled */
   if (EnableTimelapsPhotoSave == true) {
     log->AddEvent(LogLevel_Info, F("Save TimeLaps photo to SD card"));
@@ -520,6 +521,7 @@ void PrusaConnect::SavePhotoToSdCard() {
       }
     }
   }
+#endif
 }
 
 /**

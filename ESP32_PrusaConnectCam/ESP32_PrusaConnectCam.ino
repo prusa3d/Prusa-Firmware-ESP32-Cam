@@ -8,19 +8,13 @@
 
    This project uses other libraries. It is necessary to install them in the arduino IDE.
    - Library           - License  - Version - Link
-   - ESPAsyncWebServer - LGPL 3.0 - 2.10.1  - https://github.com/mathieucarbou/ESPAsyncWebServer
+   - ESPAsyncWebServer - LGPL 3.0 - 2.10.8  - https://github.com/mathieucarbou/ESPAsyncWebServer
    - AsyncTCP          - LGPL 3.0 - 1.1.4   - https://github.com/dvarrel/ESPAsyncTCP
    - ArduinoJson       - MIT      - 7.0.4   - https://github.com/bblanchon/ArduinoJson
    - ArduinoUniqueID   - MIT      - 1.3.0   - https://github.com/ricaun/ArduinoUniqueID
    - ESP32             - LGPL 2.1 - 2.0.16  - https://github.com/espressif/arduino-esp32
 
-   Board configuration in the arduino IDE 2.3.2
-   Tools -> Board -> ESP32 Arduino -> AI Thinker ESP32
-   Tools -> CPU Frequency -> 240MHz (WiFi/BT)
-   Tools -> Core debug level -> None
-   Tools -> Flash frequency -> 80MHz
-   Tools -> Flash Mode -> DIO
-   Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)
+   Arduino IDE configuration for the MCU are stored in the module_XXX.h file.
 
    When flashing the firmware to a new, empty ESP32-CAM device for the first time, it is necessary to use the 'Erase' function.
    This can be found under 'Tools' -> 'Erase all Flash Before Sketch Upload' -> 'Enable'.
@@ -118,7 +112,9 @@ void setup() {
   xTaskCreatePinnedToCore(System_TaskMain, "SystemNtpOtaUpdate", 6200, NULL, 1, &Task_SystemMain, 0);                           /*function, description, stack size, parameters, priority, task handle, core*/
   xTaskCreatePinnedToCore(System_TaskCaptureAndSendPhoto, "CaptureAndSendPhoto", 4400, NULL, 2, &Task_CapturePhotoAndSend, 0);  /*function, description, stack size, parameters, priority, task handle, core*/
   xTaskCreatePinnedToCore(System_TaskWifiManagement, "WiFiManagement", 2800, NULL, 3, &Task_WiFiManagement, 0);                 /*function, description, stack size, parameters, priority, task handle, core*/
+#if (true == ENABLE_SD_CARD)  
   xTaskCreatePinnedToCore(System_TaskSdCardCheck, "CheckMicroSdCard", 3000, NULL, 4, &Task_SdCardCheck, 0);                     /*function, description, stack size, parameters, priority, task handle, core*/
+#endif
   xTaskCreatePinnedToCore(System_TaskSerialCfg, "CheckSerialConfiguration", 2600, NULL, 5, &Task_SerialCfg, 0);                 /*function, description, stack size, parameters, priority, task handle, core*/
   xTaskCreatePinnedToCore(System_TaskStreamTelemetry, "PrintStreamTelemetry", 2200, NULL, 6, &Task_StreamTelemetry, 0);         /*function, description, stack size, parameters, priority, task handle, core*/
   xTaskCreatePinnedToCore(System_TaskSysLed, "SystemLed", 2100, NULL, 7, &Task_SysLed, 0);                                      /*function, description, stack size, parameters, priority, task handle, core*/
@@ -132,7 +128,9 @@ void setup() {
   esp_task_wdt_add(Task_CapturePhotoAndSend);
   esp_task_wdt_add(Task_WiFiManagement);
   esp_task_wdt_add(Task_SystemMain);
+#if (true == ENABLE_SD_CARD)    
   esp_task_wdt_add(Task_SdCardCheck);
+#endif
   esp_task_wdt_add(Task_SerialCfg);
   esp_task_wdt_add(Task_StreamTelemetry);
   esp_task_wdt_add(Task_SysLed);

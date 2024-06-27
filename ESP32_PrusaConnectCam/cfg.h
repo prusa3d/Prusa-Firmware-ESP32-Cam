@@ -19,7 +19,7 @@
 #include <base64.h>
 
 #include "mcu_cfg.h"
-#include "Camera_cfg.h"
+#include "module_templates.h"
 #include "var.h"
 #include "log.h"
 

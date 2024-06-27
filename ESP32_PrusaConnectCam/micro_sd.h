@@ -29,6 +29,7 @@
 #include "SD_MMC.h"
 
 #include "mcu_cfg.h"
+#include "module_templates.h"
 #include "var.h"
 
 class MicroSd {

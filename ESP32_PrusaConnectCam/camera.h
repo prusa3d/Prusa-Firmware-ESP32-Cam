@@ -20,7 +20,7 @@
 
 #include "cfg.h"
 #include "exif.h"
-#include "Camera_cfg.h"
+#include "module_templates.h"
 #include "Arduino.h"
 #include "mcu_cfg.h"
 #include "var.h"

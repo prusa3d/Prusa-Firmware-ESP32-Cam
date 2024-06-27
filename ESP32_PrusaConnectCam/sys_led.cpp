@@ -45,7 +45,7 @@ sys_led::sys_led(uint8_t i_pin, uint32_t i_on_duration, Logs *i_log) {
  */
 void sys_led::init() {
   pinMode(pin, OUTPUT);
-  digitalWrite(pin, LOW);
+  digitalWrite(pin, STATUS_LED_OFF_PIN_LEVEL);
 }
 
 /**
@@ -91,7 +91,7 @@ void sys_led::setTimer(uint32_t i_time) {
 uint32_t sys_led::getTimer() {
   uint32_t tmp = 0;
 
-  if (digitalRead(pin) == LOW) {
+  if (digitalRead(pin) == STATUS_LED_OFF_PIN_LEVEL) {
     tmp = ledOnDuration;
   } else {
     tmp = time;

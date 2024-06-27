@@ -107,6 +107,7 @@ void Logs::Init() {
   Serial.println(F("Init Logs library"));
 
   /* init micro SD card */
+#if (true == ENABLE_SD_CARD)
   InitSdCard();
   LogFileOpened = OpenFile(&LogFile, FilePath + FileName);
 
@@ -132,6 +133,10 @@ void Logs::Init() {
   } else {
     Serial.println(F("Micro-SD card not found! Disable logs"));
   }
+#else
+  Serial.println(F("Micro-SD card not enabled! Disable logs to card"));
+  LogFileOpened = false;
+#endif
 }
 
 /**
@@ -139,7 +144,9 @@ void Logs::Init() {
  * 
  */
 void Logs::LogOpenFile() {
+#if (true == ENABLE_SD_CARD)
   LogFileOpened = OpenFile(&LogFile, FilePath + FileName);
+#endif
 }
 
 /**
@@ -147,7 +154,9 @@ void Logs::LogOpenFile() {
  * 
  */
 void Logs::LogCloseFile() {
+#if (true == ENABLE_SD_CARD)
   CloseFile(&LogFile);
+#endif
 }
 
 /**
@@ -155,7 +164,9 @@ void Logs::LogCloseFile() {
  * 
  */
 void Logs::LogCheckOpenedFile() { 
+#if (true == ENABLE_SD_CARD)
   LogFileOpened = CheckOpenFile(&LogFile);
+#endif
 }
 
 /**
@@ -194,7 +205,7 @@ void Logs::AddEvent(LogLevel_enum level, String msg, bool newLine, bool date) {
 
     /* print log message to console */
     Serial.print(LogMsg);
-
+#if (true == ENABLE_SD_CARD)
     /* append log message to log file */
     if (true == LogFileOpened) {
       LogFileOpened = AppendFile(&LogFile, &LogMsg);
@@ -206,6 +217,7 @@ void Logs::AddEvent(LogLevel_enum level, String msg, bool newLine, bool date) {
         } 
       }
     }
+#endif
   }
 #if (true == CONSOLE_VERBOSE_DEBUG)
   else {
@@ -246,6 +258,7 @@ void Logs::AddEvent(LogLevel_enum level, const __FlashStringHelper *msg, String 
     /* print log message to console */
     Serial.print(LogMsg);
 
+#if (true == ENABLE_SD_CARD)
     /* append log message to log file */
     if (true == LogFileOpened) {
       LogFileOpened = AppendFile(&LogFile, &LogMsg);
@@ -257,6 +270,7 @@ void Logs::AddEvent(LogLevel_enum level, const __FlashStringHelper *msg, String 
         } 
       }
     }
+#endif
   }
 #if (true == CONSOLE_VERBOSE_DEBUG)
   else {
@@ -347,6 +361,7 @@ bool Logs::GetNtpTimeSynced() {
    @return none
 */
 void Logs::CheckMaxLogFileSize() {
+#if (true == ENABLE_SD_CARD)
   uint32_t FileSize = GetFileSize(SD_MMC, FilePath + FileName);
   AddEvent(LogLevel_Verbose, F("Log file size: "), String(FileSize) + "/" + String(LOGS_FILE_MAX_SIZE) + " B");
 
@@ -357,11 +372,14 @@ void Logs::CheckMaxLogFileSize() {
     RenameFile(SD_MMC, FilePath + FileName, FilePath + FileName + String(file_count));
     LogOpenFile();
   }
+#endif
 }
 
 void Logs::CheckCardSpace() {
+#if (true == ENABLE_SD_CARD)
   CheckCardUsedStatus();
   AddEvent(LogLevel_Verbose, "Card size: " + String(GetCardSizeMB()), + " MB, Used: " + String(GetCardUsedMB()) + " MB, Free: " + String(GetCardUsedMB()) + " MB");
+#endif
 }
 
 /**

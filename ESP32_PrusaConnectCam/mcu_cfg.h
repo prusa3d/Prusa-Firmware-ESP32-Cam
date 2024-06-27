@@ -13,6 +13,10 @@
 #ifndef _MCU_CFG_H_
 #define _MCU_CFG_H_
 
+/* ----------------- CAMERA TYPE  ---------------*/
+#define AI_THINKER_ESP32_CAM
+//#define ESP32_WROVER_DEV
+
 /* ---------------- BASIC MCU CFG  --------------*/
 #define SW_VERSION                  "1.0.3"             ///< SW version
 #define SW_BUILD                    __DATE__ " " __TIME__   ///< build number
@@ -26,17 +30,7 @@
 #define REFRESH_INTERVAL_MIN        10                      ///< minimum refresh interval for sending photo to prusa connect [s]
 #define REFRESH_INTERVAL_MAX        240                     ///< maximum refresh interval for sending photo to prusa connect [s]
 
-/* --------------- FLASH LED CFG  ---------------*/
-#define FLASH_GPIO_NUM              4                       ///< GPIO pin for light
-#define FLASH_OFF_STATUS            0                       ///< PWM intensity LED for OFF. 0-2^FLASH_PWM_RESOLUTION = 0-255
-#define FLASH_ON_STATUS             205                     ///< PWM intensity LED for ON. limitation to 80%. 2^FLASH_PWM_RESOLUTION * 0.8% = 204
-#define FLASH_PWM_FREQ              2000                    ///< frequency of pwm [240MHz / (100 prescale * pwm cycles)] = frequency
-#define FLASH_PWM_CHANNEL           0                       ///< channel 0
-#define FLASH_PWM_RESOLUTION        8                       ///< range 1-20bit. 8bit = 0-255 range
-
 /* -------------- STATUS LED CFG ----------------*/
-#define STATUS_LED_GPIO_NUM         33                      ///< GPIO pin for status LED
-#define STATUS_LED_ENABLE           true                    ///< enable/disable status LED
 #define STATUS_LED_ON_DURATION      100                     ///< time for blink status LED when is module in the ON state [ms]
 #define STATUS_LED_WIFI_AP          400                     ///< time for blink status LED when is module in the AP mode [ms]
 #define STATUS_LED_STA_CONNECTING   800                     ///< time for blink status LED when is module connecting to the WiFi network [ms]
@@ -65,10 +59,8 @@
 /* --------------- OTA UPDATE CFG  --------------*/
 #define OTA_UPDATE_API_SERVER       "api.github.com"        ///< OTA update server URL
 #define OTA_UPDATE_API_URL          F("/repos/prusa3d/Prusa-Firmware-ESP32-Cam/releases/latest")  ///< path to file with OTA update
-#define OTA_UPDATE_FW_FILE          PSTR("ESP32_PrusaConnectCam.ino.bin") ///< OTA update firmware file name
 
 /* ---------- RESET CFG CONFIGURATION  ----------*/
-#define CFG_RESET_PIN               12                      ///< GPIO 16 is for reset CFG to default
 #define CFG_RESET_TIME_WAIT         10000                   ///< wait to 10 000 ms = 10s for reset cfg during grounded CFG_RESET_PIN 
 #define CFG_RESET_LOOP_DELAY        100                     ///< delay in the loop for reset cfg
 

@@ -17,6 +17,7 @@
 #include "mcu_cfg.h"
 #include "var.h"
 #include "micro_sd.h"
+#include "module_templates.h"
 
 enum LogLevel_enum {
   LogLevel_Error = 0,       ///< Error
