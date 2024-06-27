@@ -57,7 +57,7 @@ private:
   bool exposure_ctrl;        ///< exposure control
   bool CameraFlashEnable;    ///< enable/disable camera flash function
   uint16_t CameraFlashTime;  ///< camera fash duration time
-  uint8_t CameraFlashPin;    ///< GPIO pin for LED
+  int8_t CameraFlashPin;     ///< GPIO pin for LED
   framesize_t TFrameSize;    ///< framesize_t type for camera module
   uint8_t imageExifRotation; ///< image rotation. 0 degree: value 1, 90 degree: value 6, 180 degree: value 3, 270 degree: value 8
 
@@ -87,7 +87,7 @@ private:
   void InitCameraModule();
 
 public:
-  Camera(Configuration*, Logs*, uint8_t);
+  Camera(Configuration*, Logs*, int8_t);
   ~Camera(){};
   void Init();
   void ApplyCameraCfg();

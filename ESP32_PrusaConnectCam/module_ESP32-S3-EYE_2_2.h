@@ -60,16 +60,18 @@
 #define ENABLE_PSRAM                true    ///< Enable PSRAM   
 
 /* --------------- OTA UPDATE CFG  --------------*/
-#define OTA_UPDATE_FW_FILE          PSTR("ESP32_S3_EYE_22_PrusaConnectCam.ino.bin") ///< OTA update firmware file name
+#define OTA_UPDATE_FW_FILE          PSTR("ESP32S3_EYE22_PrusaConnectCam.ino.bin") ///< OTA update firmware file name
 
 /* --------------- FLASH LED CFG  ---------------*/
-#define ENABLE_CAMERA_FLASH         false   ///< Enable camera flash function
-#define FLASH_GPIO_NUM              4       ///< Flash control pin
-#define FLASH_OFF_STATUS            0       ///< PWM intensity LED for OFF. 0-2^FLASH_PWM_RESOLUTION = 0-255
-#define FLASH_ON_STATUS             205     ///< PWM intensity LED for ON. limitation to 80%. 2^FLASH_PWM_RESOLUTION * 0.8% = 204
-#define FLASH_PWM_FREQ              2000    ///< frequency of pwm [240MHz / (100 prescale * pwm cycles)] = frequency
-#define FLASH_PWM_CHANNEL           0       ///< channel 0
-#define FLASH_PWM_RESOLUTION        8       ///< range 1-20bit. 8bit = 0-255 range
+#define ENABLE_CAMERA_FLASH         true    ///< Enable camera flash function
+#define CAMERA_FLASH_DIGITAL_CTRL   true    ///< Enable camera flash digital control
+#define CAMERA_FLASH_PWM_CTRL       false   ///< Enable camera flash PWM control
+#define FLASH_GPIO_NUM              48      ///< Flash control pin. This is pin for enable LCD backlight
+#define FLASH_OFF_STATUS            LOW     ///< PWM intensity LED for OFF. 0-2^FLASH_PWM_RESOLUTION = 0-255
+#define FLASH_ON_STATUS             HIGH    ///< PWM intensity LED for ON. limitation to 80%. 2^FLASH_PWM_RESOLUTION * 0.8% = 204
+//#define FLASH_PWM_FREQ              2000    ///< frequency of pwm [240MHz / (100 prescale * pwm cycles)] = frequency
+//#define FLASH_PWM_CHANNEL           0       ///< channel 0
+//#define FLASH_PWM_RESOLUTION        8       ///< range 1-20bit. 8bit = 0-255 range
 
 /* --------------- SD CARD CFG  ---------------*/
 #define ENABLE_SD_CARD              true    ///< Enable SD card function
@@ -78,7 +80,9 @@
 #define SD_PIN_DATA0                40      ///< GPIO pin for SD card data 0
 
 /* ---------- RESET CFG CONFIGURATION  ----------*/
-#define CFG_RESET_PIN               1       ///< GPIO 16 is for reset CFG to default
+#define CFG_RESET_PIN               1       ///< GPIO 1 is for reset CFG to default. This is button UP+`
+#define CFG_RESET_LED_PIN           3       ///< GPIO for indication of reset CFG
+#define CFG_RESET_LED_LEVEL_ON      LOW     ///< GPIO pin level for status LED ON
 
 /* -------------- STATUS LED CFG ----------------*/
 #define STATUS_LED_ENABLE           true    ///< enable/disable status LED

@@ -55,6 +55,8 @@
 #include "stream.h"
 #include "serial_cfg.h"
 
+//#include "esp32s3eye_lcd.h"
+
 void setup() {
   /* Serial port for debugging purposes */
   Serial.begin(SERIAL_PORT_SPEED);
@@ -104,6 +106,9 @@ void setup() {
 
   /* init class for communication with PrusaConnect */
   Connect.Init();
+
+  //Esp32Lcd LcdDisplay;
+  //LcdDisplay.draw_color(0x000000);
 
   /* init wdg */
   SystemLog.AddEvent(LogLevel_Info, F("Init WDG"));

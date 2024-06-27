@@ -22,7 +22,7 @@ Camera SystemCamera(&SystemConfig, &SystemLog, FLASH_GPIO_NUM);
    @param uint8_t - flash pin
    @return none
 */
-Camera::Camera(Configuration* i_conf, Logs* i_log, uint8_t i_FlashPin) {
+Camera::Camera(Configuration* i_conf, Logs* i_log, int8_t i_FlashPin) {
   config = i_conf;
   log = i_log;
 
@@ -50,7 +50,13 @@ void Camera::Init() {
 
 #if (true == ENABLE_CAMERA_FLASH)
   log->AddEvent(LogLevel_Info, F("Init GPIO"));
+#if (true == CAMERA_FLASH_PWM_CTRL)
   ledcAttach(FLASH_GPIO_NUM, FLASH_PWM_FREQ, FLASH_PWM_RESOLUTION);
+
+#elif (true == CAMERA_FLASH_DIGITAL_CTRL)
+  pinMode(FLASH_GPIO_NUM, OUTPUT);
+  digitalWrite(FLASH_GPIO_NUM, LOW);
+#endif
   SetFlashStatus(false);
 #endif
 
@@ -220,11 +226,20 @@ void Camera::SetPhotoSending(bool i_data) {
 */
 void Camera::SetFlashStatus(bool i_data) {
 #if (true == ENABLE_CAMERA_FLASH)
+#if (true == CAMERA_FLASH_PWM_CTRL)
   if (true == i_data) {
     ledcWrite(FLASH_GPIO_NUM, FLASH_ON_STATUS);
   } else if (false == i_data) {
     ledcWrite(FLASH_GPIO_NUM, FLASH_OFF_STATUS);
   }
+
+#elif (true == CAMERA_FLASH_DIGITAL_CTRL)
+  if (true == i_data) {
+    digitalWrite(FLASH_GPIO_NUM, HIGH);
+  } else if (false == i_data) {
+    digitalWrite(FLASH_GPIO_NUM, LOW);
+  }
+#endif
 #endif
 }
 
@@ -234,12 +249,22 @@ void Camera::SetFlashStatus(bool i_data) {
    @return bool - true = on, false = off
 */
 bool Camera::GetFlashStatus() {
+#if (true == ENABLE_CAMERA_FLASH)
+#if (true == CAMERA_FLASH_PWM_CTRL)
   if (ledcRead(FLASH_GPIO_NUM) == FLASH_OFF_STATUS) {
     return false;
   } else if (ledcRead(FLASH_GPIO_NUM) == FLASH_ON_STATUS) {
     return true;
   }
 
+#elif (true == CAMERA_FLASH_DIGITAL_CTRL)
+  if (digitalRead(FLASH_GPIO_NUM) == LOW) {
+    return false;
+  } else if (digitalRead(FLASH_GPIO_NUM) == HIGH) {
+    return true;
+  }
+#endif
+#endif
   return false;
 }
 

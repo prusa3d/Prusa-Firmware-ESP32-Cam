@@ -223,14 +223,15 @@ void Configuration::CheckResetCfg() {
 
     /* wait for ungrounded reset pin, and binking led */
     while (digitalRead(CFG_RESET_PIN) == LOW) {
-      analogWrite(FLASH_GPIO_NUM, 20);
+      digitalWrite(CFG_RESET_LED_PIN, CFG_RESET_LED_LEVEL_ON);
       delay(100);
-      analogWrite(FLASH_GPIO_NUM, 0);
+      digitalWrite(CFG_RESET_LED_PIN, !CFG_RESET_LED_LEVEL_ON);
       delay(100);
     }
 
     /* turn off LED, reset cfg, reset MCU */
-    analogWrite(FLASH_GPIO_NUM, 0);
+    digitalWrite(CFG_RESET_LED_PIN, !CFG_RESET_LED_LEVEL_ON);
+
     DefaultCfg();
     ESP.restart();
 

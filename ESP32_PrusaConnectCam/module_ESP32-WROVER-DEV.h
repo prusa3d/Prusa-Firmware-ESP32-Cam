@@ -50,11 +50,13 @@
 #define ENABLE_PSRAM               true     ///< Enable PSRAM   
 
 /* --------------- OTA UPDATE CFG  --------------*/
-#define OTA_UPDATE_FW_FILE          PSTR("ESP32_WROVER_DEV_PrusaConnectCam.ino.bin") ///< OTA update firmware file name
+#define OTA_UPDATE_FW_FILE          PSTR("ESP32_WROVERDEV_PrusaConnectCam.ino.bin") ///< OTA update firmware file name
 
 /* --------------- FLASH LED CFG  ---------------*/
 #define ENABLE_CAMERA_FLASH         false   ///< Enable camera flash function
-#define FLASH_GPIO_NUM              4       ///< Flash control pin
+#define CAMERA_FLASH_DIGITAL_CTRL   false   ///< Enable camera flash digital control
+#define CAMERA_FLASH_PWM_CTRL       false   ///< Enable camera flash PWM control
+#define FLASH_GPIO_NUM              -1      ///< Flash control pin
 #define FLASH_OFF_STATUS            0       ///< PWM intensity LED for OFF. 0-2^FLASH_PWM_RESOLUTION = 0-255
 #define FLASH_ON_STATUS             205     ///< PWM intensity LED for ON. limitation to 80%. 2^FLASH_PWM_RESOLUTION * 0.8% = 204
 #define FLASH_PWM_FREQ              2000    ///< frequency of pwm [240MHz / (100 prescale * pwm cycles)] = frequency
@@ -66,6 +68,8 @@
 
 /* ---------- RESET CFG CONFIGURATION  ----------*/
 #define CFG_RESET_PIN               12      ///< GPIO 16 is for reset CFG to default
+#define CFG_RESET_LED_PIN           2       ///< GPIO for indication of reset CFG
+#define CFG_RESET_LED_LEVEL_ON      LOW     ///< GPIO pin level for status LED ON
 
 /* -------------- STATUS LED CFG ----------------*/
 #define STATUS_LED_ENABLE           true    ///< enable/disable status LED
