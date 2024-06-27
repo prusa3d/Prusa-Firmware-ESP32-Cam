@@ -7,7 +7,7 @@
    Contact: miroslav.pivovarsky@gmail.com
 
     https://www.seeedstudio.com/XIAO-ESP32S3-Sense-p-5639.html
-	https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/
+	 https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/
 
    @bug: Currently SW don't work with this DEV board. WiFi and MicroSD is not working
 

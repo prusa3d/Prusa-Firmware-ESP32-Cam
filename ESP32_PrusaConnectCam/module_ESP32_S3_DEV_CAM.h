@@ -1,5 +1,5 @@
 /**
-   @file module_ESP32-WROVER-DEV.h
+   @file module_ESP32-S3-DEV-CAM.h
 
    @brief Definition of the ESP32-S3 DEV CAM module
 
@@ -35,7 +35,7 @@
 
 #include "mcu_cfg.h"
 
-#ifdef CAMERA_MODEL_ESP32_S3_CAM
+#ifdef CAMERA_MODEL_ESP32_S3_DEV_CAM
 
 /* --------------- CAMERA CFG -------------------*/
 #define PWDN_GPIO_NUM               -1      ///< Power down control pin
@@ -60,7 +60,7 @@
 #define ENABLE_PSRAM               true     ///< Enable PSRAM   
 
 /* --------------- OTA UPDATE CFG  --------------*/
-#define OTA_UPDATE_FW_FILE          PSTR("ESP32S3_CAM_PrusaConnectCam.ino.bin") ///< OTA update firmware file name
+#define OTA_UPDATE_FW_FILE          PSTR("ESP32S3_DEV_CAM.bin") ///< OTA update firmware file name
 #define FW_STATUS_LED_PIN           34      ///< GPIO pin for status FW update LED
 #define FW_STATUS_LED_LEVEL_ON      LOW    ///< GPIO pin level for status LED ON
 

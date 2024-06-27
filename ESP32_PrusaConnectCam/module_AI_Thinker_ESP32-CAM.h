@@ -79,7 +79,7 @@
 /* -------------- STATUS LED CFG ----------------*/
 #define STATUS_LED_ENABLE           true    ///< enable/disable status LED
 #define STATUS_LED_GPIO_NUM         33      ///< GPIO pin for status LED
-#define STATUS_LED_OFF_PIN_LEVEL     LOW     ///< GPIO pin level for status LED ON
+#define STATUS_LED_OFF_PIN_LEVEL    LOW     ///< GPIO pin level for status LED ON
 
 #endif  // AI_THINKER_ESP32_CAM
 /* EOF */

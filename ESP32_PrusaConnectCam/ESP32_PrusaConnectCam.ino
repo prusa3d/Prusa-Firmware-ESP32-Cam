@@ -4,7 +4,7 @@
    It's neccesary install support for ESP32 board to the arduino IDE. In the board manager we need add next link
    https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
    Then we can install "ESP32 by Espressif Systems" board in the board manager.
-   ESP32 lib version: 2.0.16 (ESP-IDF v4.4.7) by Espressif Systems
+   ESP32 lib version: 3.0.2 (ESP-IDF v5.1.4) by Espressif Systems
 
    This project uses other libraries. It is necessary to install them in the arduino IDE.
    - Library           - License  - Version - Link
@@ -12,7 +12,7 @@
    - AsyncTCP          - LGPL 3.0 - 3.1.4   - https://github.com/mathieucarbou/AsyncTCP
    - ArduinoJson       - MIT      - 7.0.4   - https://github.com/bblanchon/ArduinoJson
    - ArduinoUniqueID   - MIT      - 1.3.0   - https://github.com/ricaun/ArduinoUniqueID
-   - ESP32             - LGPL 2.1 - 3.0.2   - https://github.com/espressif/arduino-esp32
+   - arduino-esp32     - LGPL 2.1 - 3.0.2   - https://github.com/espressif/arduino-esp32
 
    Arduino IDE configuration for the MCU are stored in the module_XXX.h file.
 
@@ -21,15 +21,6 @@
    After the initial firmware upload to the MCU, it is possible to disable this option.
    If you do not disable this option, your camera configuration will continue to be erased from the flash memory
    after uploading new firmware from the Arduino IDE.
-
-   Here is partitions table
-     # Name,   Type, SubType, Offset,  Size, Flags
-     nvs,      data, nvs,     0x9000,  0x5000,
-     otadata,  data, ota,     0xe000,  0x2000,
-     app0,     app,  ota_0,   0x10000, 0x1E0000,
-     app1,     app,  ota_1,   0x1F0000,0x1E0000,
-     spiffs,   data, spiffs,  0x3D0000,0x20000,
-     coredump, data, coredump,0x3F0000,0x10000,
 
    Project: ESP32 PrusaConnect Camera
    Developed for: Prusa Research, prusa3d.com

@@ -61,7 +61,7 @@
 #define ENABLE_PSRAM                true    ///< Enable PSRAM   
 
 /* --------------- OTA UPDATE CFG  --------------*/
-#define OTA_UPDATE_FW_FILE          PSTR("ESP32S3_EYE22_PrusaConnectCam.ino.bin") ///< OTA update firmware file name
+#define OTA_UPDATE_FW_FILE          PSTR("ESP32S3_EYE22.bin") ///< OTA update firmware file name
 #define FW_STATUS_LED_PIN           3      ///< GPIO pin for status FW update LED
 #define FW_STATUS_LED_LEVEL_ON      LOW    ///< GPIO pin level for status LED ON
 
