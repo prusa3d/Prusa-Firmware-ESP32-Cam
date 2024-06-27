@@ -108,14 +108,14 @@ void setup() {
   /* init wdg */
   SystemLog.AddEvent(LogLevel_Info, F("Init WDG"));
   esp_task_wdt_config_t twdt_config;
-  twdt_config.timeout_ms = 60000;
+  twdt_config.timeout_ms = WDG_TIMEOUT;
   twdt_config.idle_core_mask = (1 << portNUM_PROCESSORS) - 1,    /* Bitmask of all cores */
   twdt_config.trigger_panic = true;
 	
+  esp_task_wdt_init(&twdt_config);       /* enable panic so ESP32 restarts */
   esp_task_wdt_reconfigure(&twdt_config);
-  //ESP_ERROR_CHECK(esp_task_wdt_init(&twdt_config));     /* enable panic so ESP32 restarts */
   ESP_ERROR_CHECK(esp_task_wdt_add(NULL));                /* add current thread to WDT watch */
-  ESP_ERROR_CHECK(esp_task_wdt_reset());                  /* reset wdg */
+  esp_task_wdt_reset();                  /* reset wdg */
 
   /* init tasks */
   SystemLog.AddEvent(LogLevel_Info, F("Start tasks"));
@@ -145,7 +145,8 @@ void setup() {
 
 void loop() {
   /* reset wdg */
-  ESP_ERROR_CHECK(esp_task_wdt_reset());
+  esp_task_wdt_reset();
+  delay(1000);
 }
 
 /* EOF */

@@ -16,6 +16,7 @@
 /* ----------------- CAMERA TYPE  ---------------*/
 #define AI_THINKER_ESP32_CAM
 //#define ESP32_WROVER_DEV
+//#define CAMERA_MODEL_ESP32_S3_CAM
 
 /* ---------------- BASIC MCU CFG  --------------*/
 #define SW_VERSION                  "1.1.0-rc1"                 ///< SW version
@@ -50,7 +51,7 @@
 /* --------------- WEB SERVER CFG  --------------*/
 #define WEB_SERVER_PORT             80                      ///< WEB server port 
 #define SERIAL_PORT_SPEED           115200                  ///< baud rate 
-#define WDG_TIMEOUT                 40 ///< wdg timeout [second]
+#define WDG_TIMEOUT                 40000                   ///< wdg timeout [second]
 #define PHOTO_FRAGMENT_SIZE         5120                    ///< photo fragmentation size [bytes]
 #define LOOP_DELAY                  100                     ///< loop delay [ms]
 #define WIFI_CLIENT_WAIT_CON        false                   ///< wait for connecting to WiFi network

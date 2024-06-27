@@ -48,9 +48,11 @@ Camera::Camera(Configuration* i_conf, Logs* i_log, uint8_t i_FlashPin) {
 void Camera::Init() {
   log->AddEvent(LogLevel_Info, F("Init camera lib"));
 
+#if (true == ENABLE_CAMERA_FLASH)
   log->AddEvent(LogLevel_Info, F("Init GPIO"));
   ledcAttach(FLASH_GPIO_NUM, FLASH_PWM_FREQ, FLASH_PWM_RESOLUTION);
   SetFlashStatus(false);
+#endif
 
   InitCameraModule();
   ApplyCameraCfg();
@@ -65,7 +67,9 @@ void Camera::Init() {
 void Camera::InitCameraModule() {
   log->AddEvent(LogLevel_Info, F("Init camera module"));
   /* Turn-off the 'brownout detector' */
+#if (true == ENABLE_BROWN_OUT_DETECTION)
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
+#endif
   esp_err_t err;
 
   CameraConfig.ledc_channel = LEDC_CHANNEL_0;
@@ -211,11 +215,13 @@ void Camera::SetPhotoSending(bool i_data) {
    @return none
 */
 void Camera::SetFlashStatus(bool i_data) {
+#if (true == ENABLE_CAMERA_FLASH)
   if (true == i_data) {
     ledcWrite(FLASH_GPIO_NUM, FLASH_ON_STATUS);
   } else if (false == i_data) {
     ledcWrite(FLASH_GPIO_NUM, FLASH_OFF_STATUS);
   }
+#endif
 }
 
 /**

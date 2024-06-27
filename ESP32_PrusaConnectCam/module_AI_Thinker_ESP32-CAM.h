@@ -45,6 +45,9 @@
 #define HREF_GPIO_NUM               23      ///< Line sync pin
 #define PCLK_GPIO_NUM               22      ///< Pixel clock pin
 
+/* ------------------ MCU CFG  ------------------*/
+#define ENABLE_BROWN_OUT_DETECTION  true   ///< Enable brown out detection
+
 /* --------------- OTA UPDATE CFG  --------------*/
 #define OTA_UPDATE_FW_FILE          PSTR("ESP32_PrusaConnectCam.ino.bin") ///< OTA update firmware file name
 
@@ -59,6 +62,9 @@
 
 /* --------------- SD CARD CFG  ---------------*/
 #define ENABLE_SD_CARD              true    ///< Enable SD card function
+#define SD_PIN_CLK                  14      ///< GPIO pin for SD card clock
+#define SD_PIN_CMD                  15      ///< GPIO pin for SD card command
+#define SD_PIN_DATA0                2       ///< GPIO pin for SD card data 0
 
 /* ---------- RESET CFG CONFIGURATION  ----------*/
 #define CFG_RESET_PIN               12      ///< GPIO 16 is for reset CFG to default

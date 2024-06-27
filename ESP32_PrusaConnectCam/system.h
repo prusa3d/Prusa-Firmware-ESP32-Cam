@@ -19,8 +19,15 @@
 #include <HTTPUpdate.h>
 #include <ArduinoJson.h>
 #include <esp_wifi.h>
-#include <esp32/rom/rtc.h>
 #include <esp_task_wdt.h>
+
+#if defined(CONFIG_IDF_TARGET_ESP32)
+    #include "esp32/rom/rtc.h"
+#elif defined(CONFIG_IDF_TARGET_ESP32S3)
+    #include "esp32s3/rom/rtc.h"
+#else
+    #error "Unsupported chip target"
+#endif
 
 #include "mcu_cfg.h"
 #include "var.h"

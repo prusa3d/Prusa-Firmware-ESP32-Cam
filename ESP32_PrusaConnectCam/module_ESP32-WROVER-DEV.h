@@ -45,6 +45,9 @@
 #define HREF_GPIO_NUM               23      ///< Line sync pin
 #define PCLK_GPIO_NUM               22      ///< Pixel clock pin
 
+/* ------------------ MCU CFG  ------------------*/
+#define ENABLE_BROWN_OUT_DETECTION  true   ///< Enable brown out detection
+
 /* --------------- OTA UPDATE CFG  --------------*/
 #define OTA_UPDATE_FW_FILE          PSTR("ESP32_WROVER_DEV_PrusaConnectCam.ino.bin") ///< OTA update firmware file name
 

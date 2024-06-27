@@ -115,6 +115,8 @@ void MicroSd::InitSdCard() {
   /* set SD card to 1-line/1-bit mode. GPIO 4 is used for LED and for microSD card. But communication is slower. */
   /* https://github.com/espressif/arduino-esp32/blob/master/libraries/SD_MMC/src/SD_MMC.h */
 
+  SD_MMC.setPins(SD_PIN_CLK, SD_PIN_CMD, SD_PIN_DATA0);
+
   if (!SD_MMC.begin("/sdcard", true)) {
     Serial.println(F("SD Card Mount Failed"));
     CardDetected = false;

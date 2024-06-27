@@ -14,12 +14,18 @@
 
 #include "mcu_cfg.h"
 
-#ifdef AI_THINKER_ESP32_CAM
+#if defined(AI_THINKER_ESP32_CAM)
 #include "module_AI_Thinker_ESP32-CAM.h"
-#endif
 
-#ifdef ESP32_WROVER_DEV
+#elif defined(ESP32_WROVER_DEV)
 #include "module_ESP32-WROVER-DEV.h"
+
+#elif defined(CAMERA_MODEL_ESP32_S3_CAM)
+#include "module_ESP32_S3_CAM.h"
+
+#else
+#error "No module selected"
+
 #endif
 
 /* EOF */
