@@ -8,7 +8,7 @@ This project uses other libraries. It is necessary to install them in the Arduin
 - ~~Library [ESPAsyncWebSrv 1.2.7](https://github.com/dvarrel/ESPAsyncWebSrv)~~ To version **1.0.3-rc1**
 - ~~Library [AsyncTCP 1.1.4](https://github.com/dvarrel/AsyncTCP)~~ To version **1.0.3-rc1**
 - Library [AsyncTCP 3.1.4](https://github.com/mathieucarbou/AsyncTCP)
-- Library [ESPAsyncWebServer 2.10.8](https://github.com/mathieucarbou/ESPAsyncWebServer) 
+- Library [ESPAsyncWebServer 3.0.3](https://github.com/mathieucarbou/ESPAsyncWebServer) 
 - Library [ArduinoJson 7.1.0](https://github.com/bblanchon/ArduinoJson)
 - Library [UniqueID 1.3.0](https://github.com/ricaun/ArduinoUniqueID)
 
@@ -22,7 +22,7 @@ What we need for functionality
 - Status LED [ here ](#status_led)
 - Debug logs [here](#logs)
 - Serial console configuration [here](#serial_cfg)
-- Camera WEB API [here](#rest)
+- WEB API [here](#rest)
 - Video stream [here](#stream)
 - Manual camera focus [here](#man_focus)
 - Potential issue [here](#issue)
@@ -30,14 +30,14 @@ What we need for functionality
 <a name="supported_boards"></a>
 ## Supported boards
 
-| Board name                | Support status | Stream | Micro SD | FLASH LED   | OTA FW update | Documentation                                |
-|---------------------------|----------------|--------|----------|-------------|---------------|----------------------------------------------|
-| Ai-Thinker ESP32-cam      | Full           | Yes    | Yes      | Board/Ext   | Yes           | [ here ](doc/AI_Thinker-ESP32-cam/README.md) |
-| ESP32-S3-EYE 2.2          | Full           | Yes    | Yes      | External    | Yes           | [ here ](doc/ESP32-S3-EYE-22/README.md)      |
-| Freenove ESP32-Wrover cam | Full           | Yes    | No       | External    | Yes           | [ here ](doc/ESP32-Wrover-dev/README.md)     |
-| ESP32-S3-DEV-CAM          | in Progress    |        |          | External    |               | [ here ](doc/ESP32-S3-DEV-CAM/README.md)     |
-| Seeed Studio XIAO ESP32S3 | in Progress    |        |          | External    |               | [ here ](doc/XIAO_ESP32S3/README.md)         |
-| ESP32-S3-CAM              | in Progress    |        |          | Board/Ext   |               | [ here ](doc/ESP32-S3-CAM/README.md)         |
+| Board name                | Support     | Stream | Micro SD | FLASH LED | FW update | Documentation                                |
+|---------------------------|-------------|--------|----------|-----------|-----------|----------------------------------------------|
+| Ai-Thinker ESP32-cam      | Full        | Yes    | Yes      | Board/Ext | Yes       | [ here ](doc/AI_Thinker-ESP32-cam/README.md) |
+| ESP32-S3-EYE 2.2          | Full        | Yes    | Yes      | External  | Yes       | [ here ](doc/ESP32-S3-EYE-22/README.md)      |
+| Freenove ESP32-Wrover cam | Full        | Yes    | No       | External  | Yes       | [ here ](doc/ESP32-Wrover-dev/README.md)     |
+| ESP32-S3-DEV-CAM          | in Progress |        |          | External  |           | [ here ](doc/ESP32-S3-DEV-CAM/README.md)     |
+| Seeed Studio XIAO ESP32S3 | in Progress |        |          | External  |           | [ here ](doc/XIAO_ESP32S3/README.md)         |
+| ESP32-S3-CAM              | in Progress |        |          | Board/Ext |           | [ here ](doc/ESP32-S3-CAM/README.md)         |
 
 <a name="flash_fw"></a>
 ## How to flash binary files to ESP32-cam board from Linux/MAC/Windows
@@ -65,7 +65,7 @@ For the installation of the **ESPAsyncWebServer** and **AsyncTCP** libraries, it
 
 Then it is possible build and upload the firmware to the board. Each board requires a different Arduino IDE configuration. Therefore, it is necessary to select the board from the [supported boards](#supported_boards) and read the documentation on how to build and upload the firmware.
 
-In the file **mcu_cfg.h**, after line 16 is definitions that specify the version of the board for which the software will be compiled. It is necessary to uncomment the line with the version of the board that will be used.
+In the file **mcu_cfg.h**, after line 16 is definitions that specify the version of the board for which the software will be compiled. It is necessary to enable the version of the board that will be used.
 
 <a name="prusa_connect"></a>
 ## How to connect camera board to Prusa Connect
@@ -211,7 +211,7 @@ The standard command sequence for camera basic settings is
 - mcureboot;
 
 <a name="rest"></a>
-## Camera WEB API
+## WEB API
 
 The camera have a WEB API, allowing several operations to be performed through the web interface.
 
