@@ -9,23 +9,23 @@
    Board configuration in the arduino IDE 2.3.2
    Tools -> Board -> ESP32 Arduino -> ESP32S3 Dev Module
    Tools -> USB CDC on BOOT -> Enabled
-   Tools -> CPU Frequency -> 240MHz (WiFi/BT)
+   Tools -> CPU Frequency -> 160MHz (WiFi/BT)
    Tools -> Core debug level -> None
    Tools -> USB DFU on BOOT -> Disable
-   Tools -> Events Run On -> Core 1
+   Tools -> Events Run On -> Core 0
    Tools -> Flash Mode -> DIO 80MHz
    Tools -> Flash Size -> 16MB
    Tools -> Jtag Adapter -> Disable
-   Tools -> Arduino Runs On -> Core 1
+   Tools -> Arduino Runs On -> Core 0
    Tools -> USB Firmware MSC On Boot -> Disable
    Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)
-   Tools -> PSRAM -> QSPI PSRAM
-   Tools -> Upload Mode -> UART0 / Hardware CDC 
+   Tools -> PSRAM -> OPI PSRAM
+   Tools -> Upload Mode -> USB-OTG CDC (TinyUSB)
    Tools -> Upload Speed -> 921600
    Tools -> USB Mode -> Hardware CDC & JTAG
    Tools -> Zigbee mode -> Disable
 
-   Left USB-C connector is for programming and serial monitor
+   Right USB-C connector is for programming and serial monitor
 
    @bug: Currently SW don't work with this DEV board. WiFi and MicroSD is not working
 
@@ -57,12 +57,12 @@
 
 /* ------------------ MCU CFG  ------------------*/
 #define ENABLE_BROWN_OUT_DETECTION  false   ///< Enable brown out detection
-#define ENABLE_PSRAM               true     ///< Enable PSRAM   
+#define ENABLE_PSRAM                true    ///< Enable PSRAM   
 
 /* --------------- OTA UPDATE CFG  --------------*/
 #define OTA_UPDATE_FW_FILE          PSTR("ESP32S3_DEV_CAM.bin") ///< OTA update firmware file name
 #define FW_STATUS_LED_PIN           34      ///< GPIO pin for status FW update LED
-#define FW_STATUS_LED_LEVEL_ON      LOW    ///< GPIO pin level for status LED ON
+#define FW_STATUS_LED_LEVEL_ON      LOW     ///< GPIO pin level for status LED ON
 
 /* --------------- FLASH LED CFG  ---------------*/
 #define ENABLE_CAMERA_FLASH         false   ///< Enable camera flash function
@@ -76,20 +76,20 @@
 #define FLASH_PWM_RESOLUTION        8       ///< range 1-20bit. 8bit = 0-255 range
 
 /* --------------- SD CARD CFG  ---------------*/
-#define ENABLE_SD_CARD              true   ///< Enable SD card function
+#define ENABLE_SD_CARD              true    ///< Enable SD card function
 #define SD_PIN_CLK                  42      ///< GPIO pin for SD card clock
 #define SD_PIN_CMD                  39      ///< GPIO pin for SD card command
 #define SD_PIN_DATA0                41      ///< GPIO pin for SD card data 0
 
 /* ---------- RESET CFG CONFIGURATION  ----------*/
-#define CFG_RESET_PIN               2      ///< GPIO 16 is for reset CFG to default
-#define CFG_RESET_LED_PIN           34     ///< GPIO for indication of reset CFG
+#define CFG_RESET_PIN               2       ///< GPIO 16 is for reset CFG to default
+#define CFG_RESET_LED_PIN           34      ///< GPIO for indication of reset CFG
 #define CFG_RESET_LED_LEVEL_ON      LOW     ///< GPIO pin level for status LED ON
 
 /* -------------- STATUS LED CFG ----------------*/
 #define STATUS_LED_ENABLE           true    ///< enable/disable status LED
 #define STATUS_LED_GPIO_NUM         34      ///< GPIO pin for status LED
-#define STATUS_LED_OFF_PIN_LEVEL    LOW    ///< GPIO pin level for status LED ON
+#define STATUS_LED_OFF_PIN_LEVEL    LOW     ///< GPIO pin level for status LED ON
 
-#endif  // ESP32_WROVER_DEV
+#endif  // CAMERA_MODEL_ESP32_S3_DEV_CAM
 /* EOF */

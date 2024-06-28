@@ -14,15 +14,15 @@
 #define _MCU_CFG_H_
 
 /* ----------------- CAMERA TYPE  ---------------*/
-#define AI_THINKER_ESP32_CAM           true
-#define ESP32_WROVER_DEV               false
-#define CAMERA_MODEL_ESP32_S3_DEV_CAM  false
-#define CAMERA_MODEL_ESP32_S3_EYE_2_2  false
+#define AI_THINKER_ESP32_CAM true
+#define ESP32_WROVER_DEV false
+#define CAMERA_MODEL_ESP32_S3_DEV_CAM false
+#define CAMERA_MODEL_ESP32_S3_EYE_2_2 false
 #define CAMERA_MODEL_XIAO_ESP32_S3_CAM false
-#define CAMERA_MODEL_ESP32_S3_CAM      false
+#define CAMERA_MODEL_ESP32_S3_CAM false
 
 /* ---------------- BASIC MCU CFG  --------------*/
-#define SW_VERSION                  "1.1.0-rc1"                 ///< SW version
+#define SW_VERSION                  "1.1.0-rc1"             ///< SW version
 #define SW_BUILD                    __DATE__ " " __TIME__   ///< build number
 #define CONSOLE_VERBOSE_DEBUG       false                   ///< enable/disable verbose debug log level for console
 #define DEVICE_HOSTNAME             "Prusa-ESP32cam"        ///< device hostname
@@ -55,7 +55,7 @@
 #define WEB_SERVER_PORT             80                      ///< WEB server port 
 #define SERIAL_PORT_SPEED           115200                  ///< baud rate 
 #define WDG_TIMEOUT                 40000                   ///< wdg timeout [second]
-#define PHOTO_FRAGMENT_SIZE         5120                    ///< photo fragmentation size [bytes]
+#define PHOTO_FRAGMENT_SIZE         2048                    ///< photo fragmentation size [bytes]
 #define LOOP_DELAY                  100                     ///< loop delay [ms]
 #define WIFI_CLIENT_WAIT_CON        false                   ///< wait for connecting to WiFi network
 #define WEB_CACHE_INTERVAL          86400                   ///< cache interval for browser [s] 86400s = 24h

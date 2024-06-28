@@ -41,7 +41,7 @@ void Server_InitWebServer() {
       return;
 
     if (SystemCamera.GetCameraCaptureSuccess() == false) {
-      request->send_P(404, "text/plain", "Photo not found!");
+      request->send(404, "text/plain", "Photo not found!");
       return;
     }
     SystemCamera.SetPhotoSending(true);
@@ -61,7 +61,7 @@ void Server_InitWebServer() {
     } else {
       /* send photo without exif data */
       SystemLog.AddEvent(LogLevel_Verbose, F("Send photo without EXIF data"));
-      request->send_P(200, "image/jpg", SystemCamera.GetPhotoFb()->buf, SystemCamera.GetPhotoFb()->len);
+      request->send(200, "image/jpg", SystemCamera.GetPhotoFb()->buf, SystemCamera.GetPhotoFb()->len);
     }
 
     SystemCamera.SetPhotoSending(false);
@@ -102,7 +102,7 @@ void Server_InitWebServer_JsonData() {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: get json_input"));
     if (Server_CheckBasicAuth(request) == false)
       return;
-    request->send_P(200, F("text/plain"), Server_GetJsonData().c_str());
+    request->send(200, F("text/plain"), Server_GetJsonData().c_str());
   });
 
   /* route for json with wifi networks */
@@ -110,7 +110,7 @@ void Server_InitWebServer_JsonData() {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: get json_wifi"));
     if (Server_CheckBasicAuth(request) == false)
       return;
-    request->send_P(200, F("text/plain"), SystemWifiMngt.GetAvailableWifiNetworks().c_str());
+    request->send(200, F("text/plain"), SystemWifiMngt.GetAvailableWifiNetworks().c_str());
   });
 
   /* route for san wi-fi networks */
@@ -118,7 +118,7 @@ void Server_InitWebServer_JsonData() {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: scan WI-FI networks"));
     if (Server_CheckBasicAuth(request) == false)
       return;
-    request->send_P(200, F("text/html"), MSG_SCANNING);
+    request->send(200, F("text/html"), MSG_SCANNING);
     SystemWifiMngt.ScanWiFiNetwork();
   });
 
@@ -168,7 +168,7 @@ void Server_InitWebServer_WebPages() {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get scripts.js"));
     if (Server_CheckBasicAuth(request) == false)
       return;
-    request->send_P(200, "application/javascript", scripts_js);
+    request->send(200, "application/javascript", scripts_js);
   });
 
 
@@ -254,7 +254,7 @@ void Server_InitWebServer_WebPages() {
       request->send(SD_MMC, SystemLog.GetFilePath() + SystemLog.GetFileName(), "text/plain");
       //SystemLog.LogOpenFile();
     } else {
-      request->send_P(404, "text/plain", "Micro SD card not found with FAT32 partition!");
+      request->send(404, "text/plain", "Micro SD card not found with FAT32 partition!");
     }
   });
 }
@@ -404,7 +404,7 @@ void Server_InitWebServer_Actions() {
     if (Server_CheckBasicAuth(request) == false)
       return;
     SystemCamera.CapturePhoto();
-    request->send_P(200, "text/plain", "Take Photo");
+    request->send(200, "text/plain", "Take Photo");
   });
 
   /* route for send photo to prusa backend */
@@ -413,7 +413,7 @@ void Server_InitWebServer_Actions() {
     if (Server_CheckBasicAuth(request) == false)
       return;
     Connect.SetSendingIntervalExpired();
-    request->send_P(200, "text/plain", "Send Photo");
+    request->send(200, "text/plain", "Send Photo");
   });
 
   /* route for change LED status */
@@ -425,7 +425,7 @@ void Server_InitWebServer_Actions() {
     SystemCamera.SetFlashStatus(!SystemCamera.GetFlashStatus());
     SystemCamera.SetCameraFlashEnable(false);
 
-    request->send_P(200, "text/plain", "Change LED status");
+    request->send(200, "text/plain", "Change LED status");
   });
 
   /* route for change LED status */
@@ -438,16 +438,16 @@ void Server_InitWebServer_Actions() {
       SystemLog.AddEvent(LogLevel_Verbose, F("Turning light ON"));
       SystemCamera.SetFlashStatus(true);
       SystemCamera.SetCameraFlashEnable(false);
-      request->send_P(200, "text/plain", "Light ON");
+      request->send(200, "text/plain", "Light ON");
 
     } else if (request->hasArg("off")) {
       SystemLog.AddEvent(LogLevel_Verbose, F("Turning light OFF"));
       SystemCamera.SetFlashStatus(false);
       SystemCamera.SetCameraFlashEnable(false);
-      request->send_P(200, "text/plain", "Light OFF");
+      request->send(200, "text/plain", "Light OFF");
 
     } else {
-      request->send_P(400, "text/plain", "Invalid request");
+      request->send(400, "text/plain", "Invalid request");
     }
   });
 
@@ -461,16 +461,16 @@ void Server_InitWebServer_Actions() {
       SystemLog.AddEvent(LogLevel_Verbose, F("Turning flash ON"));
       SystemCamera.SetCameraFlashEnable(true);
       SystemCamera.SetFlashStatus(false);
-      request->send_P(200, "text/plain", "Flash ON");
+      request->send(200, "text/plain", "Flash ON");
 
     } else if (request->hasArg("off")) {
       SystemLog.AddEvent(LogLevel_Verbose, F("Turning flash OFF"));
       SystemCamera.SetCameraFlashEnable(false);
       SystemCamera.SetFlashStatus(false);
-      request->send_P(200, "text/plain", "Flash OFF");
+      request->send(200, "text/plain", "Flash OFF");
     
     } else {
-      request->send_P(400, "text/plain", "Invalid request");
+      request->send(400, "text/plain", "Invalid request");
     }
   });
 
@@ -479,7 +479,7 @@ void Server_InitWebServer_Actions() {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: /action_reboo reboot MCU!"));
     if (Server_CheckBasicAuth(request) == false)
       return;
-    request->send_P(200, F("text/html"), MSG_REBOOT_MCU);
+    request->send(200, F("text/html"), MSG_REBOOT_MCU);
     delay(100); /* wait for sending data */
     ESP.restart();
   });
@@ -492,7 +492,7 @@ void Server_InitWebServer_Actions() {
 
     StartRemoveSdCard = 1;
 
-    request->send_P(200, F("text/plain"), "Starting remove files from SD card");
+    request->send(200, F("text/plain"), "Starting remove files from SD card");
   });
 }
 
@@ -637,7 +637,7 @@ void Server_InitWebServer_Sets() {
     }
 
     if (true == response) {
-      request->send_P(200, F("text/html"), response_msg.c_str());
+      request->send(200, F("text/html"), response_msg.c_str());
     }
   });
 
@@ -756,7 +756,7 @@ void Server_InitWebServer_Sets() {
     }
 
     if (true == response) {
-      request->send_P(200, F("text/html"), MSG_SAVE_OK);
+      request->send(200, F("text/html"), MSG_SAVE_OK);
     }
   });
 
@@ -765,7 +765,7 @@ void Server_InitWebServer_Sets() {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: /set_token"));
     if (Server_CheckBasicAuth(request) == false)
       return;
-    request->send_P(200, F("text/html"), MSG_SAVE_OK);
+    request->send(200, F("text/html"), MSG_SAVE_OK);
 
     if (request->hasParam("token")) {
       Connect.SetToken(request->getParam("token")->value());
@@ -777,7 +777,7 @@ void Server_InitWebServer_Sets() {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: /set_hostname"));
     if (Server_CheckBasicAuth(request) == false)
       return;
-    request->send_P(200, F("text/html"), MSG_SAVE_OK);
+    request->send(200, F("text/html"), MSG_SAVE_OK);
 
     if (request->hasParam("hostname")) {
       Connect.SetPrusaConnectHostname(request->getParam("hostname")->value());
@@ -805,14 +805,14 @@ void Server_InitWebServer_Sets() {
     /* check min and max length WI-FI ssid and password */
     if (((TmpPassword.length() > 0) && (TmpSsid.length() > 0)) && ((TmpPassword.length() < EEPROM_ADDR_WIFI_PASSWORD_LENGTH) && (TmpSsid.length() < EEPROM_ADDR_WIFI_SSID_LENGTH))) {
       /* send OK response */
-      request->send_P(200, F("text/html"), MSG_SAVE_OK_WIFI);
+      request->send(200, F("text/html"), MSG_SAVE_OK_WIFI);
 
       /* save ssid and password */
       SystemWifiMngt.SetStaCredentials(TmpSsid,TmpPassword);
       SystemWifiMngt.WiFiStaConnect();
 
     } else {
-      request->send_P(200, F("text/html"), MSG_SAVE_NOTOK);
+      request->send(200, F("text/html"), MSG_SAVE_NOTOK);
     }
   });
 
@@ -856,10 +856,10 @@ void Server_InitWebServer_Sets() {
       SystemWifiMngt.SetNetworkConfig(tmpIp, tmpMask, tmpGw, tmpDns);
 
       /* send OK response */
-      request->send_P(200, F("text/html"), MSG_SAVE_OK_REBOOT);
+      request->send(200, F("text/html"), MSG_SAVE_OK_REBOOT);
 
     } else {
-      request->send_P(200, F("text/html"), MSG_SAVE_NOTOK);
+      request->send(200, F("text/html"), MSG_SAVE_NOTOK);
     }
   });
 
@@ -910,12 +910,12 @@ void Server_InitWebServer_Sets() {
 
     /* send OK response */
     if (true == ret) {
-      request->send_P(200, F("text/html"), MSG_SAVE_OK);
+      request->send(200, F("text/html"), MSG_SAVE_OK);
       
     } else {
       String msg = MSG_SAVE_NOTOK;
       msg += " " + ret_msg;
-      request->send_P(200, F("text/html"), msg.c_str());
+      request->send(200, F("text/html"), msg.c_str());
     }
   });
 
@@ -924,7 +924,7 @@ void Server_InitWebServer_Sets() {
     SystemLog.AddEvent(LogLevel_Info, F("WEB server: /set_firmware_size"));
     if (Server_CheckBasicAuth(request) == false)
       return;
-    request->send_P(200, F("text/html"), MSG_SAVE_OK);
+    request->send(200, F("text/html"), MSG_SAVE_OK);
 
     /* check cfg for flash */
     if (request->hasParam("size")) {
@@ -943,12 +943,12 @@ void Server_InitWebServer_Sets() {
     if (request->hasParam("mdns")) {
       String tmp = request->getParam("mdns")->value();
       if (tmp.length() < EEPROM_ADDR_MDNS_RECORD_LENGTH) {
-        request->send_P(200, F("text/html"), MSG_SAVE_OK_REBOOT);
+        request->send(200, F("text/html"), MSG_SAVE_OK_REBOOT);
         SystemWifiMngt.SetMdns(tmp);
 
       } else {
         String msg = "Error save mDNS. Maximum length: " + String(EEPROM_ADDR_MDNS_RECORD_LENGTH);
-        request->send_P(200, F("text/html"), msg.c_str());
+        request->send(200, F("text/html"), msg.c_str());
       }
     }
   });
@@ -1018,7 +1018,7 @@ void Server_InitWebServer_Update() {
     SystemLog.AddEvent(LogLevel_Info, F("WEB server: /web_ota_update"));
     if (Server_CheckBasicAuth(request) == false)
       return;
-    request->send_P(200, F("text/html"), MSG_UPDATE_START);
+    request->send(200, F("text/html"), MSG_UPDATE_START);
     FirmwareUpdate.Processing = true;
 
     /* check flag */
@@ -1039,7 +1039,7 @@ void Server_InitWebServer_Update() {
       return;
 
     System_CheckNewVersion();
-    request->send_P(200, F("text/html"), FirmwareUpdate.CheckNewVersionFwStatus.c_str());
+    request->send(200, F("text/html"), FirmwareUpdate.CheckNewVersionFwStatus.c_str());
   });
 }
 
@@ -1080,7 +1080,7 @@ void Server_resume() {
  * @param const char* - data
  */
 void Server_handleCacheRequest(AsyncWebServerRequest* request, const char *contentType, const char *data) {
-  AsyncWebServerResponse *response = request->beginResponse_P(200, contentType, data);
+  AsyncWebServerResponse *response = request->beginResponse(200, contentType, data);
   response->addHeader("Cache-Control", "public, max-age=" + String(WEB_CACHE_INTERVAL));
   request->send(response);
 }
