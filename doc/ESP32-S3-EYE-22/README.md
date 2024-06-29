@@ -39,6 +39,9 @@ These are currently known or tested camera modules:
 | Camera chip | FOV    | Resolution | Tested | Works | Description                              |
 |-------------|--------|------------|--------|-------|------------------------------------------|
 | OV2640      | 66.5°  |    2MP     |   Yes  |  Yes  | Recommended. Standard camera module      |
+| OV2640      | 120°   |    2MP     |   Yes  |  Yes  | Recommended                              |
+| OV2640      | 160°   |    2MP     |   Yes  |  Yes  | Recommended                              |
+| OV2640IR    | 160°   |    2MP     |   Yes  |  Yes  |                                          |
 
 <a name="flash_fw"></a>
 ## How to flash binary files to board from Linux/MAC/Windows

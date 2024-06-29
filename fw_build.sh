@@ -19,6 +19,7 @@
 #
 # The script assumes the following directory structure:
 # ESP32_PrusaConnectCam/
+# ├── arduino-cli
 # ├── ESP32_PrusaConnectCam.ino
 # ├── mcu_cfg.h
 # ├── ...
