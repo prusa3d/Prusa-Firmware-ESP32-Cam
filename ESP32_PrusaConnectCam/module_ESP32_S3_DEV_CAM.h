@@ -47,15 +47,16 @@
 #define Y8_GPIO_NUM                 9       ///< SCCB: Y8 pin
 #define Y7_GPIO_NUM                 8       ///< SCCB: Y7 pin
 #define Y6_GPIO_NUM                 6       ///< SCCB: Y6 pin
-#define Y5_GPIO_NUM                 4      ///< SCCB: Y5 pin
+#define Y5_GPIO_NUM                 4       ///< SCCB: Y5 pin
 #define Y4_GPIO_NUM                 2       ///< SCCB: Y4 pin
 #define Y3_GPIO_NUM                 3       ///< SCCB: Y3 pin
 #define Y2_GPIO_NUM                 5       ///< SCCB: Y2 pin
 #define VSYNC_GPIO_NUM              13      ///< Vertical sync pin
 #define HREF_GPIO_NUM               12      ///< Line sync pin
-#define PCLK_GPIO_NUM               7      ///< Pixel clock pin
+#define PCLK_GPIO_NUM               7       ///< Pixel clock pin
 
 /* ------------------ MCU CFG  ------------------*/
+#define BOARD_NAME                  F("ESP32-S3 DEV CAM") ///< Board name
 #define ENABLE_BROWN_OUT_DETECTION  false   ///< Enable brown out detection
 #define ENABLE_PSRAM                true    ///< Enable PSRAM   
 
@@ -66,9 +67,9 @@
 
 /* --------------- FLASH LED CFG  ---------------*/
 #define ENABLE_CAMERA_FLASH         false   ///< Enable camera flash function
-#define CAMERA_FLASH_DIGITAL_CTRL   true    ///< Enable camera flash digital control
+#define CAMERA_FLASH_DIGITAL_CTRL   false   ///< Enable camera flash digital control
 #define CAMERA_FLASH_PWM_CTRL       false   ///< Enable camera flash PWM control
-#define FLASH_GPIO_NUM              4       ///< Flash control pin
+#define FLASH_GPIO_NUM              -1       ///< Flash control pin
 #define FLASH_OFF_STATUS            0       ///< PWM intensity LED for OFF. 0-2^FLASH_PWM_RESOLUTION = 0-255
 #define FLASH_ON_STATUS             205     ///< PWM intensity LED for ON. limitation to 80%. 2^FLASH_PWM_RESOLUTION * 0.8% = 204
 #define FLASH_PWM_FREQ              2000    ///< frequency of pwm [240MHz / (100 prescale * pwm cycles)] = frequency

@@ -35,6 +35,7 @@
 #define PCLK_GPIO_NUM               13      ///< Pixel clock pin
 
 /* ------------------ MCU CFG  ------------------*/
+#define BOARD_NAME                  F("ESP32-S3-CAM") ///< Board name
 #define ENABLE_BROWN_OUT_DETECTION  false    ///< Enable brown out detection
 #define ENABLE_PSRAM                true     ///< Enable PSRAM   
 
@@ -44,21 +45,21 @@
 #define FW_STATUS_LED_LEVEL_ON      HIGH   ///< GPIO pin level for status LED ON
 
 /* --------------- FLASH LED CFG  ---------------*/
-#define ENABLE_CAMERA_FLASH         false    ///< Enable camera flash function
+#define ENABLE_CAMERA_FLASH         false   ///< Enable camera flash function
 #define CAMERA_FLASH_DIGITAL_CTRL   false   ///< Enable camera flash digital control
-#define CAMERA_FLASH_PWM_CTRL       false    ///< Enable camera flash PWM control
-#define FLASH_GPIO_NUM              48       ///< Flash control pin. RGB LED NeoPixel
-#define FLASH_OFF_STATUS            0       ///< PWM intensity LED for OFF. 0-2^FLASH_PWM_RESOLUTION = 0-255
-#define FLASH_ON_STATUS             205     ///< PWM intensity LED for ON. limitation to 80%. 2^FLASH_PWM_RESOLUTION * 0.8% = 204
+#define CAMERA_FLASH_PWM_CTRL       false   ///< Enable camera flash PWM control
+#define FLASH_GPIO_NUM              48      ///< Flash control pin. RGB LED NeoPixel
+#define FLASH_OFF_STATUS            0       ///< value for turn off flash
+#define FLASH_ON_STATUS             205     ///< value for turn on flash
 //#define FLASH_PWM_FREQ              2000    ///< frequency of pwm [240MHz / (100 prescale * pwm cycles)] = frequency
 //#define FLASH_PWM_CHANNEL           0       ///< channel 0
 //#define FLASH_PWM_RESOLUTION        8       ///< range 1-20bit. 8bit = 0-255 range
 
 /* --------------- SD CARD CFG  ---------------*/
-#define ENABLE_SD_CARD              false    ///< Enable SD card function
-#define SD_PIN_CLK                  14      ///< GPIO pin for SD card clock
-#define SD_PIN_CMD                  15      ///< GPIO pin for SD card command
-#define SD_PIN_DATA0                2       ///< GPIO pin for SD card data 0
+#define ENABLE_SD_CARD              true    ///< Enable SD card function
+#define SD_PIN_CLK                  39      ///< GPIO pin for SD card clock
+#define SD_PIN_CMD                  38      ///< GPIO pin for SD card command
+#define SD_PIN_DATA0                40      ///< GPIO pin for SD card data 0
 
 /* ---------- RESET CFG CONFIGURATION  ----------*/
 #define CFG_RESET_PIN               12      ///< GPIO 16 is for reset CFG to default

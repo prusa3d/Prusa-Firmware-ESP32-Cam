@@ -100,7 +100,7 @@ void Configuration::ReadCfg() {
    @return bool - status
 */
 bool Configuration::CheckFirstMcuStart() {
-  Log->AddEvent(LogLevel_Info, F("Read FirstMcuStart: "));
+  Log->AddEvent(LogLevel_Info, F("Read FirstMcuStart FLAG"));
   uint8_t flag = EEPROM.read(EEPROM_ADDR_FIRST_MCU_START_FLAG_START);
 
   if (CFG_FIRST_MCU_START_NAK == flag) {

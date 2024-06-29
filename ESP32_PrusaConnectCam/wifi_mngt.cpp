@@ -61,7 +61,6 @@ void WiFiMngt::LoadCfgFromEeprom() {
 void WiFiMngt::Init() {
   /* check WI-FI mode */
   system_led.setTimer(STATUS_LED_WIFI_AP);
-  log->AddEvent(LogLevel_Info, "WiFi MAC: " + WiFi.macAddress());
 
   /* Set Wi-Fi networks */
   SetWifiEvents();
@@ -93,6 +92,7 @@ void WiFiMngt::Init() {
   } else {
     log->AddEvent(LogLevel_Info, F("STA IP Method: DHCP"));
   }
+  log->AddEvent(LogLevel_Info, "WiFi MAC: " + WiFi.macAddress());
 
   esp_wifi_set_ps(WIFI_PS_NONE);
   WiFi.setHostname(DEVICE_HOSTNAME);

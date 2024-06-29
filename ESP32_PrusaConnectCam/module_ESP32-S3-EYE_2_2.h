@@ -57,6 +57,7 @@
 #define XCLK_GPIO_NUM               15      ///< External clock pin
 
 /* ------------------ MCU CFG  ------------------*/
+#define BOARD_NAME                  F("ESP32-S3-EYE_2.2") ///< Board name
 #define ENABLE_BROWN_OUT_DETECTION  false   ///< Enable brown out detection
 #define ENABLE_PSRAM                true    ///< Enable PSRAM   
 
@@ -70,8 +71,8 @@
 #define CAMERA_FLASH_DIGITAL_CTRL   true    ///< Enable camera flash digital control
 #define CAMERA_FLASH_PWM_CTRL       false   ///< Enable camera flash PWM control
 #define FLASH_GPIO_NUM              48      ///< Flash control pin. This is pin for enable LCD backlight
-#define FLASH_OFF_STATUS            LOW     ///< PWM intensity LED for OFF. 0-2^FLASH_PWM_RESOLUTION = 0-255
-#define FLASH_ON_STATUS             HIGH    ///< PWM intensity LED for ON. limitation to 80%. 2^FLASH_PWM_RESOLUTION * 0.8% = 204
+#define FLASH_OFF_STATUS            LOW     ///< Value for turn off flash
+#define FLASH_ON_STATUS             HIGH    ///< Value for turn on flash
 //#define FLASH_PWM_FREQ              2000    ///< frequency of pwm [240MHz / (100 prescale * pwm cycles)] = frequency
 //#define FLASH_PWM_CHANNEL           0       ///< channel 0
 //#define FLASH_PWM_RESOLUTION        8       ///< range 1-20bit. 8bit = 0-255 range

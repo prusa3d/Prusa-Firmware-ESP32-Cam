@@ -46,8 +46,9 @@
 #define PCLK_GPIO_NUM               22      ///< Pixel clock pin
 
 /* ------------------ MCU CFG  ------------------*/
+#define BOARD_NAME                  F("AI Thinker ESP32-CAM") ///< Board name
 #define ENABLE_BROWN_OUT_DETECTION  true   ///< Enable brown out detection
-#define ENABLE_PSRAM               true     ///< Enable PSRAM   
+#define ENABLE_PSRAM                true   ///< Enable PSRAM
 
 /* --------------- OTA UPDATE CFG  --------------*/
 #define OTA_UPDATE_FW_FILE          PSTR("ESP32_PrusaConnectCam.ino.bin") ///< OTA update firmware file name

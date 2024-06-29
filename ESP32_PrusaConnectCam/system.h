@@ -46,7 +46,7 @@
 
 void System_Init();
 void System_LoadCfg();
-void System_CheckIfPsramIsUsed();
+bool System_CheckIfPsramIsUsed();
 void System_Main();
 void System_UpdateInit();
 

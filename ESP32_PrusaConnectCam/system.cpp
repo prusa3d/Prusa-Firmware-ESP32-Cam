@@ -18,6 +18,9 @@
 */
 void System_Init() {
   SystemLog.AddEvent(LogLevel_Info, F("Init system lib"));
+  SystemLog.AddEvent(LogLevel_Info, "SW Version: " + String(SW_VERSION) + " Build: " + String(SW_BUILD));
+  SystemLog.AddEvent(LogLevel_Info, "Board name: " + String(BOARD_NAME));
+
   /* show last reset status */
   String reason_simple = System_printMcuResetReasonSimple();
   SystemLog.AddEvent(LogLevel_Warning, "CPU reset reason: " + reason_simple);
@@ -28,10 +31,12 @@ void System_Init() {
   SystemLog.AddEvent(LogLevel_Warning, "CPU1 reset reason: " + reason_core1);
 
   SystemLog.AddEvent(LogLevel_Info, "MCU Temperature: " + String(temperatureRead()) + " *C");
-  SystemLog.AddEvent(LogLevel_Info, "Internal Total heap: " + String(ESP.getHeapSize()) + " ,internal Free Heap: " + String(ESP.getFreeHeap()));
-  SystemLog.AddEvent(LogLevel_Info, "SPIRam Total heap: " + String(ESP.getPsramSize()) + " ,SPIRam Free Heap: " + String(ESP.getFreePsram()));
-  SystemLog.AddEvent(LogLevel_Info, "ChipRevision: " + String(ESP.getChipRevision()) + " ,Cpu Freq: " + String(ESP.getCpuFreqMHz()) + " ,SDK Version: " + String(ESP.getSdkVersion()));
-  SystemLog.AddEvent(LogLevel_Info, "Flash Size: " + String(ESP.getFlashChipSize()) + " ,Flash Speed " + String(ESP.getFlashChipSpeed()));
+  SystemLog.AddEvent(LogLevel_Info, "Internal Total heap: " + String(ESP.getHeapSize()) + " B, Internal Free Heap: " + String(ESP.getFreeHeap()));
+  SystemLog.AddEvent(LogLevel_Info, "PSRAM Total heap: " + String(ESP.getPsramSize()) + " B, PSRAM Free Heap: " + String(ESP.getFreePsram()));
+  SystemLog.AddEvent(LogLevel_Info, "Chip model: " + String(ESP.getChipModel()) + ", ChipRevision: " + String(ESP.getChipRevision()) + ", Cpu Freq: " + String(ESP.getCpuFreqMHz()));
+  SystemLog.AddEvent(LogLevel_Info, "SDK Version: " + String(ESP.getSdkVersion()) + ", Core Version: " + String(ESP.getCoreVersion()));
+  SystemLog.AddEvent(LogLevel_Info, "Flash Size: " + String(ESP.getFlashChipSize()) + ", Flash Speed " + String(ESP.getFlashChipSpeed()) + ", Flash Mode: " + String(ESP.getFlashChipMode()));
+  
   System_CheckIfPsramIsUsed();
 }
 
@@ -49,9 +54,11 @@ void System_LoadCfg() {
    @param none
    @return none
 */
-void System_CheckIfPsramIsUsed() {
+bool System_CheckIfPsramIsUsed() {
+  bool ret = false;
   if (psramFound()) {
     SystemLog.AddEvent(LogLevel_Info, F("PSRAM is used."));
+    ret = true;
     void *ptr = malloc(100);
 
     if (ptr != NULL) {
@@ -67,6 +74,8 @@ void System_CheckIfPsramIsUsed() {
   } else {
     SystemLog.AddEvent(LogLevel_Info, F("PSRAM is not used."));
   }
+
+  return ret;
 }
 
 /**
@@ -450,8 +459,8 @@ void System_TaskWifiManagement(void *pvParameters) {
 
     /* wifi reconnect after signal lost */
     SystemWifiMngt.WiFiReconnect();
-    SystemLog.AddEvent(LogLevel_Info, "Free RAM: " + String(ESP.getFreeHeap()) + " B");
-    SystemLog.AddEvent(LogLevel_Info, "Free SPIRAM: " + String(ESP.getFreePsram()) + " B");
+    SystemLog.AddEvent(LogLevel_Info, "Free RAM: " + String(ESP.getFreeHeap()) + " B" + ", Min: " + String(ESP.getMinFreeHeap()));
+    SystemLog.AddEvent(LogLevel_Info, "Free PSRAM: " + String(ESP.getFreePsram()) + " B" + ", Min: " + String(ESP.getMinFreePsram()));
     SystemLog.AddEvent(LogLevel_Info, "Temperature: " + String(McuTemperature.TemperatureCelsius) + " *C");
     SystemLog.AddEvent(LogLevel_Verbose, F("WiFiManagement task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + "B");
     SystemLog.AddEvent(LogLevel_Verbose, F("WiFi status: "), String(WiFi.status()));

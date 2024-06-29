@@ -45,8 +45,9 @@
 #define PCLK_GPIO_NUM               22      ///< Pixel clock pin
 
 /* ------------------ MCU CFG  ------------------*/
+#define BOARD_NAME                  F("ESP32-WROVER-DEV") ///< Board name
 #define ENABLE_BROWN_OUT_DETECTION  true   ///< Enable brown out detection
-#define ENABLE_PSRAM               true     ///< Enable PSRAM   
+#define ENABLE_PSRAM                true   ///< Enable PSRAM   
 
 /* --------------- OTA UPDATE CFG  --------------*/
 #define OTA_UPDATE_FW_FILE          PSTR("ESP32_WROVERDEV.bin") ///< OTA update firmware file name
@@ -58,8 +59,8 @@
 #define CAMERA_FLASH_DIGITAL_CTRL   true    ///< Enable camera flash digital control
 #define CAMERA_FLASH_PWM_CTRL       false   ///< Enable camera flash PWM control
 #define FLASH_GPIO_NUM              14      ///< Flash control pin
-#define FLASH_OFF_STATUS            LOW     ///< PWM intensity LED for OFF. 0-2^FLASH_PWM_RESOLUTION = 0-255
-#define FLASH_ON_STATUS             HIGH    ///< PWM intensity LED for ON. limitation to 80%. 2^FLASH_PWM_RESOLUTION * 0.8% = 204
+#define FLASH_OFF_STATUS            LOW     ///< value for flash OFF
+#define FLASH_ON_STATUS             HIGH    ///< value for flash ON
 //#define FLASH_PWM_FREQ              2000    ///< frequency of pwm [240MHz / (100 prescale * pwm cycles)] = frequency
 //#define FLASH_PWM_CHANNEL           0       ///< channel 0
 //#define FLASH_PWM_RESOLUTION        8       ///< range 1-20bit. 8bit = 0-255 range
