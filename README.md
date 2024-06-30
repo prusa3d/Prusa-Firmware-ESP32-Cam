@@ -39,6 +39,8 @@ What we need for functionality
 | Seeed Studio XIAO ESP32S3 | in Progress |        |          | External  |           | [ here ](doc/XIAO_ESP32S3/README.md)         |
 | ESP32-S3-CAM              | in Progress |        |          | Board/Ext |           | [ here ](doc/ESP32-S3-CAM/README.md)         |
 
+The compiled firmware for each supported board is published with every release.
+
 <a name="flash_fw"></a>
 ## How to flash binary files to ESP32-cam board from Linux/MAC/Windows
 
