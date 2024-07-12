@@ -11,7 +11,27 @@
    https://github.com/limengdu/SeeedStudio-XIAO-ESP32S3-Sense-camera
    https://github.com/Seeed-Studio/XIAO_Series
 
-   @bug: Currently SW don't work with this DEV board. WiFi and MicroSD is not working
+
+   Board configuration in the arduino IDE 2.3.2
+   Tools -> Board -> ESP32 Arduino -> XIAO_ESP32S3
+   Tools -> USB CDC on BOOT -> Enabled
+   Tools -> CPU Frequency -> 240MHz (WiFi)
+   Tools -> Core debug level -> None
+   Tools -> USB DFU on BOOT -> Disable
+   Tools -> Erase all Flash Before Sketch Upload -> Disable (first flash, new board = enable. otherwise = disable)
+   Tools -> Events Run On -> Core 1
+   Tools -> Flash Mode -> QIO 80MHz
+   Tools -> Flash Size -> 8MB
+   Tools -> Jtag Adapter -> Disable
+   Tools -> Arduino Runs On -> Core 1
+   Tools -> USB Firmware MSC On Boot -> Disable
+   Tools -> Partition scheme -> 3MB APP/1.5MB SPIFFS
+   Tools -> PSRAM -> OPI PSRAM
+   Tools -> Upload Mode -> UART0 / Hardware CDC
+   Tools -> Upload Speed -> 921600
+   Tools -> USB Mode -> Hardware CDC and JTAG
+
+   @bug: 
 
 */
 
@@ -45,7 +65,7 @@
 #define ENABLE_PSRAM                true    ///< Enable PSRAM   
 
 /* --------------- OTA UPDATE CFG  --------------*/
-#define OTA_UPDATE_FW_FILE          PSTR("ESP32S3_EYE22_PrusaConnectCam.ino.bin") ///< OTA update firmware file name
+#define OTA_UPDATE_FW_FILE          PSTR("ESP32S3_EYE22.bin") ///< OTA update firmware file name
 #define FW_STATUS_LED_PIN           21      ///< GPIO pin for status FW update LED
 #define FW_STATUS_LED_LEVEL_ON      LOW    ///< GPIO pin level for status LED ON
 
@@ -62,9 +82,9 @@
 
 /* --------------- SD CARD CFG  ---------------*/
 #define ENABLE_SD_CARD              true    ///< Enable SD card function
-#define SD_PIN_CLK                  8       ///< GPIO pin for SD card clock
-#define SD_PIN_CMD                  10      ///< GPIO pin for SD card command
-#define SD_PIN_DATA0                9       ///< GPIO pin for SD card data 0
+#define SD_PIN_CLK                  7       ///< GPIO pin for SD card clock
+#define SD_PIN_CMD                  9      ///< GPIO pin for SD card command
+#define SD_PIN_DATA0                8       ///< GPIO pin for SD card data 0
 
 /* ---------- RESET CFG CONFIGURATION  ----------*/
 #define CFG_RESET_PIN               2       ///< GPIO 1 is for reset CFG to default. This is button UP+`
@@ -74,7 +94,11 @@
 /* -------------- STATUS LED CFG ----------------*/
 #define STATUS_LED_ENABLE           true    ///< enable/disable status LED
 #define STATUS_LED_GPIO_NUM         21      ///< GPIO pin for status LED
-#define STATUS_LED_OFF_PIN_LEVEL    HIGH    ///< GPIO pin level for status LED ON
+#define STATUS_LED_OFF_PIN_LEVEL    LOW    ///< GPIO pin level for status LED ON
+
+/* -------------- DHT SENSOR CFG ----------------*/
+#define DHT_SENSOR_ENABLE           true   ///< enable/disable DHT sensor
+#define DHT_SENSOR_PIN              1      ///< GPIO pin for DHT sensor
 
 #endif  // CAMERA_MODEL_XIAO_ESP32_S3_CAM
 /* EOF */

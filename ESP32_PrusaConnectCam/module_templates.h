@@ -14,6 +14,10 @@
 
 #include "mcu_cfg.h"
 
+#if ((AI_THINKER_ESP32_CAM + ESP32_WROVER_DEV + CAMERA_MODEL_ESP32_S3_DEV_CAM + CAMERA_MODEL_ESP32_S3_EYE_2_2 + CAMERA_MODEL_XIAO_ESP32_S3_CAM + CAMERA_MODEL_ESP32_S3_CAM) != 1)
+#error "Exactly one camera model must be defined as true."
+#endif
+
 #if (true == AI_THINKER_ESP32_CAM)
 #include "module_AI_Thinker_ESP32-CAM.h"
 
