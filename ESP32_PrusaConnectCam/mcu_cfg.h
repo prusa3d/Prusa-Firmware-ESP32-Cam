@@ -14,12 +14,12 @@
 #define _MCU_CFG_H_
 
 /* ----------------- CAMERA TYPE  ---------------*/
-#define AI_THINKER_ESP32_CAM false
-#define ESP32_WROVER_DEV false
-#define CAMERA_MODEL_ESP32_S3_DEV_CAM false
-#define CAMERA_MODEL_ESP32_S3_EYE_2_2 false
-#define CAMERA_MODEL_XIAO_ESP32_S3_CAM true
-#define CAMERA_MODEL_ESP32_S3_CAM false
+#define AI_THINKER_ESP32_CAM           true
+#define ESP32_WROVER_DEV               false
+#define CAMERA_MODEL_ESP32_S3_DEV_CAM  false
+#define CAMERA_MODEL_ESP32_S3_EYE_2_2  false
+#define CAMERA_MODEL_XIAO_ESP32_S3_CAM false
+#define CAMERA_MODEL_ESP32_S3_CAM      false
 
 /* ---------------- BASIC MCU CFG  --------------*/
 #define SW_VERSION                  "1.1.0-rc2"             ///< SW version

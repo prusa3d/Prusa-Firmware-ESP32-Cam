@@ -7,7 +7,7 @@
    Contact: miroslav.pivovarsky@gmail.com
 
    https://www.seeedstudio.com/XIAO-ESP32S3-Sense-p-5639.html
-	 https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/
+	https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/
    https://github.com/limengdu/SeeedStudio-XIAO-ESP32S3-Sense-camera
    https://github.com/Seeed-Studio/XIAO_Series
 

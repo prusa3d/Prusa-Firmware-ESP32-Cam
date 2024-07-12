@@ -1383,6 +1383,11 @@ bool Configuration::LoadTimeLapseFunctionStatus() {
   return (bool) ret;
 }
 
+/**
+ * @brief Load external temperature sensor enable
+ * 
+ * @return bool - status
+ */
 bool Configuration::LoadExternalTemperatureSensorEnable() {
   uint8_t ret = EEPROM.read(EEPROM_ADDR_EXT_SENS_ENABLE_START);
   Log->AddEvent(LogLevel_Info, F("External temperature sensor enable: "), String(ret));
@@ -1394,6 +1399,11 @@ bool Configuration::LoadExternalTemperatureSensorEnable() {
   return (bool) ret;
 }
 
+/**
+ * @brief Load external temperature sensor unit
+ * 
+ * @return uint8_t - unit
+ */
 uint8_t Configuration::LoadExternalTemperatureSensorUnit() {
   uint8_t ret = EEPROM.read(EEPROM_ADDR_EXT_SENS_UNIT_START);
   Log->AddEvent(LogLevel_Info, F("External temperature sensor unit: "), String(ret));

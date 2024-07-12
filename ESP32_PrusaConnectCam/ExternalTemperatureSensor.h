@@ -31,8 +31,8 @@ class ExternalSensor {
         bool UserEnable;                       ///< user enable flag
         uint8_t SensorType;                    ///< sensor type
 
-        Logs *log;
-        Configuration *config;
+        Logs *log;                             ///< log object
+        Configuration *config;                 ///< configuration object
 
     public:
         ExternalSensor(uint8_t, bool, Logs *, Configuration *);
