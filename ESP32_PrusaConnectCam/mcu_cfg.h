@@ -14,11 +14,11 @@
 #define _MCU_CFG_H_
 
 /* ----------------- CAMERA TYPE  ---------------*/
-#define AI_THINKER_ESP32_CAM           true
+#define AI_THINKER_ESP32_CAM           false
 #define ESP32_WROVER_DEV               false
 #define CAMERA_MODEL_ESP32_S3_DEV_CAM  false
 #define CAMERA_MODEL_ESP32_S3_EYE_2_2  false
-#define CAMERA_MODEL_XIAO_ESP32_S3_CAM false
+#define CAMERA_MODEL_XIAO_ESP32_S3_CAM true
 #define CAMERA_MODEL_ESP32_S3_CAM      false
 
 /* ---------------- BASIC MCU CFG  --------------*/
@@ -145,6 +145,8 @@
 #define FACTORY_CFG_NETWORK_STATIC_DNS        F("255.255.255.255") ///< Static DNS
 #define FACTORY_CFG_IMAGE_EXIF_ROTATION       1                 ///< Image rotation 1 - 0°, 6 - 90°, 3 - 180°, 8 - 270°
 #define FACTORY_CFG_TIMELAPS_ENABLE           0                 ///< enable timelaps functionality
+#define FACTORY_CFG_ENABLE_EXT_SENSOR         0                 ///< enable DHT22 sensor
+#define FACTORY_CFG_EXT_SENSOR_UNIT           0                 ///< 0 = celsius, 1 = fahrenheit
 
 /* ---------------- CFG FLAGS  ------------------*/
 #define CFG_WIFI_SETTINGS_SAVED               0x0A              ///< flag saved config

@@ -175,6 +175,8 @@ void Configuration::DefaultCfg() {
   SaveNetworkDns(FACTORY_CFG_NETWORK_STATIC_DNS);
   SaveCameraImageExifRotation(FACTORY_CFG_IMAGE_EXIF_ROTATION);
   SaveTimeLapseFunctionStatus(FACTORY_CFG_TIMELAPS_ENABLE);
+  SaveExternalTemperatureSensorEnable(FACTORY_CFG_ENABLE_EXT_SENSOR);
+  SaveExternalTemperatureSensorUnit(FACTORY_CFG_EXT_SENSOR_UNIT);
   Log->AddEvent(LogLevel_Warning, F("+++++++++++++++++++++++++++"));
 }
 
