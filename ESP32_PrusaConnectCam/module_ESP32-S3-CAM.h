@@ -5,8 +5,28 @@
 
    @author Miroslav Pivovarsky
    Contact: miroslav.pivovarsky@gmail.com
+   
+   Board configuration in the arduino IDE 2.3.2
+   Tools -> Board -> ESP32 Arduino -> ESP32S3 Dev Module
+   Tools -> USB CDC on BOOT -> Disable
+   Tools -> CPU Frequency -> 240MHz (WiFi/BT)
+   Tools -> Core debug level -> None
+   Tools -> USB DFU on BOOT -> Disable
+   Tools -> Erase all Flash Before Sketch Upload -> Disable (first flash, new board = enable. otherwise = disable)
+   Tools -> Events Run On -> Core 1
+   Tools -> Flash Mode -> DIO 80MHz
+   Tools -> Flash Size -> 16MB
+   Tools -> Jtag Adapter -> Disable
+   Tools -> Arduino Runs On -> Core 1
+   Tools -> USB Firmware MSC On Boot -> Disable
+   Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)
+   Tools -> PSRAM -> OPI PSRAM
+   Tools -> Upload Mode -> UART0 / Hardware CDC
+   Tools -> Upload Speed -> 921600
+   Tools -> USB Mode -> Hardware CDC and JTAG
+   Tools -> Zigbee mode -> Disable
 
-   @bug: NOT COMPLETED!
+   @bug: 
 
 */
 
@@ -45,12 +65,14 @@
 #define FW_STATUS_LED_LEVEL_ON      HIGH   ///< GPIO pin level for status LED ON
 
 /* --------------- FLASH LED CFG  ---------------*/
-#define ENABLE_CAMERA_FLASH         false   ///< Enable camera flash function
-#define CAMERA_FLASH_DIGITAL_CTRL   false   ///< Enable camera flash digital control
-#define CAMERA_FLASH_PWM_CTRL       false   ///< Enable camera flash PWM control
-#define FLASH_GPIO_NUM              48      ///< Flash control pin. RGB LED NeoPixel
-#define FLASH_OFF_STATUS            0       ///< value for turn off flash
-#define FLASH_ON_STATUS             205     ///< value for turn on flash
+#define ENABLE_CAMERA_FLASH         true   ///< Enable camera flash function
+#define CAMERA_FLASH_DIGITAL_CTRL   true   ///< Enable camera flash digital control
+#define CAMERA_FLASH_PWM_CTRL       false  ///< Enable camera flash PWM control
+#define CAMERA_FLASH_NEOPIXEL       true   ///< Enable camera flash NeoPixel control
+#define FLASH_GPIO_NUM              47     ///< Flash control pin.
+#define FLASH_NEOPIXEL_LED_PIN      48     ///< External flash control pin. RGB LED NeoPixel
+#define FLASH_OFF_STATUS            LOW    ///< value for turn off flash
+#define FLASH_ON_STATUS             HIGH   ///< value for turn on flash
 //#define FLASH_PWM_FREQ              2000    ///< frequency of pwm [240MHz / (100 prescale * pwm cycles)] = frequency
 //#define FLASH_PWM_CHANNEL           0       ///< channel 0
 //#define FLASH_PWM_RESOLUTION        8       ///< range 1-20bit. 8bit = 0-255 range

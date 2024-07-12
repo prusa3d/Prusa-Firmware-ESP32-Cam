@@ -59,7 +59,9 @@
 #define ENABLE_CAMERA_FLASH         true    ///< Enable camera flash function
 #define CAMERA_FLASH_DIGITAL_CTRL   false   ///< Enable camera flash digital control
 #define CAMERA_FLASH_PWM_CTRL       true    ///< Enable camera flash PWM control
+#define CAMERA_FLASH_NEOPIXEL       false   ///< Enable camera flash NeoPixel control
 #define FLASH_GPIO_NUM              4       ///< Flash control pin
+#define FLASH_NEOPIXEL_LED_PIN      -1      ///< External flash control pin. RGB LED NeoPixel
 #define FLASH_OFF_STATUS            0       ///< PWM intensity LED for OFF. 0-2^FLASH_PWM_RESOLUTION = 0-255
 #define FLASH_ON_STATUS             205     ///< PWM intensity LED for ON. limitation to 80%. 2^FLASH_PWM_RESOLUTION * 0.8% = 204
 #define FLASH_PWM_FREQ              2000    ///< frequency of pwm [240MHz / (100 prescale * pwm cycles)] = frequency

@@ -237,6 +237,7 @@ void Camera::SetPhotoSending(bool i_data) {
 */
 void Camera::SetFlashStatus(bool i_data) {
 #if (true == ENABLE_CAMERA_FLASH)
+/* PWM control of the FLASH */
 #if (true == CAMERA_FLASH_PWM_CTRL)
   if (true == i_data) {
     ledcWrite(FLASH_GPIO_NUM, FLASH_ON_STATUS);
@@ -244,11 +245,21 @@ void Camera::SetFlashStatus(bool i_data) {
     ledcWrite(FLASH_GPIO_NUM, FLASH_OFF_STATUS);
   }
 
+/* Digital control of the FLASH */
 #elif (true == CAMERA_FLASH_DIGITAL_CTRL)
   if (true == i_data) {
     digitalWrite(FLASH_GPIO_NUM, HIGH);
   } else if (false == i_data) {
     digitalWrite(FLASH_GPIO_NUM, LOW);
+  }
+#endif
+
+/* Neopixel control of the FLASH */
+#if (true == CAMERA_FLASH_NEOPIXEL)
+  if (true == i_data) {
+    neopixelWrite(FLASH_NEOPIXEL_LED_PIN, RGB_BRIGHTNESS, RGB_BRIGHTNESS, RGB_BRIGHTNESS);
+  } else if (false == i_data) {
+    neopixelWrite(FLASH_NEOPIXEL_LED_PIN, 0, 0, 0);
   }
 #endif
 #endif

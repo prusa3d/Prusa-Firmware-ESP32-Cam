@@ -69,6 +69,7 @@ void ExternalSensor::EnableSensor(bool i_enable) {
     if (true == SystemEnable) {
         UserEnable = i_enable;  
         config->SaveExternalTemperatureSensorEnable(UserEnable);
+        
     } else {
         UserEnable = false;
         config->SaveExternalTemperatureSensorEnable(UserEnable);
