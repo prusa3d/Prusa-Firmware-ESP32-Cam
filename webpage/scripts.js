@@ -120,6 +120,14 @@ function get_data(val) {
 				document.getElementById('mdnsid').value = obj.mdns;
         		document.getElementById('loglevelid').value = obj.log_level;
 			}
+
+			if (val == "temp") {
+				$("#extsens_stat").text(obj.extsens_stat);
+				document.getElementById('extsetsid').checked = obj.extsen_en;
+				document.getElementById('temp_unitid').value = obj.exttemp_unit;
+				$("#ext_temp").text(obj.ext_temp);
+				$("#ext_hum").text(obj.ext_hum);
+			}
 		},
 		error: function(html) {
 			console.log("json Timeout or error");

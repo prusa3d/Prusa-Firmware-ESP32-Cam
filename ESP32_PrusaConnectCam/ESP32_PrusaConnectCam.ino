@@ -13,6 +13,7 @@
    - ArduinoJson       - MIT      - 7.1.0   - https://github.com/bblanchon/ArduinoJson
    - ArduinoUniqueID   - MIT      - 1.3.0   - https://github.com/ricaun/ArduinoUniqueID
    - arduino-esp32     - LGPL 2.1 - 3.0.2   - https://github.com/espressif/arduino-esp32
+   - DHTnew            - MIT      - 0.4.20  - https://github.com/RobTillaart/DHTNew
 
    Arduino IDE configuration for the MCU are stored in the module_XXX.h file.
 
@@ -95,6 +96,9 @@ void setup() {
   /* init class for communication with PrusaConnect */
   Connect.Init();
 
+  /* init external temperature sensor */
+  ExternalTemperatureSensor.Init();
+
   /* init wdg */
   SystemLog.AddEvent(LogLevel_Info, F("Init WDG"));
   esp_task_wdt_config_t twdt_config;
@@ -121,8 +125,8 @@ void setup() {
 #endif
   xTaskCreatePinnedToCore(System_TaskSerialCfg, "CheckSerialConfiguration", 2600, NULL, 5, &Task_SerialCfg, 0);                 /*function, description, stack size, parameters, priority, task handle, core*/
   ESP_ERROR_CHECK(esp_task_wdt_add(Task_SerialCfg));
-  xTaskCreatePinnedToCore(System_TaskStreamTelemetry, "PrintStreamTelemetry", 2200, NULL, 6, &Task_StreamTelemetry, 0);         /*function, description, stack size, parameters, priority, task handle, core*/
-  ESP_ERROR_CHECK(esp_task_wdt_add(Task_StreamTelemetry));
+  xTaskCreatePinnedToCore(System_TaskSystemTelemetry, "PrintSystemTelemetry", 2200, NULL, 6, &Task_SystemTelemetry, 0);         /*function, description, stack size, parameters, priority, task handle, core*/
+  ESP_ERROR_CHECK(esp_task_wdt_add(Task_SystemTelemetry));
   xTaskCreatePinnedToCore(System_TaskSysLed, "SystemLed", 2100, NULL, 7, &Task_SysLed, 0);                                      /*function, description, stack size, parameters, priority, task handle, core*/
   ESP_ERROR_CHECK(esp_task_wdt_add(Task_SysLed));
   xTaskCreatePinnedToCore(System_TaskWiFiWatchdog, "WiFiWatchdog", 2200, NULL, 8, &Task_WiFiWatchdog, 0);                       /*function, description, stack size, parameters, priority, task handle, core*/

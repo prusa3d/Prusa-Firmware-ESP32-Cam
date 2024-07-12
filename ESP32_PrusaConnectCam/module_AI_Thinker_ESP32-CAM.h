@@ -73,7 +73,7 @@
 #define SD_PIN_DATA0                2       ///< GPIO pin for SD card data 0
 
 /* ---------- RESET CFG CONFIGURATION  ----------*/
-#define CFG_RESET_PIN               12      ///< GPIO 16 is for reset CFG to default
+#define CFG_RESET_PIN               12      ///< GPIO 12 is for reset CFG to default
 #define CFG_RESET_LED_PIN           4       ///< GPIO for indication of reset CFG
 #define CFG_RESET_LED_LEVEL_ON      HIGH    ///< GPIO pin level for status LED ON
 
@@ -81,6 +81,10 @@
 #define STATUS_LED_ENABLE           true    ///< enable/disable status LED
 #define STATUS_LED_GPIO_NUM         33      ///< GPIO pin for status LED
 #define STATUS_LED_OFF_PIN_LEVEL    LOW     ///< GPIO pin level for status LED ON
+
+/* -------------- DHT SENSOR CFG ----------------*/
+#define DHT_SENSOR_ENABLE           true   ///< enable/disable DHT sensor
+#define DHT_SENSOR_PIN              13      ///< GPIO pin for DHT sensor
 
 #endif  // AI_THINKER_ESP32_CAM
 /* EOF */

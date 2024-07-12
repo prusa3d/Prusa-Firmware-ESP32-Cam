@@ -18,23 +18,23 @@
 class Logs;
 
 class sys_led {
-private:
-  uint8_t pin;            ///< pin number for system LED
-  uint32_t time;          ///< speed blinking time system LED
-  uint32_t ledOnDuration; ///< duration of LED on
-  Logs *log;              ///< pointer to log class
+  private:
+    uint8_t pin;            ///< pin number for system LED
+    uint32_t time;          ///< speed blinking time system LED
+    uint32_t ledOnDuration; ///< duration of LED on
+    Logs *log;              ///< pointer to log class
 
-public:
-  sys_led(uint8_t, uint32_t);
-  sys_led(uint8_t, uint32_t, Logs *);
-  ~sys_led(){};
+  public:
+    sys_led(uint8_t, uint32_t);
+    sys_led(uint8_t, uint32_t, Logs *);
+    ~sys_led(){};
 
-  void init();
-  void toggle();
-  void set(bool);
-  bool get();
-  void setTimer(uint32_t);
-  uint32_t getTimer();
+    void init();
+    void toggle();
+    void set(bool);
+    bool get();
+    void setTimer(uint32_t);
+    uint32_t getTimer();
 };
 
 extern sys_led system_led;

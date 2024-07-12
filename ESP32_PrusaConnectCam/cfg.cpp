@@ -853,6 +853,26 @@ void Configuration::SaveTimeLapseFunctionStatus(bool i_data) {
 }
 
 /**
+   @info Save external temperature sensor enable
+   @param bool - value
+   @return none
+*/
+void Configuration::SaveExternalTemperatureSensorEnable(bool i_data) {
+  Log->AddEvent(LogLevel_Verbose, F("Save external temperature sensor enable: "), String(i_data)); 
+  SaveBool(EEPROM_ADDR_EXT_SENS_ENABLE_START, i_data);
+}
+
+/**
+   @info Save external temperature sensor unit
+   @param uint8_t - value
+   @return none
+*/
+void Configuration::SaveExternalTemperatureSensorUnit(uint8_t i_data) {
+  Log->AddEvent(LogLevel_Verbose, F("Save external temperature sensor unit: "), String(i_data)); 
+  SaveUint8(EEPROM_ADDR_EXT_SENS_UNIT_START, i_data);
+}
+
+/**
    @info load refresh interval from eeprom 
    @param none
    @return uint8_t - refresh interval
@@ -1361,6 +1381,29 @@ bool Configuration::LoadTimeLapseFunctionStatus() {
   }
 
   return (bool) ret;
+}
+
+bool Configuration::LoadExternalTemperatureSensorEnable() {
+  uint8_t ret = EEPROM.read(EEPROM_ADDR_EXT_SENS_ENABLE_START);
+  Log->AddEvent(LogLevel_Info, F("External temperature sensor enable: "), String(ret));
+
+  if (ret == 255) {
+    ret = 0;
+  }
+
+  return (bool) ret;
+}
+
+uint8_t Configuration::LoadExternalTemperatureSensorUnit() {
+  uint8_t ret = EEPROM.read(EEPROM_ADDR_EXT_SENS_UNIT_START);
+  Log->AddEvent(LogLevel_Info, F("External temperature sensor unit: "), String(ret));
+
+  if (ret == 255) {
+    ret = 0;
+  }
+
+  return ret;
+
 }
 
 /* EOF */

@@ -47,7 +47,7 @@ void Server_InitWebServer() {
     SystemCamera.SetPhotoSending(true);
 
     SystemLog.AddEvent(LogLevel_Verbose, "Photo size: " + String(SystemCamera.GetPhotoFb()->len) + " bytes");
-  
+
     if (SystemCamera.GetPhotoExifData()->header != NULL) {
       /* send photo with exif data */
       SystemLog.AddEvent(LogLevel_Verbose, F("Send photo with EXIF data"));
@@ -150,7 +150,7 @@ void Server_InitWebServer_WebPages() {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get index.html"));
     if (Server_CheckBasicAuth(request) == false)
       return;
-    
+
     Server_handleCacheRequest(request, "text/html", index_html);
   });
 
@@ -177,7 +177,7 @@ void Server_InitWebServer_WebPages() {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get page_config.html"));
     if (Server_CheckBasicAuth(request) == false)
       return;
-    
+
     Server_handleCacheRequest(request, "text/html", page_config_html);
   });
 
@@ -186,7 +186,7 @@ void Server_InitWebServer_WebPages() {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get page_wifi.html"));
     if (Server_CheckBasicAuth(request) == false)
       return;
-    
+
     Server_handleCacheRequest(request, "text/html", page_wifi_html);
   });
 
@@ -195,7 +195,7 @@ void Server_InitWebServer_WebPages() {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get page_auth.html"));
     if (Server_CheckBasicAuth(request) == false)
       return;
-    
+
     Server_handleCacheRequest(request, "text/html", page_auth_html);
   });
 
@@ -204,8 +204,17 @@ void Server_InitWebServer_WebPages() {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get page_system.html"));
     if (Server_CheckBasicAuth(request) == false)
       return;
-    
+
     Server_handleCacheRequest(request, "text/html", page_system_html);
+  });
+
+  /* route for temperature web page */
+  server.on("/page_temperature.html", HTTP_GET, [](AsyncWebServerRequest* request) {
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get page_temperature.html"));
+    if (Server_CheckBasicAuth(request) == false)
+      return;
+
+    Server_handleCacheRequest(request, "text/html", page_temperature_html);
   });
 
   /* route to license page */
@@ -213,7 +222,7 @@ void Server_InitWebServer_WebPages() {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get license.html"));
     if (Server_CheckBasicAuth(request) == false)
       return;
-    
+
     Server_handleCacheRequest(request, "text/html", license_html);
   });
 
@@ -222,7 +231,7 @@ void Server_InitWebServer_WebPages() {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get gtac.html"));
     if (Server_CheckBasicAuth(request) == false)
       return;
-    
+
     Server_handleCacheRequest(request, "text/html", gtac_html);
   });
 
@@ -231,7 +240,7 @@ void Server_InitWebServer_WebPages() {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get privacypolicy.html"));
     if (Server_CheckBasicAuth(request) == false)
       return;
-    
+
     Server_handleCacheRequest(request, "text/html", privacypolicy_html);
   });
 
@@ -240,7 +249,7 @@ void Server_InitWebServer_WebPages() {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get cookie.html"));
     if (Server_CheckBasicAuth(request) == false)
       return;
-    
+
     Server_handleCacheRequest(request, "text/html", cookies_html);
   });
 
@@ -257,6 +266,24 @@ void Server_InitWebServer_WebPages() {
       request->send(404, "text/plain", "Micro SD card not found with FAT32 partition!");
     }
   });
+
+  /* route to get temperature */
+  server.on("/get_temp", HTTP_GET, [](AsyncWebServerRequest* request) {
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get get_temp"));
+    if (Server_CheckBasicAuth(request) == false)
+      return;
+
+    request->send(200, "text/plain", String(ExternalTemperatureSensor.GetTemperature()));
+  });
+
+  /* route to get humidity */
+  server.on("/get_hum", HTTP_GET, [](AsyncWebServerRequest* request) {
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get get_hum"));
+    if (Server_CheckBasicAuth(request) == false)
+      return;
+
+    request->send(200, "text/plain", String(ExternalTemperatureSensor.GetHumidity()));
+  });
 }
 
 /**
@@ -270,7 +297,7 @@ void Server_InitWebServer_Icons() {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get esp32_cam.svg"));
     if (Server_CheckBasicAuth(request) == false)
       return;
-    
+
     Server_handleCacheRequest(request, "image/svg+xml", esp32_cam_logo_svg);
   });
 
@@ -279,7 +306,7 @@ void Server_InitWebServer_Icons() {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get github-icon.svg"));
     if (Server_CheckBasicAuth(request) == false)
       return;
-    
+
     Server_handleCacheRequest(request, "image/svg+xml", github_icon_svg);
   });
 
@@ -297,7 +324,7 @@ void Server_InitWebServer_Icons() {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: Get light-icon.svg"));
     if (Server_CheckBasicAuth(request) == false)
       return;
-    
+
     Server_handleCacheRequest(request, "image/svg+xml", light_icon_off_svg);
   });
 
@@ -468,7 +495,7 @@ void Server_InitWebServer_Actions() {
       SystemCamera.SetCameraFlashEnable(false);
       SystemCamera.SetFlashStatus(false);
       request->send(200, "text/plain", "Flash OFF");
-    
+
     } else {
       request->send(400, "text/plain", "Invalid request");
     }
@@ -484,7 +511,7 @@ void Server_InitWebServer_Actions() {
     ESP.restart();
   });
 
-    /* route for change LED status */
+  /* route for change LED status */
   server.on("/action_sderase", HTTP_GET, [](AsyncWebServerRequest* request) {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: /action_sderase remove files from SD card"));
     if (Server_CheckBasicAuth(request) == false)
@@ -636,6 +663,14 @@ void Server_InitWebServer_Sets() {
       response = true;
     }
 
+    /* set saturation */
+    if (request->hasParam("temp_unit")) {
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set temp_unit"));
+      ExternalTemperatureSensor.SetUnit((TemperatureSensorUnit_enum) request->getParam("temp_unit")->value().toInt());
+      response_msg = MSG_SAVE_OK;
+      response = true;
+    }
+
     if (true == response) {
       request->send(200, F("text/html"), response_msg.c_str());
     }
@@ -734,24 +769,33 @@ void Server_InitWebServer_Sets() {
       response = true;
     }
 
+    /* set service AP */
     if (request->hasParam("serviceap_enable")) {
       SystemLog.AddEvent(LogLevel_Verbose, F("Set service AP enable"));
       SystemWifiMngt.SetEnableServiceAp(Server_TransfeStringToBool(request->getParam("serviceap_enable")->value()));
       response = true;
     }
 
+    /* set timelaps enable */
     if (request->hasParam("timelaps_enable")) {
       SystemLog.AddEvent(LogLevel_Verbose, F("Set timelaps enable"));
 #if (ENABLE_SD_CARD == true)
       bool val = Server_TransfeStringToBool(request->getParam("timelaps_enable")->value());
-      if ((true == val ) && (SystemLog.GetCardDetectedStatus() == true)) {
+      if ((true == val) && (SystemLog.GetCardDetectedStatus() == true)) {
         Connect.SetTimeLapsPhotoSaveStatus(val);
       } else {
         Connect.SetTimeLapsPhotoSaveStatus(false);
       }
 #else
-      Connect.SetTimeLapsPhotoSaveStatus(false);
+        Connect.SetTimeLapsPhotoSaveStatus(false);
 #endif
+      response = true;
+    }
+
+    /* set external temperature sensor enable */
+    if (request->hasParam("extsens_enable")) {
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set enable ext temperature"));
+      ExternalTemperatureSensor.EnableSensor(Server_TransfeStringToBool(request->getParam("extsens_enable")->value()));
       response = true;
     }
 
@@ -808,7 +852,7 @@ void Server_InitWebServer_Sets() {
       request->send(200, F("text/html"), MSG_SAVE_OK_WIFI);
 
       /* save ssid and password */
-      SystemWifiMngt.SetStaCredentials(TmpSsid,TmpPassword);
+      SystemWifiMngt.SetStaCredentials(TmpSsid, TmpPassword);
       SystemWifiMngt.WiFiStaConnect();
 
     } else {
@@ -816,7 +860,7 @@ void Server_InitWebServer_Sets() {
     }
   });
 
-    /* route for set WI-FI static IP address */
+  /* route for set WI-FI static IP address */
   server.on("/wifi_net_cfg", HTTP_GET, [](AsyncWebServerRequest* request) {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: set WI-FI static IP address"));
     if (Server_CheckBasicAuth(request) == false)
@@ -848,10 +892,8 @@ void Server_InitWebServer_Sets() {
     }
 
     /* check min and max length network parameters */
-    if (((tmpIp.length() > 0) && (tmpMask.length() > 0) && (tmpGw.length() > 0) &&  (tmpDns.length() > 0)) && 
-        ((tmpIp.length() <= IPV4_ADDR_MAX_LENGTH) && (tmpMask.length() <= IPV4_ADDR_MAX_LENGTH) &&
-         (tmpGw.length() <= IPV4_ADDR_MAX_LENGTH) && (tmpDns.length() <= IPV4_ADDR_MAX_LENGTH))) {
-      
+    if (((tmpIp.length() > 0) && (tmpMask.length() > 0) && (tmpGw.length() > 0) && (tmpDns.length() > 0)) && ((tmpIp.length() <= IPV4_ADDR_MAX_LENGTH) && (tmpMask.length() <= IPV4_ADDR_MAX_LENGTH) && (tmpGw.length() <= IPV4_ADDR_MAX_LENGTH) && (tmpDns.length() <= IPV4_ADDR_MAX_LENGTH))) {
+
       /* save ssid and password */
       SystemWifiMngt.SetNetworkConfig(tmpIp, tmpMask, tmpGw, tmpDns);
 
@@ -911,7 +953,7 @@ void Server_InitWebServer_Sets() {
     /* send OK response */
     if (true == ret) {
       request->send(200, F("text/html"), MSG_SAVE_OK);
-      
+
     } else {
       String msg = MSG_SAVE_NOTOK;
       msg += " " + ret_msg;
@@ -1010,8 +1052,7 @@ void Server_InitWebServer_Update() {
           SystemLog.AddEvent(LogLevel_Error, String(SYSTEM_MSG_UPDATE_FAIL));
         }
       }
-    }
-  );
+    });
 
   /* route for start web OTA update from server */
   server.on("/web_ota_update", HTTP_GET, [](AsyncWebServerRequest* request) {
@@ -1079,8 +1120,8 @@ void Server_resume() {
  * @param const char* - content type
  * @param const char* - data
  */
-void Server_handleCacheRequest(AsyncWebServerRequest* request, const char *contentType, const char *data) {
-  AsyncWebServerResponse *response = request->beginResponse(200, contentType, data);
+void Server_handleCacheRequest(AsyncWebServerRequest* request, const char* contentType, const char* data) {
+  AsyncWebServerResponse* response = request->beginResponse(200, contentType, data);
   response->addHeader("Cache-Control", "public, max-age=" + String(WEB_CACHE_INTERVAL));
   request->send(response);
 }
@@ -1174,6 +1215,11 @@ String Server_GetJsonData() {
   doc_json["sw_build"] = SW_BUILD;
   doc_json["sw_ver"] = SW_VERSION;
   doc_json["sw_new_ver"] = FirmwareUpdate.NewVersionFw;
+  doc_json["extsens_stat"] = ExternalTemperatureSensor.GetSensorStatus();
+  doc_json["extsen_en"] = ExternalTemperatureSensor.GetUserEnableSensor();
+  doc_json["ext_temp"] = ExternalTemperatureSensor.GetTemperatureString();
+  doc_json["ext_hum"] = ExternalTemperatureSensor.GetHumidityString();
+  doc_json["exttemp_unit"] = ExternalTemperatureSensor.GetTemperatureUnit();
 
   serializeJson(doc_json, string_json);
   SystemLog.AddEvent(LogLevel_Verbose, string_json);
@@ -1200,8 +1246,8 @@ bool Server_CheckBasicAuth(AsyncWebServerRequest* request) {
    @param AsyncWebServerRequest - request
    @return void
 */
-void Server_streamJpg(AsyncWebServerRequest *request) {
-  AsyncJpegStreamResponse *response = new AsyncJpegStreamResponse(&SystemCamera, &SystemLog);
+void Server_streamJpg(AsyncWebServerRequest* request) {
+  AsyncJpegStreamResponse* response = new AsyncJpegStreamResponse(&SystemCamera, &SystemLog);
   if (!response) {
     request->send(501);
     return;

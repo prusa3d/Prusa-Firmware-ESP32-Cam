@@ -33,6 +33,11 @@ echo "Generating page_system.html"
 html_content=$(cat page_system.html | awk '{printf "%s\\n", $0}')
 awk -v var="$html_content" '/^const char page_system_html\[\] PROGMEM = R"rawliteral\(/,/rawliteral";/ { if (/^const char page_system_html\[\] PROGMEM = R"rawliteral\(/) { print "const char page_system_html[] PROGMEM = R\"rawliteral(\n" var ")rawliteral\";"; next } { next } } 1' WebPage.h > temp && mv temp WebPage.h
 
+# Read the page_system.html file and generate the WebPage.h file
+echo "Generating page_temperature.html"
+html_content=$(cat page_temperature.html | awk '{printf "%s\\n", $0}')
+awk -v var="$html_content" '/^const char page_temperature_html\[\] PROGMEM = R"rawliteral\(/,/rawliteral";/ { if (/^const char page_temperature_html\[\] PROGMEM = R"rawliteral\(/) { print "const char page_temperature_html[] PROGMEM = R\"rawliteral(\n" var ")rawliteral\";"; next } { next } } 1' WebPage.h > temp && mv temp WebPage.h
+
 # Read the syles.css file and generate the WebPage.h file
 echo "Generating styles.css"
 html_content=$(cat styles.css | awk '{printf "%s\\n", $0}')

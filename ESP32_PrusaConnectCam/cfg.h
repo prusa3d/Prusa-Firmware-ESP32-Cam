@@ -74,6 +74,8 @@ public:
   void SaveNetworkDns(String);
   void SaveCameraImageExifRotation(uint8_t);
   void SaveTimeLapseFunctionStatus(bool);
+  void SaveExternalTemperatureSensorEnable(bool);
+  void SaveExternalTemperatureSensorUnit(uint8_t);
 
   uint8_t LoadRefreshInterval();
   String LoadToken();
@@ -116,6 +118,8 @@ public:
   String LoadNetworkDns();
   uint8_t LoadCameraImageExifRotation();
   bool LoadTimeLapseFunctionStatus();
+  bool LoadExternalTemperatureSensorEnable();
+  uint8_t LoadExternalTemperatureSensorUnit();
 
 private:
   Logs *Log;              ///< Pointer to Logs object

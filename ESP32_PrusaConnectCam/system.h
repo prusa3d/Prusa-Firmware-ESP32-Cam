@@ -38,6 +38,7 @@
 #include "connect.h"
 #include "serial_cfg.h"
 #include "sys_led.h"
+#include "ExternalTemperatureSensor.h"
 
 #define SYSTEM_MSG_UPDATE_DONE    F("FW update successfully done! Please reboot the MCU.")
 #define SYSTEM_MSG_UPDATE_FAIL    F("FW update failed! Please reboot MCU, and try again.")
@@ -66,7 +67,7 @@ void System_TaskMain(void *);
 void System_TaskCaptureAndSendPhoto(void *);
 void System_TaskSdCardCheck(void *);
 void System_TaskSerialCfg(void *);
-void System_TaskStreamTelemetry(void *);
+void System_TaskSystemTelemetry(void *);
 void System_TaskSysLed(void *);
 void System_TaskWiFiWatchdog(void *);
 void System_TaskSdCardRemove(void *);

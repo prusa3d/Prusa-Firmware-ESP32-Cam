@@ -14,15 +14,15 @@
 #define _MCU_CFG_H_
 
 /* ----------------- CAMERA TYPE  ---------------*/
-#define AI_THINKER_ESP32_CAM           true
-#define ESP32_WROVER_DEV               false
-#define CAMERA_MODEL_ESP32_S3_DEV_CAM  false
-#define CAMERA_MODEL_ESP32_S3_EYE_2_2  false
+#define AI_THINKER_ESP32_CAM true
+#define ESP32_WROVER_DEV false
+#define CAMERA_MODEL_ESP32_S3_DEV_CAM false
+#define CAMERA_MODEL_ESP32_S3_EYE_2_2 false
 #define CAMERA_MODEL_XIAO_ESP32_S3_CAM false
-#define CAMERA_MODEL_ESP32_S3_CAM      false
+#define CAMERA_MODEL_ESP32_S3_CAM false
 
 /* ---------------- BASIC MCU CFG  --------------*/
-#define SW_VERSION                  "1.1.0-rc1"             ///< SW version
+#define SW_VERSION                  "1.1.0-rc2"             ///< SW version
 #define SW_BUILD                    __DATE__ " " __TIME__   ///< build number
 #define CONSOLE_VERBOSE_DEBUG       false                   ///< enable/disable verbose debug log level for console
 #define DEVICE_HOSTNAME             "Prusa-ESP32cam"        ///< device hostname
@@ -46,7 +46,7 @@
 #define TASK_SDCARD                 25000                   ///< sd card task interval [ms]
 #define TASK_WIFI                   28000                   ///< wifi reconnect interval. Checking when is signal lost [ms]
 #define TASK_SERIAL_CFG             1000                    ///< serial cfg task interval [ms]
-#define TASK_STREAM_TELEMETRY       30000                   ///< stream telemetry task interval [ms]
+#define TASK_SYSTEM_TELEMETRY       30000                   ///< stream telemetry task interval [ms]
 #define TASK_WIFI_WATCHDOG          20000                   ///< wifi watchdog task interval [ms]
 #define TASK_PHOTO_SEND             1000                    ///< photo send task interval [ms]
 #define TASK_SDCARD_FILE_REMOVE     30000                   ///< sd card file remove task interval [ms]
@@ -283,6 +283,12 @@
 #define EEPROM_ADDR_TIMELAPS_ENABLE_START         (EEPROM_ADDR_IMAGE_ROTATION_START + EEPROM_ADDR_IMAGE_ROTATION_LENGTH)
 #define EEPROM_ADDR_TIMELAPS_ENABLE_LENGTH        1
 
+#define EEPROM_ADDR_EXT_SENS_ENABLE_START         (EEPROM_ADDR_TIMELAPS_ENABLE_START + EEPROM_ADDR_TIMELAPS_ENABLE_LENGTH)
+#define EEPROM_ADDR_EXT_SENS_ENABLE_LENGTH        1
+
+#define EEPROM_ADDR_EXT_SENS_UNIT_START           (EEPROM_ADDR_EXT_SENS_ENABLE_START + EEPROM_ADDR_EXT_SENS_ENABLE_LENGTH)
+#define EEPROM_ADDR_EXT_SENS_UNIT_LENGTH          1
+
 #define EEPROM_SIZE (EEPROM_ADDR_REFRESH_INTERVAL_LENGTH + EEPROM_ADDR_FINGERPRINT_LENGTH + EEPROM_ADDR_TOKEN_LENGTH + \
                      EEPROM_ADDR_FRAMESIZE_LENGTH + EEPROM_ADDR_BRIGHTNESS_LENGTH + EEPROM_ADDR_CONTRAST_LENGTH + \
                      EEPROM_ADDR_SATURATION_LENGTH + EEPROM_ADDR_HMIRROR_LENGTH + EEPROM_ADDR_VFLIP_LENGTH + \
@@ -297,7 +303,8 @@
                      EEPROM_ADDR_AEC_VALUE_LENGTH + EEPROM_ADDR_GAIN_CTRL_LENGTH + EEPROM_ADDR_AGC_GAIN_LENGTH + EEPROM_ADDR_LOG_LEVEL_LENGTH + \
                      EEPROM_ADDR_HOSTNAME_LENGTH + EEPROM_ADDR_SERVICE_AP_ENABLE_LENGTH + EEPROM_ADDR_NETWORK_IP_METHOD_LENGTH +\
                      EEPROM_ADDR_NETWORK_STATIC_IP_LENGTH + EEPROM_ADDR_NETWORK_STATIC_MASK_LENGTH + EEPROM_ADDR_NETWORK_STATIC_GATEWAY_LENGTH + \
-                     EEPROM_ADDR_NETWORK_STATIC_DNS_LENGTH + EEPROM_ADDR_IMAGE_ROTATION_LENGTH + EEPROM_ADDR_TIMELAPS_ENABLE_LENGTH)    ///< how many bits do we need for eeprom memory
+                     EEPROM_ADDR_NETWORK_STATIC_DNS_LENGTH + EEPROM_ADDR_IMAGE_ROTATION_LENGTH + EEPROM_ADDR_TIMELAPS_ENABLE_LENGTH + \
+                     EEPROM_ADDR_EXT_SENS_ENABLE_LENGTH + EEPROM_ADDR_EXT_SENS_UNIT_LENGTH)    ///< how many bits do we need for eeprom memory
 
 #endif
 

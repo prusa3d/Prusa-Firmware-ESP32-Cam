@@ -82,6 +82,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 				<li><a href="page_wifi.html">Wi-Fi</a></li>
 				<li><a href="page_auth.html">Authentication</a></li>
 				<li><a href="page_system.html">System</a></li>
+				<li><a href="page_temperature.html">Temperature</a></li>
 				</div>
 			</div>
 		</div>
@@ -361,6 +362,35 @@ const char page_system_html[] PROGMEM = R"rawliteral(
     var updateCompleted = false;
 	var updateInterval = setInterval(updateProgress, 800);
 	get_data("system");
+</script>
+)rawliteral";
+
+/* ------------------------------------------------------------------------------------------------------------ */
+const char page_temperature_html[] PROGMEM = R"rawliteral(
+<style>@import url("styles.css");</style>
+<script src="jquery-3.7.0.min.js"></script>
+<body>
+	<center>
+		<table>
+			<tr><td class=pa3>External temperature sensor DHT22/DHT11</td><td></td></tr>
+			<tr><td class=pa1 align="right">Enable sensors</td><td><label class="switch"><input type="checkbox" name="extsens_en" id="extsetsid" onchange="changeValue(this.checked, 'set_bool?extsens_enable=', 'temp')"><span class="checkbox_slider round"></span></label></label> <span class=pa1 id="status_extsens"></span></td></tr>
+            <tr><td class="ps1">Sensor status: </td><td class="pa2" id="extsens_stat"></td></tr>
+            <tr>
+			    <td class="pa1">Temperature Unit</td><td><label for="temp_unit"></label>
+				<select class="select" id="temp_unitid" name="temp_unit" onchange="changeValue(this.value, 'set_int?temp_unit=', 'temp')">
+					<option value="0">Celsius</option>
+					<option value="1">Fahrenheit</option>
+				</select>
+			   </td>
+		    </tr>
+			<tr><td class="pa1">Temperature</td><td class="pa2" id="ext_temp"></td></tr>
+            <tr><td class="pa1">Humidity</td><td class="pa2" id="ext_hum"></td></tr>
+		</table>
+	</center>
+</body>
+<script src="scripts.js"></script>
+<script>
+	get_data("temp");
 </script>
 )rawliteral";
 
@@ -994,6 +1024,14 @@ function get_data(val) {
 
 				document.getElementById('mdnsid').value = obj.mdns;
         		document.getElementById('loglevelid').value = obj.log_level;
+			}
+
+			if (val == "temp") {
+				$("#extsens_stat").text(obj.extsens_stat);
+				document.getElementById('extsetsid').checked = obj.extsen_en;
+				document.getElementById('temp_unitid').value = obj.exttemp_unit;
+				$("#ext_temp").text(obj.ext_temp);
+				$("#ext_hum").text(obj.ext_hum);
 			}
 		},
 		error: function(html) {

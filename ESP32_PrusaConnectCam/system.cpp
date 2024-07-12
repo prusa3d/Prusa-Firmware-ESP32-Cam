@@ -459,9 +459,6 @@ void System_TaskWifiManagement(void *pvParameters) {
 
     /* wifi reconnect after signal lost */
     SystemWifiMngt.WiFiReconnect();
-    SystemLog.AddEvent(LogLevel_Info, "Free RAM: " + String(ESP.getFreeHeap()) + " B" + ", Min: " + String(ESP.getMinFreeHeap()));
-    SystemLog.AddEvent(LogLevel_Info, "Free PSRAM: " + String(ESP.getFreePsram()) + " B" + ", Min: " + String(ESP.getMinFreePsram()));
-    SystemLog.AddEvent(LogLevel_Info, "Temperature: " + String(McuTemperature.TemperatureCelsius) + " *C");
     SystemLog.AddEvent(LogLevel_Verbose, F("WiFiManagement task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + "B");
     SystemLog.AddEvent(LogLevel_Verbose, F("WiFi status: "), String(WiFi.status()));
 
@@ -615,30 +612,36 @@ void System_TaskSerialCfg(void *pvParameters) {
 }
 
 /**
- * @brief Function for stream telemetry task
+ * @brief Function for system telemetry task
  * 
  * @param void *pvParameters
  * @return none
  */
-void System_TaskStreamTelemetry(void *pvParameters) {
-  SystemLog.AddEvent(LogLevel_Info, F("StreamTelemetry task. core: "), String(xPortGetCoreID()));
+void System_TaskSystemTelemetry(void *pvParameters) {
+  SystemLog.AddEvent(LogLevel_Info, F("SystemTelemetry task. core: "), String(xPortGetCoreID()));
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while (1) {
     esp_task_wdt_reset();
-    SystemLog.AddEvent(LogLevel_Verbose, F("StreamTelemetry task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + "B");
+    SystemLog.AddEvent(LogLevel_Verbose, F("SystemTelemetry task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + "B");
     if (SystemCamera.GetStreamStatus()) {
       char buf[80] = { '\0' };
-      sprintf(buf, "Stream, average data in %dsec. FPS: %.1f, Size: %uKB", (TASK_STREAM_TELEMETRY / SECOND_TO_MILISECOND), SystemCamera.StreamGetFrameAverageFps(), SystemCamera.StreamGetFrameAverageSize());
+      sprintf(buf, "Stream, average data in %dsec. FPS: %.1f, Size: %uKB", (TASK_SYSTEM_TELEMETRY / SECOND_TO_MILISECOND), SystemCamera.StreamGetFrameAverageFps(), SystemCamera.StreamGetFrameAverageSize());
       SystemLog.AddEvent(LogLevel_Info, buf);
       SystemCamera.StreamClearFrameData();
     }
+
+    SystemLog.AddEvent(LogLevel_Info, "Free RAM: " + String(ESP.getFreeHeap()) + " B" + ", Min: " + String(ESP.getMinFreeHeap()));
+    SystemLog.AddEvent(LogLevel_Info, "Free PSRAM: " + String(ESP.getFreePsram()) + " B" + ", Min: " + String(ESP.getMinFreePsram()));
+    SystemLog.AddEvent(LogLevel_Info, "MCU Temperature: " + String(McuTemperature.TemperatureCelsius) + " *C");
+
+    ExternalTemperatureSensor.ReadSensorData();
 
     /* reset wdg */
     esp_task_wdt_reset();
 
     /* next start task */
-    vTaskDelayUntil(&xLastWakeTime, TASK_STREAM_TELEMETRY / portTICK_PERIOD_MS);
+    vTaskDelayUntil(&xLastWakeTime, TASK_SYSTEM_TELEMETRY / portTICK_PERIOD_MS);
   }
 }
 
