@@ -8,7 +8,7 @@
 
    This project uses other libraries. It is necessary to install them in the arduino IDE.
    - Library           - License  - Version - Link
-   - ESPAsyncWebServer - LGPL 3.0 - 3.0.6  - https://github.com/mathieucarbou/ESPAsyncWebServer
+   - ESPAsyncWebServer - LGPL 3.0 - 3.0.6   - https://github.com/mathieucarbou/ESPAsyncWebServer
    - AsyncTCP          - LGPL 3.0 - 3.1.4   - https://github.com/mathieucarbou/AsyncTCP
    - ArduinoJson       - MIT      - 7.1.0   - https://github.com/bblanchon/ArduinoJson
    - ArduinoUniqueID   - MIT      - 1.3.0   - https://github.com/ricaun/ArduinoUniqueID
@@ -106,24 +106,24 @@ void setup() {
   twdt_config.idle_core_mask = (1 << portNUM_PROCESSORS) - 1,    /* Bitmask of all cores */
   twdt_config.trigger_panic = true;
 	
-  esp_task_wdt_init(&twdt_config);       /* enable panic so ESP32 restarts */
+  esp_task_wdt_init(&twdt_config);          /* enable panic so ESP32 restarts */
   esp_task_wdt_reconfigure(&twdt_config);
-  ESP_ERROR_CHECK(esp_task_wdt_add(NULL));                /* add current thread to WDT watch */
-  esp_task_wdt_reset();                  /* reset wdg */
+  ESP_ERROR_CHECK(esp_task_wdt_add(NULL));  /* add current thread to WDT watch */
+  esp_task_wdt_reset();                     /* reset wdg */
 
   /* init tasks */
   SystemLog.AddEvent(LogLevel_Info, F("Start tasks"));
-  xTaskCreatePinnedToCore(System_TaskMain, "SystemNtpOtaUpdate", 6200, NULL, 1, &Task_SystemMain, 0);                           /*function, description, stack size, parameters, priority, task handle, core*/
+  xTaskCreatePinnedToCore(System_TaskMain, "SystemNtpOtaUpdate", 5000, NULL, 1, &Task_SystemMain, 0);                           /*function, description, stack size, parameters, priority, task handle, core*/
   ESP_ERROR_CHECK(esp_task_wdt_add(Task_SystemMain));
   xTaskCreatePinnedToCore(System_TaskCaptureAndSendPhoto, "CaptureAndSendPhoto", 4400, NULL, 2, &Task_CapturePhotoAndSend, 0);  /*function, description, stack size, parameters, priority, task handle, core*/
   ESP_ERROR_CHECK(esp_task_wdt_add(Task_CapturePhotoAndSend));
-  xTaskCreatePinnedToCore(System_TaskWifiManagement, "WiFiManagement", 2800, NULL, 3, &Task_WiFiManagement, 0);                 /*function, description, stack size, parameters, priority, task handle, core*/
+  xTaskCreatePinnedToCore(System_TaskWifiManagement, "WiFiManagement", 2700, NULL, 3, &Task_WiFiManagement, 0);                 /*function, description, stack size, parameters, priority, task handle, core*/
   ESP_ERROR_CHECK(esp_task_wdt_add(Task_WiFiManagement));
 #if (true == ENABLE_SD_CARD)  
   xTaskCreatePinnedToCore(System_TaskSdCardCheck, "CheckMicroSdCard", 3000, NULL, 4, &Task_SdCardCheck, 0);                     /*function, description, stack size, parameters, priority, task handle, core*/
   ESP_ERROR_CHECK(esp_task_wdt_add(Task_SdCardCheck));
 #endif
-  xTaskCreatePinnedToCore(System_TaskSerialCfg, "CheckSerialConfiguration", 2600, NULL, 5, &Task_SerialCfg, 0);                 /*function, description, stack size, parameters, priority, task handle, core*/
+  xTaskCreatePinnedToCore(System_TaskSerialCfg, "CheckSerialConfiguration", 2400, NULL, 5, &Task_SerialCfg, 0);                 /*function, description, stack size, parameters, priority, task handle, core*/
   ESP_ERROR_CHECK(esp_task_wdt_add(Task_SerialCfg));
   xTaskCreatePinnedToCore(System_TaskSystemTelemetry, "PrintSystemTelemetry", 2200, NULL, 6, &Task_SystemTelemetry, 0);         /*function, description, stack size, parameters, priority, task handle, core*/
   ESP_ERROR_CHECK(esp_task_wdt_add(Task_SystemTelemetry));
