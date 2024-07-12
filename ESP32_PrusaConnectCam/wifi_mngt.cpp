@@ -236,6 +236,7 @@ void WiFiMngt::WiFiStaConnect() {
       WiFi.begin(WifiSsid, WifiPassword, 0, WiFiStaNetworkBssid);
       log->AddEvent(LogLevel_Info, F("Connecting to STA BSSID"));
     }
+    WiFi.setSleep(false);
     WiFi.setAutoReconnect(true);
   }
 }
