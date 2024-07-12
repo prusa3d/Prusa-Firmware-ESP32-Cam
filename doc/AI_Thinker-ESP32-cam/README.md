@@ -12,6 +12,7 @@ What we need for functionality
 - Issue with FLASH LED on the main board [here](#led_issue)
 - External WiFi antenna [here](#ext_wifi)
 - Power supply [here](#power_supply)
+- External temperature sensor DHT22/DHT11 [here](#ext_sens)
 - Potential issue [here](#issue)
 
 <a name="esp32"></a>
@@ -232,6 +233,19 @@ The standard ESP32-CAM board utilizes an internal antenna on the PCB. However, t
 ## Power Supply
 
 The device requires a 5V power supply, with a maximum current consumption of 2A. Power is supplied via a micro USB connector when using the original programmer.
+
+<a name="ext_sens"></a>
+## External temperature sensor DHT22/DHT11
+
+Below you will find the wiring diagram for the DHT22 or DHT11 sensor.
+
+| Camera board | DHT22/DHT11 |
+|--------------|-------------|
+| 3.3V         | VCC         |
+| GND          | GND         |
+| IO13         | Data        |
+
+<img src="ESP32-cam dht22_bb.png" width=40% height=40%>
 
 <a name="issue"></a>
 ## Potential issue with this board

@@ -8,9 +8,10 @@ This project uses other libraries. It is necessary to install them in the Arduin
 - ~~Library [ESPAsyncWebSrv 1.2.7](https://github.com/dvarrel/ESPAsyncWebSrv)~~ To version **1.0.3-rc1**
 - ~~Library [AsyncTCP 1.1.4](https://github.com/dvarrel/AsyncTCP)~~ To version **1.0.3-rc1**
 - Library [AsyncTCP 3.1.4](https://github.com/mathieucarbou/AsyncTCP)
-- Library [ESPAsyncWebServer 3.0.3](https://github.com/mathieucarbou/ESPAsyncWebServer) 
+- Library [ESPAsyncWebServer 3.0.6](https://github.com/mathieucarbou/ESPAsyncWebServer) 
 - Library [ArduinoJson 7.1.0](https://github.com/bblanchon/ArduinoJson)
 - Library [UniqueID 1.3.0](https://github.com/ricaun/ArduinoUniqueID)
+- Library [DHTnew 0.4.20](https://github.com/RobTillaart/DHTNew)
 
 What we need for functionality
 - Supported versions of boards built on **ESP32/ESP32-S3** processors with a camera [here](#supported_boards)
@@ -25,19 +26,20 @@ What we need for functionality
 - WEB API [here](#rest)
 - Video stream [here](#stream)
 - Manual camera focus [here](#man_focus)
+- External temperature sensor DHT22/DHT11 [here](#ext_temp)
 - Potential issue [here](#issue)
 
 <a name="supported_boards"></a>
 ## Supported boards
 
-| Board name                | Support     | Stream | Micro SD | FLASH LED | FW update | Documentation                                |
-|---------------------------|-------------|--------|----------|-----------|-----------|----------------------------------------------|
-| Ai-Thinker ESP32-cam      | Full        | Yes    | Yes      | Board/Ext | Yes       | [ here ](doc/AI_Thinker-ESP32-cam/README.md) |
-| ESP32-S3-EYE 2.2          | Full        | Yes    | Yes      | External  | Yes       | [ here ](doc/ESP32-S3-EYE-22/README.md)      |
-| Freenove ESP32-Wrover cam | Full        | Yes    | No       | External  | Yes       | [ here ](doc/ESP32-Wrover-dev/README.md)     |
-| ESP32-S3-DEV-CAM          | in Progress |        |          | External  |           | [ here ](doc/ESP32-S3-DEV-CAM/README.md)     |
-| Seeed Studio XIAO ESP32S3 | in Progress |        |          | External  |           | [ here ](doc/XIAO_ESP32S3/README.md)         |
-| ESP32-S3-CAM              | in Progress |        |          | Board/Ext |           | [ here ](doc/ESP32-S3-CAM/README.md)         |
+| Board name                | Support     | Stream | Micro SD | FLASH LED | FW update | DHT22/DHT11 | Documentation                                |
+|---------------------------|-------------|--------|----------|-----------|-----------|-------------|----------------------------------------------|
+| Ai-Thinker ESP32-cam      | Full        | Yes    | Yes      | Board/Ext | Yes       | Yes         | [ here ](doc/AI_Thinker-ESP32-cam/README.md) |
+| ESP32-S3-EYE 2.2          | Full        | Yes    | Yes      | External  | Yes       | Yes         | [ here ](doc/ESP32-S3-EYE-22/README.md)      |
+| Freenove ESP32-Wrover cam | Full        | Yes    | No       | External  | Yes       | Yes         | [ here ](doc/ESP32-Wrover-dev/README.md)     |
+| ESP32-S3-DEV-CAM          | in Progress |        |          | External  |           |             | [ here ](doc/ESP32-S3-DEV-CAM/README.md)     |
+| Seeed Studio XIAO ESP32S3 | Full        | Yes    | Yes      | External  | Yes       | Yes         | [ here ](doc/XIAO_ESP32S3/README.md)         |
+| ESP32-S3-CAM              | Full        | Yes    | Yes      | Board/Ext | Yes       | Yes         | [ here ](doc/ESP32-S3-CAM/README.md)         |
 
 The compiled firmware for each supported board is published with every release.
 
@@ -228,6 +230,8 @@ The camera have a WEB API, allowing several operations to be performed through t
 | http://IP/action_reboot   | Reboot MCU                                       |
 | http://IP/get_logs        | Get logs from micro SD card                      |
 | http://IP/saved-photo.jpg | Get last captured photo                          |
+| http://IP/get_temp        | Get temperature from external sensor             |
+| http://IP/get_hum         | Get humidity from external sensor                |
 
 <a name="stream"></a>
 ## Video stream 
@@ -244,6 +248,29 @@ Usually, the camera module is properly focused. However, the camera module can b
 First, it is necessary to hold the camera with a holder and then put the wrench on the lens. Next, gently turn the wrench by a couple of degrees, and observe the difference.
 
 **WARNING! Manual focusing can permanently damage the camera module!**
+
+<a name="ext_temp"></a>
+## External temperature sensor 
+
+The software supports an external temperature sensor **DHT22** or **DHT11**. The sensor needs to be connected according to the manual for the specific version of the board. The temperature and humidity are automatically read every 30 seconds after the enable sensor.
+
+<img src="doc/Sensori-DHT11-e-DHT22.jpg" width=40% height=40%>
+
+Information about sensor
+
+|                   | DHT11        | DHT22            |
+|-------------------|--------------|------------------|
+| Operating voltage | 3-5V         | 3-5V             |
+| Max current       | 2.5 mA       | 2.5mA            |
+| Temperature range | 0-50°C ± 2°C | -40-80°C ± 0.5°C |
+| Humidity range    | 20-80% / 5%  | 0-100% / 2-5%    |
+| Sampling rate     | 1Hz          | 0.5Hz            |
+
+It is necessary to use the **module**, **not the sensor**! The module with the sensor has a **4.7Kohm** resistor soldered onto the PCB, which is necessary for the proper functioning of the **one-wire bus**. If you use the sensor, it is necessary to connect a 4.7K ohm resistor to the one-wire bus as shown in the schematic below. **The module must be powered with 3.3V VCC, otherwise, it may damage the camera board.**
+
+Here is a typical schematic for the DHT22 or DHT11 sensor:
+
+<img src="doc/DHT22-Schematic.png" width=40% height=40%>
 
 <a name="issue"></a>
 ## Potential issue

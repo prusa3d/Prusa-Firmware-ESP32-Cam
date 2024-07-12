@@ -11,6 +11,7 @@ What we need for functionality
 - Board schematic [here](#schematic)
 - External FLASH LED [here](#led_issue)
 - Power supply [here](#power_supply)
+- External temperature sensor DHT22/DHT11 [here](#ext_sens)
 - Potential issue [here](#issue)
 
 <a name="esp32"></a>
@@ -24,6 +25,7 @@ Basic informations:
 - no additional HW is needed for programming
 - 4MB FLASH and 4MB external PSRAM
 - 520 KB SRAM
+- Excellent WiFi signal
 
 This board version is built on the same processor, ESP32, as the AiThinker ESP32-CAM. However, a different module with the processor is used in this version. The board missing a LED for FLASH and a Micro SD card slot. The board has an internal WiFi antenna, which has better WiFi signal quality than the AiThinker ESP32-CAM board.
 
@@ -187,6 +189,19 @@ However, a 5mm LED can also be connected directly. **CAUTION**: The digital GPIO
 ## Power Supply
 
 The device requires a 5V power supply, with a maximum current consumption of 2A. Power is supplied via a micro USB connector when using the original programmer.
+
+<a name="ext_sens"></a>
+## External temperature sensor DHT22/DHT11
+
+Below you will find the wiring diagram for the DHT22 or DHT11 sensor.
+
+| Camera board | DHT22/DHT11 |
+|--------------|-------------|
+| 3.3V         | VCC         |
+| GND          | GND         |
+| IO13         | Data        |
+
+<img src="dht22_bb.png" width=40% height=40%>
 
 <a name="issue"></a>
 ## Potential issue with this board
