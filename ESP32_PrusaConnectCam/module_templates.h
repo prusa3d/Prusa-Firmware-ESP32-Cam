@@ -34,7 +34,7 @@
 #include "module_XIAO_ESP32-S3-cam.h"
 
 #elif (true == CAMERA_MODEL_ESP32_S3_CAM)
-#include "module_ESP32_S3_CAM.h"
+#include "module_ESP32-S3-CAM.h"
 
 #else
 #error "No module selected"

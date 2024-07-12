@@ -41,7 +41,7 @@
 
 /* --------------- OTA UPDATE CFG  --------------*/
 #define OTA_UPDATE_FW_FILE          PSTR("esp32-s3-cam.bin") ///< OTA update firmware file name
-#define FW_STATUS_LED_PIN           4      ///< GPIO pin for status FW update LED
+#define FW_STATUS_LED_PIN           2      ///< GPIO pin for status FW update LED
 #define FW_STATUS_LED_LEVEL_ON      HIGH   ///< GPIO pin level for status LED ON
 
 /* --------------- FLASH LED CFG  ---------------*/
@@ -62,14 +62,18 @@
 #define SD_PIN_DATA0                40      ///< GPIO pin for SD card data 0
 
 /* ---------- RESET CFG CONFIGURATION  ----------*/
-#define CFG_RESET_PIN               12      ///< GPIO 16 is for reset CFG to default
-#define CFG_RESET_LED_PIN           4       ///< GPIO for indication of reset CFG
+#define CFG_RESET_PIN               14      ///< GPIO 16 is for reset CFG to default
+#define CFG_RESET_LED_PIN           2       ///< GPIO for indication of reset CFG
 #define CFG_RESET_LED_LEVEL_ON      HIGH    ///< GPIO pin level for status LED ON
 
 /* -------------- STATUS LED CFG ----------------*/
 #define STATUS_LED_ENABLE           true    ///< enable/disable status LED
-#define STATUS_LED_GPIO_NUM         33      ///< GPIO pin for status LED
-#define STATUS_LED_OFF_PIN_LEVEL    LOW     ///< GPIO pin level for status LED ON
+#define STATUS_LED_GPIO_NUM         2      ///< GPIO pin for status LED
+#define STATUS_LED_OFF_PIN_LEVEL    HIGH     ///< GPIO pin level for status LED ON
+
+/* -------------- DHT SENSOR CFG ----------------*/
+#define DHT_SENSOR_ENABLE           true   ///< enable/disable DHT sensor
+#define DHT_SENSOR_PIN              20     ///< GPIO pin for DHT sensor
 
 #endif
 /* EOF */
