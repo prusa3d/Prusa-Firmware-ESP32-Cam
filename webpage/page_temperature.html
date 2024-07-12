@@ -1,4 +1,4 @@
-<style>@import url("styles.css");</style>
+<style>@import url("styles.css?v=1.0.0");</style>
 <script src="jquery-3.7.0.min.js"></script>
 <body>
 	<center>
@@ -6,6 +6,7 @@
 			<tr><td class=pa3>External temperature sensor DHT22/DHT11</td><td></td></tr>
 			<tr><td class=pa1 align="right">Enable sensors</td><td><label class="switch"><input type="checkbox" name="extsens_en" id="extsetsid" onchange="changeValue(this.checked, 'set_bool?extsens_enable=', 'temp')"><span class="checkbox_slider round"></span></label></label> <span class=pa1 id="status_extsens"></span></td></tr>
             <tr><td class="ps1">Sensor status: </td><td class="pa2" id="extsens_stat"></td></tr>
+			<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
             <tr>
 			    <td class="pa1">Temperature Unit</td><td><label for="temp_unit"></label>
 				<select class="select" id="temp_unitid" name="temp_unit" onchange="changeValue(this.value, 'set_int?temp_unit=', 'temp')">
@@ -14,6 +15,7 @@
 				</select>
 			   </td>
 		    </tr>
+			<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
 			<tr><td class="pa1">Temperature</td><td class="pa2" id="ext_temp"></td></tr>
             <tr><td class="pa1">Humidity</td><td class="pa2" id="ext_hum"></td></tr>
 		</table>

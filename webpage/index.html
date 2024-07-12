@@ -3,7 +3,7 @@
 	<meta name="Prusa ESP32-cam" content="width=device-width, initial-scale=1">
 	<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 
-	<link rel="stylesheet" type="text/css" href="styles.css">
+	<link rel="stylesheet" type="text/css" href="styles.css?v=1.0.0">
 	<script src="jquery-3.7.0.min.js"></script>
 	<script>
 		$(document).ready(function () {
@@ -43,7 +43,7 @@
 			<article>
 				<p class="p1">Trigger interval: <b><span id="refreshInterval"></span><b>s</p><br><br>
 				<button class="btn" onclick="actionButton('/action_capture',true,'')">Refresh Snapshot</button> <br><br>
-				<button class="btn" onclick="actionButton('/action_send',false,'')">Send snapshot</button><br><br><br>
+				<button class="btn" onclick="actionButton('/action_send',false,'Sending snapshot...')">Send snapshot</button><br><br><br>
 				<button class="btn" onclick="window.open('saved-photo.jpg')">Download snapshot</button><br><br>
 				<button class="btn" onclick="window.open('stream.mjpg')">Start stream</button><br><br>
 			</article>

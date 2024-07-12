@@ -28,7 +28,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 	<meta name="Prusa ESP32-cam" content="width=device-width, initial-scale=1">
 	<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 
-	<link rel="stylesheet" type="text/css" href="styles.css">
+	<link rel="stylesheet" type="text/css" href="styles.css?v=1.0.0">
 	<script src="jquery-3.7.0.min.js"></script>
 	<script>
 		$(document).ready(function () {
@@ -68,7 +68,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 			<article>
 				<p class="p1">Trigger interval: <b><span id="refreshInterval"></span><b>s</p><br><br>
 				<button class="btn" onclick="actionButton('/action_capture',true,'')">Refresh Snapshot</button> <br><br>
-				<button class="btn" onclick="actionButton('/action_send',false,'')">Send snapshot</button><br><br><br>
+				<button class="btn" onclick="actionButton('/action_send',false,'Sending snapshot...')">Send snapshot</button><br><br><br>
 				<button class="btn" onclick="window.open('saved-photo.jpg')">Download snapshot</button><br><br>
 				<button class="btn" onclick="window.open('stream.mjpg')">Start stream</button><br><br>
 			</article>
@@ -109,7 +109,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 
 /* ------------------------------------------------------------------------------------------------------------ */
 const char page_auth_html[] PROGMEM = R"rawliteral(
-<style>@import url("styles.css");</style>
+<style>@import url("styles.css?v=1.0.0");</style>
 <script src="jquery-3.7.0.min.js"></script>
 <body>
 	<center>
@@ -134,7 +134,7 @@ const char page_auth_html[] PROGMEM = R"rawliteral(
 
 /* ------------------------------------------------------------------------------------------------------------ */
 const char page_wifi_html[] PROGMEM = R"rawliteral(
-<style>@import url("styles.css");</style>
+<style>@import url("styles.css?v=1.0.0");</style>
 <script src="jquery-3.7.0.min.js"></script>
 <body>
 	<table id="center_tb">
@@ -214,7 +214,7 @@ const char page_wifi_html[] PROGMEM = R"rawliteral(
 
 /* ------------------------------------------------------------------------------------------------------------ */
 const char page_config_html[] PROGMEM = R"rawliteral(
-<style>@import url("styles.css");</style>
+<style>@import url("styles.css?v=1.0.0");</style>
 <script src="jquery-3.7.0.min.js"></script>
 <body>
 	<center><table id="data">
@@ -307,7 +307,7 @@ const char page_config_html[] PROGMEM = R"rawliteral(
 
 /* ------------------------------------------------------------------------------------------------------------ */
 const char page_system_html[] PROGMEM = R"rawliteral(
-<style>@import url("styles.css");</style>
+<style>@import url("styles.css?v=1.0.0");</style>
 <script src="jquery-3.7.0.min.js"></script>
 <body>
 	<center>
@@ -367,7 +367,7 @@ const char page_system_html[] PROGMEM = R"rawliteral(
 
 /* ------------------------------------------------------------------------------------------------------------ */
 const char page_temperature_html[] PROGMEM = R"rawliteral(
-<style>@import url("styles.css");</style>
+<style>@import url("styles.css?v=1.0.0");</style>
 <script src="jquery-3.7.0.min.js"></script>
 <body>
 	<center>
@@ -375,6 +375,7 @@ const char page_temperature_html[] PROGMEM = R"rawliteral(
 			<tr><td class=pa3>External temperature sensor DHT22/DHT11</td><td></td></tr>
 			<tr><td class=pa1 align="right">Enable sensors</td><td><label class="switch"><input type="checkbox" name="extsens_en" id="extsetsid" onchange="changeValue(this.checked, 'set_bool?extsens_enable=', 'temp')"><span class="checkbox_slider round"></span></label></label> <span class=pa1 id="status_extsens"></span></td></tr>
             <tr><td class="ps1">Sensor status: </td><td class="pa2" id="extsens_stat"></td></tr>
+			<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
             <tr>
 			    <td class="pa1">Temperature Unit</td><td><label for="temp_unit"></label>
 				<select class="select" id="temp_unitid" name="temp_unit" onchange="changeValue(this.value, 'set_int?temp_unit=', 'temp')">
@@ -383,6 +384,7 @@ const char page_temperature_html[] PROGMEM = R"rawliteral(
 				</select>
 			   </td>
 		    </tr>
+			<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
 			<tr><td class="pa1">Temperature</td><td class="pa2" id="ext_temp"></td></tr>
             <tr><td class="pa1">Humidity</td><td class="pa2" id="ext_hum"></td></tr>
 		</table>
@@ -1408,7 +1410,7 @@ function setupCollapsibleButtonsWiFi() {
 
 /* ------------------------------------------------------------------------------------------------------------ */
 const char license_html[] PROGMEM = R"rawliteral(
-<style>@import url("styles.css");</style>
+<style>@import url("styles.css?v=1.0.0");</style>
 <script src="jquery-3.7.0.min.js"></script>
 <center><p>The software for device falls under the <a href="https://www.gnu.org/licenses/gpl-3.0.html" id="license-link">GPL-3.0 license terms</a>. To read the license terms please visit <a href="https://www.gnu.org/licenses/gpl-3.0.html" id="license-link-sec">this page</a>.</p></center>
 <script src="scripts.js"></script>
@@ -1420,7 +1422,7 @@ const char license_html[] PROGMEM = R"rawliteral(
 
 /* ------------------------------------------------------------------------------------------------------------ */
 const char gtac_html[] PROGMEM = R"rawliteral(
-<style>@import url("styles.css");</style>
+<style>@import url("styles.css?v=1.0.0");</style>
 <script src="jquery-3.7.0.min.js"></script>
 <center><p>To read the General Terms and Conditions, please visit <a href="https://www.prusa3d.com/page/general-terms-and-conditions_231236/" id="gtac-link">this page</a>.</p></center>
 <script src="scripts.js"></script>
@@ -1431,7 +1433,7 @@ const char gtac_html[] PROGMEM = R"rawliteral(
 
 /* ------------------------------------------------------------------------------------------------------------ */
 const char privacypolicy_html[] PROGMEM = R"rawliteral(
-<style>@import url("styles.css");</style>
+<style>@import url("styles.css?v=1.0.0");</style>
 <script src="jquery-3.7.0.min.js"></script>
 <center><p>To read the Privacy Policy, please visit <a href="https://www.prusa3d.com/en/page/privacy-policy_231258/" id="privacy-link">this page</a>.</p></center>
 <script src="scripts.js"></script>
@@ -1442,7 +1444,7 @@ const char privacypolicy_html[] PROGMEM = R"rawliteral(
 
 /* ------------------------------------------------------------------------------------------------------------ */
 const char cookies_html[] PROGMEM = R"rawliteral(
-<style>@import url("styles.css");</style>
+<style>@import url("styles.css?v=1.0.0");</style>
 <script src="jquery-3.7.0.min.js"></script>
 <center><p>To read the Cookie policy, please visit <a href="https://www.prusa3d.com/en/page/privacy-policy_231258/" id="cookies-link">this page</a>.</p></center>
 <script src="scripts.js"></script>
