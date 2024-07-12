@@ -1121,7 +1121,19 @@ void Server_resume() {
  * @param const char* - data
  */
 void Server_handleCacheRequest(AsyncWebServerRequest* request, const char* contentType, const char* data) {
+  /*
   AsyncWebServerResponse* response = request->beginResponse(200, contentType, data);
+  response->addHeader("Cache-Control", "public, max-age=" + String(WEB_CACHE_INTERVAL));
+  request->send(response); 
+  */
+
+  AsyncWebServerResponse* response = request->beginChunkedResponse(contentType, [data](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
+    const char* dataStart = data + index; // current position in data
+    size_t dataLeft = strlen(data) - index; // how many bytes are left to send
+    size_t chunkSize = dataLeft < maxLen ? dataLeft : maxLen; // how many bytes we can send now
+    memcpy(buffer, dataStart, chunkSize); // copy chunk of data to buffer
+    return chunkSize; // return chunk size
+  });
   response->addHeader("Cache-Control", "public, max-age=" + String(WEB_CACHE_INTERVAL));
   request->send(response);
 }
