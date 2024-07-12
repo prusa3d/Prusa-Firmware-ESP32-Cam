@@ -15,7 +15,7 @@
    Board configuration in the arduino IDE 2.3.2
    Tools -> Board -> ESP32 Arduino -> XIAO_ESP32S3
    Tools -> USB CDC on BOOT -> Enabled
-   Tools -> CPU Frequency -> 240MHz (WiFi)
+   Tools -> CPU Frequency -> 160MHz (WiFi)
    Tools -> Core debug level -> None
    Tools -> USB DFU on BOOT -> Disable
    Tools -> Erase all Flash Before Sketch Upload -> Disable (first flash, new board = enable. otherwise = disable)
