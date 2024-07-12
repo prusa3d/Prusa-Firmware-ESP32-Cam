@@ -92,13 +92,7 @@ In the first step, you need to open the application **flash download tool**, and
 
 <img src="chip_select.jpg" width=25% height=25%>
 
-Then, select the communication port. It's necessary to erase the FLASH using the **ERASE** button before the first firmware flash. 
-
-Before erasing the FLASH memory, it is necessary to switch the board to bootloader mode. Hold down the BOOT button (red arrow), press the RESET button (green arrow), wait for 1 second, and release the BOOT button. Then, you can erase the FLASH memory using the ERASE button. After a successful erase, the status will change to FINISH.
-
-<img src="flash_button.png" width=30% height=30%>
-
-Then is possible upload FW to MCU. It is necessary again switch the board to bootloader mode. Hold down the BOOT button (red arrow), press the RESET button (green arrow), wait for 1 second, and release the BOOT button. Then, you can erase the FLASH memory using the ERASE button.
+Then, select the communication port. It's necessary to erase the FLASH using the ERASE button before the first firmware flash.
 
 <img src="flash.jpg" width=30% height=30%>
 
