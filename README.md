@@ -69,7 +69,7 @@ For the installation of the **ESPAsyncWebServer** and **AsyncTCP** libraries, it
 
 Then it is possible build and upload the firmware to the board. Each board requires a different Arduino IDE configuration. Therefore, it is necessary to select the board from the [supported boards](#supported_boards) and read the documentation on how to build and upload the firmware.
 
-In the file **mcu_cfg.h**, after line 16 is definitions that specify the version of the board for which the software will be compiled. It is necessary to enable the version of the board that will be used.
+**For each specific the board type, it's neccerasy** in the file **mcu_cfg.h**, after **line 16** is definitions specify the version of the board for which the software will be compiled. It is necessary to enable the version of the board that will be used.
 
 ```c
 #define AI_THINKER_ESP32_CAM           false
