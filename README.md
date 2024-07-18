@@ -277,3 +277,4 @@ Here is a typical schematic for the DHT22 or DHT11 sensor:
 
 - A potential issue may arise with connecting to the service AP. If the connection fails and an authentication error occurs, it is necessary to clear the FLASH memory of the processor, and FLASH FW again. This can be done either through the Arduino IDE or using official software.
 - After the initial firmware upload to the new camera, there may be an issue when connecting to the IP address, where the camera prompts for a username and password to access the web page. Even when entering the username "admin" and the password "admin", the login still doesn't work. In such cases, it's necessary to reset the camera configuration to factory settings. The procedure is outlined in the readme file [here](#factory_cfg)
+- If you are getting a 400 return code from Prusa Connect, then you need to create a new other camera in Prusa Connect and enter a new token into the ESP32 camera.
