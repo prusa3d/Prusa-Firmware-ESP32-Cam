@@ -230,7 +230,18 @@ void WiFiMngt::WiFiStaConnect() {
   if (config->CheckActifeWifiCfgFlag() == true) {
     system_led.setTimer(STATUS_LED_STA_CONNECTING);
     if (false == WiFiStaMultipleNetwork) {
+
+#if (WIFI_DISABLE_UNENCRYPTED_STA_PASS_CHECK == true)      
+      if (WifiPassword == "") {
+        WiFi.begin(WifiSsid);
+        log->AddEvent(LogLevel_Info, F("Connecting to STA SSID without password"));
+      } else {
+        WiFi.begin(WifiSsid, WifiPassword);
+      }
+#else
       WiFi.begin(WifiSsid, WifiPassword);
+#endif
+
       log->AddEvent(LogLevel_Info, F("Connecting to STA SSID"));
     } else if (true == WiFiStaMultipleNetwork) {
       WiFi.begin(WifiSsid, WifiPassword, 0, WiFiStaNetworkBssid);
@@ -804,6 +815,7 @@ void WiFiMngt::SetEnableServiceAp(bool i_data) {
 */
 void WiFiMngt::ConnectToSta() {
   config->SaveWifiCfgFlag(CFG_WIFI_SETTINGS_SAVED);
+  WiFiStaConnect();
 }
 
 /**

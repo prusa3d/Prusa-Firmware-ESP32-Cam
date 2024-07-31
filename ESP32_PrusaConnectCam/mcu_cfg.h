@@ -22,7 +22,7 @@
 #define CAMERA_MODEL_ESP32_S3_CAM      false
 
 /* ---------------- BASIC MCU CFG  --------------*/
-#define SW_VERSION                  "1.1.0-rc2"             ///< SW version
+#define SW_VERSION                  "1.1.0"                 ///< SW version
 #define SW_BUILD                    __DATE__ " " __TIME__   ///< build number
 #define CONSOLE_VERBOSE_DEBUG       false                   ///< enable/disable verbose debug log level for console
 #define DEVICE_HOSTNAME             "Prusa-ESP32cam"        ///< device hostname
@@ -90,6 +90,7 @@
 
 /* ----------------- WiFi CFG -------------------*/
 #define WIFI_STA_WDG_TIMEOUT        60000                   ///< STA watchdog timeout [ms]
+#define WIFI_DISABLE_UNENCRYPTED_STA_PASS_CHECK false      ///< enable/disable WEP/WPA/WPA2/... encryption for STA mode . for the wifi network without encryption set to false
 
 /* ----------------- NTP CFG --------------------*/
 #define NTP_SERVER_1                "pool.ntp.org"          ///< NTP server

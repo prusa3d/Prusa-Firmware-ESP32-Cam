@@ -847,7 +847,12 @@ void Server_InitWebServer_Sets() {
     }
 
     /* check min and max length WI-FI ssid and password */
+#if (WIFI_DISABLE_UNENCRYPTED_STA_PASS_CHECK == false)
     if (((TmpPassword.length() > 0) && (TmpSsid.length() > 0)) && ((TmpPassword.length() < EEPROM_ADDR_WIFI_PASSWORD_LENGTH) && (TmpSsid.length() < EEPROM_ADDR_WIFI_SSID_LENGTH))) {
+#else
+    if ((TmpSsid.length() > 0) && (TmpSsid.length() < EEPROM_ADDR_WIFI_SSID_LENGTH)) {
+#endif
+
       /* send OK response */
       request->send(200, F("text/html"), MSG_SAVE_OK_WIFI);
 
