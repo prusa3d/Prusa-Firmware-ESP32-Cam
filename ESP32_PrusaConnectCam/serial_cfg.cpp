@@ -139,7 +139,15 @@ String lastTwoChars = command.substring(command.length() - 2);
   } else if (command.startsWith("setlight") && command.endsWith(";")) {
     cam->SetCameraFlashEnable(false);
     cam->SetFlashStatus(!cam->GetFlashStatus());
-    log->AddEvent(LogLevel_Warning, "--> Console set LIGHT: " + String(cam->GetFlashStatus()));    
+    log->AddEvent(LogLevel_Warning, "--> Console set LIGHT: " + String(cam->GetFlashStatus()));
+
+  } else if (command.startsWith("loglevel:") && command.endsWith(";")) {
+    uint8_t level = command.substring(9, command.length() -1).toInt();
+    log->AddEvent(LogLevel_Info, F("--> Console set log level: "), String(level));
+    if ((level >= LogLevel_Error) && (level <= LogLevel_Verbose)) {
+        config->SaveLogLevel((LogLevel_enum) level);
+        log->SetLogLevel((LogLevel_enum) level);
+    } 
 
   } else if (command.startsWith("mcureboot") && command.endsWith(";")) {
     log->AddEvent(LogLevel_Warning, F("--> Reboot MCU!"));
@@ -186,6 +194,7 @@ void SerialCfg::PrintAvailableCommands() {
   Serial.println(F("photoquality:QUALITY;   - set photo quality. 10-63 lower number means higher quality "));
   Serial.println(F("setflash;               - enable/disable LED flash"));
   Serial.println(F("setlight;               - enable/disable LED light"));
+  Serial.println(F("loglevel:LEVEL;         - set log level. 0=Error, 1=Warning, 2=Info, 3=Verbose"));
   Serial.println(F("mcureboot;              - reboot MCU"));
   Serial.println(F("commandslist;           - print available commands"));
   Serial.println(F("-----------------------------------"));
