@@ -315,8 +315,10 @@ uint8_t WiFiMngt::ScanWifiNetwork(String ssid) {
   WifiScanJson = "";
 
   /* make json with each found WI-FI networks */
-  if (n == 0) {
-    log->AddEvent(LogLevel_Info, F("No networks found!"));
+  if (n <= 0) {
+    log->AddEvent(LogLevel_Info, "No networks found! [" + String(n) + "]");
+    ret = 0;
+
   } else {
     log->AddEvent(LogLevel_Info, String(n) + " networks found");
     log->AddEvent(LogLevel_Info, F("Nr | SSID                             | RSSI | CH | BSSID             | Encryption"));
@@ -356,7 +358,7 @@ uint8_t WiFiMngt::ScanWifiNetwork(String ssid) {
   log->AddEvent(LogLevel_Verbose, WifiScanJson);
 
   /* print status */
-  if (1 <= ret) {
+  if (ret >= 1) {
     log->AddEvent(LogLevel_Info, "SSID: " + ssid + " found, " + String(ret) + "x");
     if (1 < ret) {
       memcpy(WiFiStaNetworkBssid, bssid, 6);
@@ -365,8 +367,10 @@ uint8_t WiFiMngt::ScanWifiNetwork(String ssid) {
       sprintf(mac, "%02X:%02X:%02X:%02X:%02X:%02X", WiFiStaNetworkBssid[0], WiFiStaNetworkBssid[1], WiFiStaNetworkBssid[2], WiFiStaNetworkBssid[3], WiFiStaNetworkBssid[4], WiFiStaNetworkBssid[5]);
       log->AddEvent(LogLevel_Info, "WiFi roaming found! Connecting to " + String(mac) + " -> " + String(bestSignal) + "dBm, " + String(WiFiStaMultipleNetwork));
     }
+
   } else {
     log->AddEvent(LogLevel_Info, "SSID: " + ssid + " not found");
+    ret = 0;
   }
 
   return ret;
@@ -416,15 +420,19 @@ void WiFiMngt::WiFiWatchdog() {
 
   /* when is enabled wifi configuration, and is not connected to wifi network, and is available at least one wifi network */
   if ((true == config->CheckActifeWifiCfgFlag()) && (WL_CONNECTED != WiFi.status()) && (true == GetFirstConnection())) {
-    log->AddEvent(LogLevel_Warning, F("WiFi WDG. STA connection lost."));
+    log->AddEvent(LogLevel_Warning, "WiFi WDG. STA connection lost. " + String(StartStaWdg));
     unsigned long currentMillis = millis();
+    log->AddEvent(LogLevel_Verbose, "Time: " + String(currentMillis - TaskWdg_previousMillis) + "/" + String(WIFI_STA_WDG_TIMEOUT));
     
     if (false == StartStaWdg) {
       if (ScanWifiNetwork(WifiSsid) >= 1) {
-        StartStaWdg = true;
-        TaskWdg_previousMillis = currentMillis;
         log->AddEvent(LogLevel_Warning, F("WiFi STA connection lost. Start watchdog timer!"));
+      } else {
+        log->AddEvent(LogLevel_Warning, F("WiFi STA connection lost. No available network!"));
       }
+      
+      StartStaWdg = true;
+      TaskWdg_previousMillis = currentMillis;
     }
 
     if ((true == StartStaWdg) && (currentMillis - TaskWdg_previousMillis >= WIFI_STA_WDG_TIMEOUT)) {
@@ -432,10 +440,12 @@ void WiFiMngt::WiFiWatchdog() {
       /* restart MCU, or disconnect and connect to WiFi again ? From my point of view, and testing, restart MCU is better */
       ESP.restart();
     }
+
   } else if (true == StartStaWdg) {
-    log->AddEvent(LogLevel_Info, F("WiFi STA connection OK. Stop watchdog timer!"));
+    log->AddEvent(LogLevel_Info, F("WiFi WDG. WiFi STA connection OK. Stop watchdog timer!"));
     StartStaWdg = false;
     TaskWdg_previousMillis = millis();
+
   }
 }
 
