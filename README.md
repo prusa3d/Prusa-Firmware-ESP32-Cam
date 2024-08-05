@@ -215,6 +215,7 @@ Currently, available commands are listed in the table below:
 | photoquality      | Set photo quality                                                   |
 | setflash          | enable/disable LED flash                                            |
 | setlight          | enable/disable LED light                                            |
+| loglevel          | set log level. 0=Error, 1=Warning, 2=Info, 3=Verbose                |
 
 The standard command sequence for camera basic settings is
 
