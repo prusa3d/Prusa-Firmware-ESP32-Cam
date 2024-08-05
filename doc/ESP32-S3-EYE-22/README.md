@@ -24,6 +24,7 @@ Basic informations:
 - no additional HW is needed for programming
 - 8MB FLASH and 8MB external PSRAM
 - Excellent WiFi signal
+- 1.27mm Pitch 2x5Pin Double Row Female Pin Header external LCD connector
 
 This is a more expensive version with a more powerful ESP32-S3 processor. The board is sold with an OV2640 camera module. No additional hardware is required for programming. The ESP32-S3 processor is programmed via the processor's USB interface.
 
