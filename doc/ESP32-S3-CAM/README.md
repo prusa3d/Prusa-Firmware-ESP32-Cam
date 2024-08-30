@@ -82,7 +82,7 @@ Launching the esptool application may be different in different operating system
 
 #### Windows
 
-The driver should be installed automatically by Windows
+The driver should be installed automatically by Windows. SW for FW flash (Flash Download Tools) is [here](https://www.espressif.com/en/support/download/other-tools)
 
 In the first step, you need to open the application **flash download tool**, and select MCU version
 
