@@ -102,7 +102,7 @@ Launching the esptool application may be different in different operating system
 
 #### Windows
 
-Driver for CH340 USB to UART convert for Windows is for example [here](https://www.wch-ic.com/search?q=CH340&t=downloads) . An older version of the driver is for example [here](https://blog.laskakit.cz/wp-content/uploads/2020/03/CH341SER.zip)
+Driver for CH340 USB to UART convert for Windows is for example [here](https://www.wch-ic.com/search?q=CH340&t=downloads) . An older version of the driver is for example [here](https://blog.laskakit.cz/wp-content/uploads/2020/03/CH341SER.zip) . SW for FW flash (Flash Download Tools) is [here](https://www.espressif.com/en/support/download/other-tools)
 
 <img src="how to flash chip select.jpg" width=25% height=25%>
 
