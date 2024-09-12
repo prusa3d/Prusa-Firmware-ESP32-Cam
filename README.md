@@ -83,11 +83,11 @@ Then it is possible build and upload the firmware to the board. Each board requi
 
 <a name="chrome_flash"></a>
 ## How to flash using Chrome
-It is also possible to flash firmware using ESP Tool on a Chrome browser [https://espressif.github.io/esptool-js/]
+It is also possible to flash firmware using ESP Tool on a Chrome browser https://espressif.github.io/esptool-js/
 
 Ensure that you set the correct baud rate from the documentation for the board you are using.  Select the serial port your board is connected to.  You can then click "Add File" and select each .bin file for your board.  Make sure that you input the correct Flash Address from the documentation from your board.  For the initial flash, click "Erase Flash", and when that is complete, click "Program."  See below for a screenshot of how to configure ESP Tool for the Freenove Wrover board.
 
-
+<img src="doc/ESPTool.png" width=50% height=50%>
 
 <a name="prusa_connect"></a>
 ## How to connect camera board to Prusa Connect
