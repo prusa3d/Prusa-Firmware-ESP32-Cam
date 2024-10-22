@@ -511,7 +511,7 @@ void Server_InitWebServer_Actions() {
     ESP.restart();
   });
 
-  /* route for change LED status */
+  /* route for erasing the SD card */
   server.on("/action_sderase", HTTP_GET, [](AsyncWebServerRequest* request) {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: /action_sderase remove files from SD card"));
     if (Server_CheckBasicAuth(request) == false)
