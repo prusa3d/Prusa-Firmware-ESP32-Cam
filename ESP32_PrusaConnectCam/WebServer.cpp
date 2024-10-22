@@ -443,7 +443,7 @@ void Server_InitWebServer_Actions() {
     request->send(200, "text/plain", "Send Photo");
   });
 
-  /* route for change LED status */
+  /* route to toggle the LED on and off. If the LED is on, this route turns it off, and vice-versa. */
   server.on("/action_led", HTTP_GET, [](AsyncWebServerRequest* request) {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: /action_led Change LED status"));
     if (Server_CheckBasicAuth(request) == false)
@@ -455,7 +455,7 @@ void Server_InitWebServer_Actions() {
     request->send(200, "text/plain", "Change LED status");
   });
 
-  /* route for change LED status */
+  /* route to set the LED on or off manually */
   server.on("/light", HTTP_GET, [](AsyncWebServerRequest* request) {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: /light set LED status"));
     if (Server_CheckBasicAuth(request) == false)
