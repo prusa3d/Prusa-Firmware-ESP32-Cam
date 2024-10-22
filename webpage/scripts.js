@@ -434,7 +434,7 @@ function updateProgress() {
 
 function checkUpdate() {
 	var xmlHttp = new XMLHttpRequest();
-	alert("Connecting to server... Please wait several second");
+	alert("Connecting to server... Please wait several seconds");
 	xmlHttp.open("GET", "/check_web_ota_update", false);
 	xmlHttp.send(null);
 	alert(xmlHttp.responseText);
