@@ -15,7 +15,7 @@
 
 #define MSG_REBOOT_MCU        "Reboot process started, wait several seconds for mcu to boot up. You can close this window now"
 #define MSG_SAVE_OK_REBOOT    "Save OK. Please reboot MCU"            ///< WEB app msg save OK
-#define MSG_SAVE_OK_WIFI      "Save OK. Connecting to Wi-Fi. Please wait several second"
+#define MSG_SAVE_OK_WIFI      "Save OK. Connecting to Wi-Fi. Please wait several seconds"
 #define MSG_SAVE_OK           "Save cfg OK"                           ///< WEB app msg save OK
 #define MSG_SAVE_NOTOK        "Save cfg NOT OK!"                      ///< WEB app msg save NOT OK
 #define MSG_SCANNING          "Scanning Wi-Fi networks. Wait 8s..."   ///< WEB app msg Scanning wifi
@@ -1342,7 +1342,7 @@ function updateProgress() {
 
 function checkUpdate() {
 	var xmlHttp = new XMLHttpRequest();
-	alert("Connecting to server... Please wait several second");
+	alert("Connecting to server... Please wait several seconds");
 	xmlHttp.open("GET", "/check_web_ota_update", false);
 	xmlHttp.send(null);
 	alert(xmlHttp.responseText);

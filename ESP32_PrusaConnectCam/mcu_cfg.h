@@ -110,7 +110,7 @@
 #define TIMELAPS_PHOTO_SUFFIX       ".jpg"                  ///< photo file type for timelaps
 
 /* ---------------- FACTORY CFG  ----------------*/
-#define FACTORY_CFG_PHOTO_REFRESH_INTERVAL    30                ///< in the second
+#define FACTORY_CFG_PHOTO_REFRESH_INTERVAL    30                ///< in seconds
 #define FACTORY_CFG_PHOTO_QUALITY             10                ///< 10-63, lower is better
 #define FACTORY_CFG_FRAME_SIZE                0                 ///< 0 - FRAMESIZE_QVGA, ..., 6 - FRAMESIZE_UXGA. Look function Cfg_TransformFrameSizeDataType
 #define FACTORY_CFG_BRIGHTNESS                0                 ///< from -2 to 2
