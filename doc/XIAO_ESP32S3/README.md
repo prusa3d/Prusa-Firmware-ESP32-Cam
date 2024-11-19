@@ -18,10 +18,10 @@ What we need for functionality
 <a name="esp32"></a>
 ##  XIAO ESP32S3 sense board 
 
-Basic informations:
+Basic information:
 - Option connecting external FLASH LED
 - Micro SD card slot
-- External WiFi antena
+- External WiFi antenna
 - 8MB FLASH and 8MB external PSRAM
 - 520 KB SRAM
 - Small dimension 21 x 17.5 x 15mm (with expansion board)

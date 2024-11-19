@@ -17,7 +17,7 @@ What we need for functionality
 <a name="esp32"></a>
 ## Freenove ESP32-Wrover-CAM
 
-Basic informations:
+Basic information:
 - On the board missing LED for flash
 - Option connecting external FLASH LED
 - Missing micro SD card slot

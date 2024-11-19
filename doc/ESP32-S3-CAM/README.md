@@ -17,11 +17,11 @@ What we need for functionality
 <a name="esp32"></a>
 ##  ESP32-S3-CAM
 
-Basic informations:
+Basic information:
 - Onboard RGB LED (most likely ws2812b)
 - Option connecting external FLASH LED
 - Micro SD card slot
-- Internal or External WiFi antena
+- Internal or External WiFi antenna
 - 16MB FLASH and 8MB external PSRAM
 - 520 KB SRAM
 - Excellent WiFi signal

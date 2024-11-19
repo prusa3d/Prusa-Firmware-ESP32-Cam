@@ -18,7 +18,7 @@ What we need for functionality
 <a name="esp32"></a>
 ## ESP32-CAM AI-thinker board 
 
-Basic informations:
+Basic information:
 - Low cost version
 - FLASH LED on the board
 - Option connecting external FLASH LED
@@ -32,7 +32,7 @@ It's a few dollars board with **ESP32** MCU and Camera. It's necessary to buy a 
 
 <img src="esp32-cam.jpg" width=30% height=30%>
 
-In the following picture, we can see the **ESP32-CAM** board and the programator for the board. 
+In the following picture, we can see the **ESP32-CAM** board and the programmer for the board. 
 
 <img src="esp32_and_prog.jpg" width=30% height=30%>
 
