@@ -16,7 +16,7 @@ What we need for functionality
 <a name="esp32"></a>
 ## ESP32-S3-EYE 2.2
 
-Basic informations:
+Basic information:
 - On the board missing LED for flash
 - Option connecting external FLASH LED
 - Micro SD card slot
