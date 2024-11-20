@@ -269,6 +269,9 @@ void PrusaConnect::SendInfoToBackend() {
 
     JsonObject config = json_data["config"].to<JsonObject>();
     config["name"] = wifi->GetMdns();
+    config["firmware"] = SW_VERSION;
+    config["manufacturer"] = F("Prusa");
+    config["model"] = BOARD_NAME;
 
     JsonObject resolution = config["resolution"].to<JsonObject>();
     resolution["width"] = SystemCamera.GetFrameSizeWidth();
