@@ -15,7 +15,7 @@
 
 #define MSG_REBOOT_MCU        "Reboot process started, wait several seconds for mcu to boot up. You can close this window now"
 #define MSG_SAVE_OK_REBOOT    "Save OK. Please reboot MCU"            ///< WEB app msg save OK
-#define MSG_SAVE_OK_WIFI      "Save OK. Connecting to Wi-Fi. Please wait several seconds"
+#define MSG_SAVE_OK_WIFI      "Save OK. Connecting to Wi-Fi. Please wait several second"
 #define MSG_SAVE_OK           "Save cfg OK"                           ///< WEB app msg save OK
 #define MSG_SAVE_NOTOK        "Save cfg NOT OK!"                      ///< WEB app msg save NOT OK
 #define MSG_SCANNING          "Scanning Wi-Fi networks. Wait 8s..."   ///< WEB app msg Scanning wifi
@@ -176,7 +176,7 @@ const char page_wifi_html[] PROGMEM = R"rawliteral(
 			<table>
 				<tr><td class="w1">Connect to Wi-Fi network</td></tr>
 				<tr><td class="w2"  align="right">Wi-Fi network name (SSID) </td><td><input type="text" name="wifi_ssid" id=wifi_ssid_id ></td></tr>
-				<tr><td class="w2"  align="right">Password </td><td><input type="text" name="wifi_pass" id=wifi_pass_id></td></tr>
+				<tr><td class="w2"  align="right">Password </td><td><input type="password" name="wifi_pass" id=wifi_pass_id></td></tr>
 				<tr><td></td><td align="center"><button class="btn_save_w" onclick="setWifi(document.getElementById('wifi_ssid_id').value, document.getElementById('wifi_pass_id').value)">Save & Connect</button></td></tr>
 			</table>
 		</td><td></td></tr>
