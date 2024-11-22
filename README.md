@@ -32,15 +32,15 @@ What we need for functionality:
 <a name="supported_boards"></a>
 ## Supported boards
 
-| Board name                | Support     | Stream | Micro SD | FLASH LED | FW update | DHT22/DHT11 | Documentation                                  |
-|---------------------------|-------------|--------|----------|-----------|-----------|-------------|------------------------------------------------|
-| Ai-Thinker ESP32-cam      | Full        | Yes    | Yes      | Board/Ext | Yes       | Yes         | [ here ](doc/AI_Thinker-ESP32-cam/README.md)   |
-| ESP32-S3-EYE 2.2          | Full        | Yes    | Yes      | External  | Yes       | Yes         | [ here ](doc/ESP32-S3-EYE-22/README.md)        |
-| Freenove ESP32-Wrover cam | Full        | Yes    | No       | External  | Yes       | Yes         | [ here ](doc/ESP32-Wrover-dev/README.md)       |
-| Freenove ESP32-S3-Wroom   | in Progress |        |          |           |           |             | [ here ](doc/Freenove ESP32-S3-Wroom/README.md |                                             | 
-| ESP32-S3-DEV-CAM          | in Progress |        |          | External  |           |             | [ here ](doc/ESP32-S3-DEV-CAM/README.md)       |
-| Seeed Studio XIAO ESP32S3 | Full        | Yes    | Yes      | External  | Yes       | Yes         | [ here ](doc/XIAO_ESP32S3/README.md)           |
-| ESP32-S3-CAM              | Full        | Yes    | Yes      | Board/Ext | Yes       | Yes         | [ here ](doc/ESP32-S3-CAM/README.md)           |
+| Board name                | Support     | Stream | Micro SD | FLASH LED | FW update | DHT22/DHT11 | Documentation                                     |
+|---------------------------|-------------|--------|----------|-----------|-----------|-------------|---------------------------------------------------|
+| Ai-Thinker ESP32-cam      | Full        | Yes    | Yes      | Board/Ext | Yes       | Yes         | [ here ](doc/AI_Thinker-ESP32-cam/README.md)      |
+| ESP32-S3-EYE 2.2          | Full        | Yes    | Yes      | External  | Yes       | Yes         | [ here ](doc/ESP32-S3-EYE-22/README.md)           |
+| Freenove ESP32-Wrover cam | Full        | Yes    | No       | External  | Yes       | Yes         | [ here ](doc/ESP32-Wrover-dev/README.md)          |
+| Freenove ESP32-S3-Wroom   | in Progress |        |          |           |           |             | [ here ](doc/Freenove%20ESP32-S3-Wroom/README.md) |
+| ESP32-S3-DEV-CAM          | in Progress |        |          | External  |           |             | [ here ](doc/ESP32-S3-DEV-CAM/README.md)          |
+| Seeed Studio XIAO ESP32S3 | Full        | Yes    | Yes      | External  | Yes       | Yes         | [ here ](doc/XIAO_ESP32S3/README.md)              |
+| ESP32-S3-CAM              | Full        | Yes    | Yes      | Board/Ext | Yes       | Yes         | [ here ](doc/ESP32-S3-CAM/README.md)              |
 
 The compiled firmware for each supported board is published with every release.
 
