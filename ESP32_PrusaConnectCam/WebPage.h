@@ -29,7 +29,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 	<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 
 	<link rel="stylesheet" type="text/css" href="styles.css?v=1.0.0">
-	<script src="jquery-3.7.0.min.js"></script>
+	<script src="/jquery-3.7.0.min.js"></script>
 	<script>
 		$(document).ready(function () {
 			$("a").click(function (e) {
@@ -98,13 +98,13 @@ const char index_html[] PROGMEM = R"rawliteral(
 		<td><a href="https://github.com/Prusa-Development/Prusa-Firmware-ESP32-Cam/" id="github-link"><svg height="25"><image href="github-icon.svg"></svg></a></td>
 	</tr></table>
 </body>
-<script src="scripts.js"></script>
-<script>
-	sliderCheck();
-	get_data();
-	addClickListener('github-link');
-	addClickListener('forum-link');
-</script>
+	<script src="scripts.js"></script>
+	<script>
+		sliderCheck();
+		get_data();
+		addClickListener('github-link');
+		addClickListener('forum-link');
+	</script>
 </html>
 )rawliteral";
 
