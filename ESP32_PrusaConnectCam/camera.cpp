@@ -254,12 +254,12 @@ void Camera::SetFlashStatus(bool i_data) {
   }
 #endif
 
-/* Neopixel control of the FLASH */
+/* rgbLedWrite control of the FLASH */
 #if (true == CAMERA_FLASH_NEOPIXEL)
   if (true == i_data) {
-    neopixelWrite(FLASH_NEOPIXEL_LED_PIN, RGB_BRIGHTNESS, RGB_BRIGHTNESS, RGB_BRIGHTNESS);
+    rgbLedWrite(FLASH_NEOPIXEL_LED_PIN, RGB_BRIGHTNESS, RGB_BRIGHTNESS, RGB_BRIGHTNESS);
   } else if (false == i_data) {
-    neopixelWrite(FLASH_NEOPIXEL_LED_PIN, 0, 0, 0);
+    rgbLedWrite(FLASH_NEOPIXEL_LED_PIN, 0, 0, 0);
   }
 #endif
 #endif
