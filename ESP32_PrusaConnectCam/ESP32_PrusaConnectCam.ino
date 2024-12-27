@@ -8,12 +8,12 @@
 
    This project uses other libraries. It is necessary to install them in the arduino IDE.
    - Library           - License  - Version - Link
-   - ESPAsyncWebServer - LGPL 3.0 - 3.3.22  - https://github.com/mathieucarbou/ESPAsyncWebServer
-   - AsyncTCP          - LGPL 3.0 - 3.2.14  - https://github.com/mathieucarbou/AsyncTCP
+   - ESPAsyncWebServer - LGPL 3.0 - 3.4.5   - https://github.com/mathieucarbou/ESPAsyncWebServer
+   - AsyncTCP          - LGPL 3.0 - 3.3.1   - https://github.com/mathieucarbou/AsyncTCP
    - ArduinoJson       - MIT      - 7.2.1   - https://github.com/bblanchon/ArduinoJson
    - ArduinoUniqueID   - MIT      - 1.3.0   - https://github.com/ricaun/ArduinoUniqueID
-   - arduino-esp32     - LGPL 2.1 - 3.0.7   - https://github.com/espressif/arduino-esp32
-   - DHTnew            - MIT      - 0.4.21  - https://github.com/RobTillaart/DHTNew
+   - arduino-esp32     - LGPL 2.1 - 3.1.0   - https://github.com/espressif/arduino-esp32
+   - DHTnew            - MIT      - 0.5.1   - https://github.com/RobTillaart/DHTNew
 
    Arduino IDE configuration for the MCU are stored in the module_XXX.h file.
 
