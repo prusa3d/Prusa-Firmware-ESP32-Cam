@@ -17,7 +17,7 @@ What we need for functionality
 ## Freenove ESP32-S3 WROOM
 
 Basic information:
-- On the board is LED ws2812b for flash
+- On the board is LED WS2812b for flash
 - Option connecting external FLASH LED
 - Micro SD card slot
 - Internal WiFi antenna
@@ -26,6 +26,8 @@ Basic information:
 - Excellent WiFi signal
 
 This is a more expensive version with a more powerful ESP32-S3 processor. The board is sold with an OV2640 camera module. No additional hardware is required for programming. The ESP32-S3 processor is programmed via the processor's USB interface.
+
+<img src="Board.jpg" width=30% height=30%>
 
 <img src="board_des.jpg" width=30% height=30%>
 
@@ -168,7 +170,7 @@ For the board existing only pinout. I don't found schematic
 <a name="led_issue"></a>
 ## FLASH LED issue
 
-The board does not have an LED that could serve as a camera flash. However, there is an option to use PIN 48, which is typically used to turn on the backlight of the LCD display, as a camera flash. The image shows 3 arrows:
+The board includes a single WS2812b FLASH LED. This FLASH LED emits light dimly. However, there is an option to use PIN 14, as a external flash light. The image shows 3 arrows:
 
 - Green, PIN 14
 - RED, VCC 3.3V
