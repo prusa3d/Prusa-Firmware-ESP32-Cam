@@ -88,6 +88,17 @@
 #
 # 9. Install the ESP32 core:
 #    ./arduino-cli core install esp32:esp32
+#
+# 10. for updating the ESP32 core and libraries:
+#    ./arduino-cli core list
+#    ./arduino-cli core update-index
+#    ./arduino-cli core upgrade
+#    ./arduino-cli core list
+#    ./arduino-cli lib list
+#    ./arduino-cli lib update-index
+#    ./arduino-cli lib upgrade
+#    ./arduino-cli lib list
+#
 
 # ---------------------------------------------
 set -e
@@ -101,6 +112,20 @@ if [ ! -f arduino-cli ]; then
    echo "arduino-cli not found. Please download arduino-cli and place it in the same folder as this script."
    exit 1
 fi
+
+echo "----------------------------------------------"
+echo "Check updated libraries"
+./arduino-cli lib list
+./arduino-cli lib update-index
+./arduino-cli lib upgrade
+./arduino-cli lib list
+
+echo "----------------------------------------------"
+echo "Check updated cores"
+./arduino-cli core list
+./arduino-cli core update-index
+./arduino-cli core upgrade
+./arduino-cli core list
 
 mkdir -p ../build/output
 build_start=`date`
