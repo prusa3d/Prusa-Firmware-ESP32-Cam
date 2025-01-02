@@ -22,7 +22,7 @@
 #define CAMERA_MODEL_ESP32_S3_CAM      false
 
 /* ---------------- BASIC MCU CFG  --------------*/
-#define SW_VERSION                  "1.1.0"                 ///< SW version
+#define SW_VERSION                  "1.1.1"                 ///< SW version
 #define SW_BUILD                    __DATE__ " " __TIME__   ///< build number
 #define CONSOLE_VERBOSE_DEBUG       false                   ///< enable/disable verbose debug log level for console
 #define DEVICE_HOSTNAME             "Prusa-ESP32cam"        ///< device hostname
