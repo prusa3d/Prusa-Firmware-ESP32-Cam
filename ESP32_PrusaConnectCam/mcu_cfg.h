@@ -7,19 +7,19 @@
    Contact: miroslav.pivovarsky@gmail.com
 
    @bug: no know bug
-
 */
 
 #ifndef _MCU_CFG_H_
 #define _MCU_CFG_H_
 
 /* ----------------- CAMERA TYPE  ---------------*/
-#define AI_THINKER_ESP32_CAM           true
-#define ESP32_WROVER_DEV               false
-#define CAMERA_MODEL_ESP32_S3_DEV_CAM  false
-#define CAMERA_MODEL_ESP32_S3_EYE_2_2  false
-#define CAMERA_MODEL_XIAO_ESP32_S3_CAM false
-#define CAMERA_MODEL_ESP32_S3_CAM      false
+#define AI_THINKER_ESP32_CAM            true
+#define ESP32_WROVER_DEV                false
+#define CAMERA_MODEL_ESP32_S3_DEV_CAM   false
+#define CAMERA_MODEL_ESP32_S3_EYE_2_2   false
+#define CAMERA_MODEL_XIAO_ESP32_S3_CAM  false
+#define CAMERA_MODEL_ESP32_S3_CAM       false
+#define ESP32_S3_WROOM_FREENOVE         true
 
 /* ---------------- BASIC MCU CFG  --------------*/
 #define SW_VERSION                  "1.1.2"                 ///< SW version
@@ -90,7 +90,7 @@
 
 /* ----------------- WiFi CFG -------------------*/
 #define WIFI_STA_WDG_TIMEOUT        60000                   ///< STA watchdog timeout [ms]
-#define WIFI_DISABLE_UNENCRYPTED_STA_PASS_CHECK false      ///< enable/disable WEP/WPA/WPA2/... encryption for STA mode . for the wifi network without encryption set to false
+#define WIFI_DISABLE_UNENCRYPTED_STA_PASS_CHECK false       ///< enable/disable WEP/WPA/WPA2/... encryption for STA mode . for the wifi network without encryption set to false
 
 /* ----------------- NTP CFG --------------------*/
 #define NTP_SERVER_1                "pool.ntp.org"          ///< NTP server
@@ -110,7 +110,7 @@
 #define TIMELAPS_PHOTO_SUFFIX       ".jpg"                  ///< photo file type for timelaps
 
 /* ---------------- FACTORY CFG  ----------------*/
-#define FACTORY_CFG_PHOTO_REFRESH_INTERVAL    30                ///< in seconds
+#define FACTORY_CFG_PHOTO_REFRESH_INTERVAL    30                ///< in the second
 #define FACTORY_CFG_PHOTO_QUALITY             10                ///< 10-63, lower is better
 #define FACTORY_CFG_FRAME_SIZE                0                 ///< 0 - FRAMESIZE_QVGA, ..., 6 - FRAMESIZE_UXGA. Look function Cfg_TransformFrameSizeDataType
 #define FACTORY_CFG_BRIGHTNESS                0                 ///< from -2 to 2
