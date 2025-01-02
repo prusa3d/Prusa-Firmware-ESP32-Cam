@@ -3,19 +3,20 @@
 This repository includes source code and firmware releases for the **ESP32-cam** module programmed in the **Arduino IDE**. Currently, several versions of boards built on **ESP32/ESP32S3** processors with a camera chip are supported. You can find a list of supported boards below. Additionally, for each supported board, there is a guide on how to upload the firmware, how to compile code for it, some basic information and a list of known issues for this particular board.
 
 This project uses other libraries. It is necessary to install them in the Arduino IDE:
-- App [Arduino IDE 2.3.3](https://www.arduino.cc/en/software)
-- MCU support [arduino-ESP32 3.0.7](https://github.com/espressif/arduino-esp32)
+- App [Arduino IDE 2.3.4](https://www.arduino.cc/en/software)
+- MCU support [arduino-ESP32 3.1.0](https://github.com/espressif/arduino-esp32)
 - ~~Library [ESPAsyncWebSrv 1.2.7](https://github.com/dvarrel/ESPAsyncWebSrv)~~ To version **1.0.3-rc1**
 - ~~Library [AsyncTCP 1.1.4](https://github.com/dvarrel/AsyncTCP)~~ To version **1.0.3-rc1**
-- Library [AsyncTCP 3.2.14](https://github.com/mathieucarbou/AsyncTCP)
-- Library [ESPAsyncWebServer 3.3.22](https://github.com/mathieucarbou/ESPAsyncWebServer) 
-- Library [ArduinoJson 7.2.1](https://github.com/bblanchon/ArduinoJson)
+- Library [AsyncTCP 3.3.1](https://github.com/mathieucarbou/AsyncTCP)
+- Library [ESPAsyncWebServer 3.4.5](https://github.com/mathieucarbou/ESPAsyncWebServer) 
+- Library [ArduinoJson 7.3.0](https://github.com/bblanchon/ArduinoJson)
 - Library [UniqueID 1.3.0](https://github.com/ricaun/ArduinoUniqueID)
-- Library [DHTnew 0.4.21](https://github.com/RobTillaart/DHTNew)
+- Library [DHTnew 0.5.2](https://github.com/RobTillaart/DHTNew)
 
 What we need for functionality:
 - Supported versions of boards built on **ESP32/ESP32-S3** processors with a camera [here](#supported_boards)
 - How to flash binary files to ESP32-cam board from Linux/MAC/Windows [ here ](#flash_fw)
+- How to flash using Chrome [here](#browser_flash)
 - How to compile software in the Arduino IDE [here](#arduino_lib)
 - How to connect camera board to Prusa Connect [here](#prusa_connect)
 - Service AP [here](#service_ap)
@@ -37,7 +38,7 @@ What we need for functionality:
 | Ai-Thinker ESP32-cam      | Full        | Yes    | Yes      | Board/Ext | Yes       | Yes         | [ here ](doc/AI_Thinker-ESP32-cam/README.md)      |
 | ESP32-S3-EYE 2.2          | Full        | Yes    | Yes      | External  | Yes       | Yes         | [ here ](doc/ESP32-S3-EYE-22/README.md)           |
 | Freenove ESP32-Wrover cam | Full        | Yes    | No       | External  | Yes       | Yes         | [ here ](doc/ESP32-Wrover-dev/README.md)          |
-| Freenove ESP32-S3-Wroom   | in Progress | Yes    | Yes      | Board/Ext | Yes       | Yes         | [ here ](doc/Freenove%20ESP32-S3-Wroom/README.md) |
+| Freenove ESP32-S3-Wroom   | Full        | Yes    | Yes      | Board/Ext | Yes       | Yes         | [ here ](doc/Freenove%20ESP32-S3-Wroom/README.md) |
 | ESP32-S3-DEV-CAM          | in Progress |        |          | External  |           |             | [ here ](doc/ESP32-S3-DEV-CAM/README.md)          |
 | Seeed Studio XIAO ESP32S3 | Full        | Yes    | Yes      | External  | Yes       | Yes         | [ here ](doc/XIAO_ESP32S3/README.md)              |
 | ESP32-S3-CAM              | Full        | Yes    | Yes      | Board/Ext | Yes       | Yes         | [ here ](doc/ESP32-S3-CAM/README.md)              |
@@ -48,6 +49,20 @@ The compiled firmware for each supported board is published with every release.
 ## How to flash binary files to ESP32-cam board from Linux/MAC/Windows
 
 Uploading a precompiled version of the firmware to the MCU is possible from either Linux or Windows OS. Since different boards use various processors and modules, it is not possible to create a single universal guide. Therefore, it is necessary to select the board you are using and then refer to the documentation on how to upload the firmware to it. Here is list with currently [supported boards](#supported_boards).
+
+<a name="browser_flash"></a>
+## How to flash using Chrome
+It is also possible to flash firmware using ESP Tool on a WEB browser https://espressif.github.io/esptool-js/
+
+**This option is currently not supported on the Ai Thinker ESP32-cam board version.**
+
+Ensure that you set the correct baud rate from the documentation for the board you are using (921600). Select the serial port your board is connected to.  You can then click "Add File" and select each .bin file for your board.  Make sure that you input the **correct Flash Address** from the documentation from your board.  For the initial flash, click "Erase Flash", and when that is complete, click "Program."  See below for a screenshot of how to configure ESP Tool for the Freenove Wrover board.
+
+<img src="doc/ESPToolConnect.jpg" width=50% height=50%>
+
+<img src="doc/ESPTool.png" width=50% height=50%>
+
+<img src="doc/ESPToolFinish.jpg" width=50% height=50%>
 
 <a name="arduino_lib"></a>
 ## How to compile software in the Arduino IDE
@@ -80,14 +95,6 @@ You should now be able to build the firmware and upload it to the board. Each bo
 #define CAMERA_MODEL_XIAO_ESP32_S3_CAM false
 #define CAMERA_MODEL_ESP32_S3_CAM      false
 ```
-
-<a name="chrome_flash"></a>
-## How to flash using Chrome
-It is also possible to flash firmware using ESP Tool on a Chrome browser https://espressif.github.io/esptool-js/
-
-Ensure that you set the correct baud rate from the documentation for the board you are using.  Select the serial port your board is connected to.  You can then click "Add File" and select each .bin file for your board.  Make sure that you input the correct Flash Address from the documentation from your board.  For the initial flash, click "Erase Flash", and when that is complete, click "Program."  See below for a screenshot of how to configure ESP Tool for the Freenove Wrover board.
-
-<img src="doc/ESPTool.png" width=50% height=50%>
 
 <a name="prusa_connect"></a>
 ## How to connect camera board to Prusa Connect
