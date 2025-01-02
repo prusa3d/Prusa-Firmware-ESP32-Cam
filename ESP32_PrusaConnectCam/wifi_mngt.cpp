@@ -115,7 +115,8 @@ void WiFiMngt::Init() {
       log->AddEvent(LogLevel_Info, "WiFi network IP Address: http://" + WiFi.localIP().toString());
 #endif
     } else {
-      log->AddEvent(LogLevel_Warning, "Wifi unavailable. Skip connecting to WiFi: " + WifiSsid);
+      log->AddEvent(LogLevel_Warning, "Wifi unavailable. Try connect to hidden network: " + WifiSsid);
+      WiFiStaConnect();
     }
   } else {
     ScanWiFiNetwork();
