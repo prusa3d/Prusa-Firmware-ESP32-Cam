@@ -26,6 +26,7 @@
 
 /* https://github.com/espressif/arduino-esp32/blob/51cb927712e512664a0a0f7b1219fdc18e11b857/libraries/WiFi/src/WiFiGeneric.h#L52 */
 /* https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/api-reference/network/esp_wifi.html#_CPPv429wifi_event_sta_disconnected_t */
+/* https://github.com/espressif/arduino-esp32/blob/9eb7dc6f7bddf98600f6e8de3ccc19cc8ba5281b/libraries/WiFi/examples/WiFiClientEvents/WiFiClientEvents.ino */
 void WiFiMngt_WiFiEventScanDone(WiFiEvent_t, WiFiEventInfo_t);
 void WiFiMngt_WiFiEventStationStart(WiFiEvent_t, WiFiEventInfo_t);
 void WiFiMngt_WiFiEventStationStop(WiFiEvent_t, WiFiEventInfo_t);
@@ -39,6 +40,7 @@ void WiFiMngt_WiFiEventApStaConnected(WiFiEvent_t , WiFiEventInfo_t);
 void WiFiMngt_WiFiEventApStaDisconnected(WiFiEvent_t , WiFiEventInfo_t);
 void WiFiMngt_WiFiEventApStaIpAssigned(WiFiEvent_t , WiFiEventInfo_t);
 void WiFiMngt_WiFiEventApStaProbeReqRecved(WiFiEvent_t , WiFiEventInfo_t);
+void WiFiMngt_WiFiEvent(WiFiEvent_t event);
 
 /**
  * @brief NetworkIpMethod_enum
@@ -127,6 +129,7 @@ public:
   String GetNetStaticMask();
   String GetNetStaticGateway();
   String GetNetStaticDns();
+
 
   void SetStaCredentials(String, String);
   void SetStaSsid(String);

@@ -219,6 +219,7 @@ void WiFiMngt::SetWifiEvents() {
   WiFi.onEvent(WiFiMngt_WiFiEventApStaDisconnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_AP_STADISCONNECTED);
   WiFi.onEvent(WiFiMngt_WiFiEventApStaIpAssigned, WiFiEvent_t::ARDUINO_EVENT_WIFI_AP_STAIPASSIGNED);
   WiFi.onEvent(WiFiMngt_WiFiEventApStaProbeReqRecved, WiFiEvent_t::ARDUINO_EVENT_WIFI_AP_PROBEREQRECVED);
+  WiFi.onEvent(WiFiMngt_WiFiEvent);
 }
 
 /**
@@ -1070,6 +1071,38 @@ void WiFiMngt_WiFiEventApStaIpAssigned(WiFiEvent_t event, WiFiEventInfo_t info) 
 */
 void WiFiMngt_WiFiEventApStaProbeReqRecved(WiFiEvent_t event, WiFiEventInfo_t info) {
   SystemLog.AddEvent(LogLevel_Info, F("WiFi AP STA receive probe request packet in soft-AP interface"));
+}
+
+/**
+ * @brief CB function for print all WiFi events
+ * 
+ * https://github.com/espressif/arduino-esp32/blob/9eb7dc6f7bddf98600f6e8de3ccc19cc8ba5281b/libraries/WiFi/examples/WiFiClientEvents/WiFiClientEvents.ino
+ * 
+ * @param event 
+ */
+void WiFiMngt_WiFiEvent(WiFiEvent_t event) {
+  SystemLog.AddEvent(LogLevel_Info, "[WiFi-event]: " + String(event) + ". ", false, true);
+
+  switch (event) {
+    case ARDUINO_EVENT_WIFI_READY:                SystemLog.AddEvent(LogLevel_Info, F("WiFi interface ready"), true, false); break;
+    case ARDUINO_EVENT_WIFI_SCAN_DONE:            SystemLog.AddEvent(LogLevel_Info, F("Completed scan for access points"), true, false); break;
+    case ARDUINO_EVENT_WIFI_STA_START:            SystemLog.AddEvent(LogLevel_Info, F("WiFi client started"), true, false); break;
+    case ARDUINO_EVENT_WIFI_STA_STOP:             SystemLog.AddEvent(LogLevel_Info, F("WiFi clients stopped"), true, false); break;
+    case ARDUINO_EVENT_WIFI_STA_CONNECTED:        SystemLog.AddEvent(LogLevel_Info, F("Connected to access point"), true, false); break;
+    case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:     SystemLog.AddEvent(LogLevel_Info, F("Disconnected from WiFi access point"), true, false); break;
+    case ARDUINO_EVENT_WIFI_STA_AUTHMODE_CHANGE:  SystemLog.AddEvent(LogLevel_Info, F("Authentication mode of access point has changed"), true, false); break;
+    case ARDUINO_EVENT_WIFI_STA_GOT_IP:           SystemLog.AddEvent(LogLevel_Info, F("Obtained IP address"), true, false); break;
+    case ARDUINO_EVENT_WIFI_STA_LOST_IP:          SystemLog.AddEvent(LogLevel_Info, F("Lost IP address and IP address is reset to 0"), true, false); break;
+    case ARDUINO_EVENT_WIFI_AP_START:             SystemLog.AddEvent(LogLevel_Info, F("WiFi access point started"), true, false); break;
+    case ARDUINO_EVENT_WIFI_AP_STOP:              SystemLog.AddEvent(LogLevel_Info, F("WiFi access point  stopped"), true, false); break;
+    case ARDUINO_EVENT_WIFI_AP_STACONNECTED:      SystemLog.AddEvent(LogLevel_Info, F("Client connected"), true, false); break;
+    case ARDUINO_EVENT_WIFI_AP_STADISCONNECTED:   SystemLog.AddEvent(LogLevel_Info, F("Client disconnected"), true, false); break;
+    case ARDUINO_EVENT_WIFI_AP_STAIPASSIGNED:     SystemLog.AddEvent(LogLevel_Info, F("Assigned IP address to client"), true, false); break;
+    case ARDUINO_EVENT_WIFI_AP_PROBEREQRECVED:    SystemLog.AddEvent(LogLevel_Info, F("Received probe request"), true, false); break;
+    case ARDUINO_EVENT_WIFI_AP_GOT_IP6:           SystemLog.AddEvent(LogLevel_Info, F("AP IPv6 is preferred"), true, false); break;
+    case ARDUINO_EVENT_WIFI_STA_GOT_IP6:          SystemLog.AddEvent(LogLevel_Info, F("STA IPv6 is preferred"), true, false); break;
+    default:                                      SystemLog.AddEvent(LogLevel_Info, F("Unknown event"), true, false); break;
+  }
 }
 
 /* EOF */
