@@ -108,6 +108,7 @@ function get_data(val) {
 				$("#sd_free_p").text(obj.sd_free_p);
 				$("#sd_used_p").text(obj.sd_used_p);
 				$("#mcu_temp").text(obj.mcu_temp);
+				$("#fw_file").text(obj.fw_file);
 
 				var sd_free_prog = document.getElementById("progress_bar_sd_free");
 				sd_free_prog.style.width = obj.sd_free_p + "%";

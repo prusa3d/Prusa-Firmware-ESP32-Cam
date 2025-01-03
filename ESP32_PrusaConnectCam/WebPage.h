@@ -79,11 +79,11 @@ const char index_html[] PROGMEM = R"rawliteral(
 	    <div id="cfg">
 			<div id="cfg_bar">
 			<div id="links">
-				<li><a href="page_config.html">Camera</a></li>
-				<li><a href="page_wifi.html">Wi-Fi</a></li>
-				<li><a href="page_auth.html">Authentication</a></li>
-				<li><a href="page_system.html">System</a></li>
-				<li><a href="page_temperature.html">Temperature</a></li>
+				<li><a href="page_config.html?v=1.0.0">Camera</a></li>
+				<li><a href="page_wifi.html?v=1.0.0">Wi-Fi</a></li>
+				<li><a href="page_auth.html?v=1.0.0">Authentication</a></li>
+				<li><a href="page_system.html?v=1.0.0">System</a></li>
+				<li><a href="page_temperature.html?v=1.0.0">Temperature</a></li>
 				</div>
 			</div>
 		</div>
@@ -323,6 +323,8 @@ const char page_system_html[] PROGMEM = R"rawliteral(
 			<tr><td class="ps3">Firmware</td><td></td></tr>
             <tr><td class="ps1">Version</td><td class="ps2" id="sw_ver"></td></tr>
 			<tr><td class="ps1">Build</td><td class="ps2" id="sw_build"></td></tr>
+			<tr><td class="ps1">FW File</td><td class="ps2" id="fw_file"></td></tr>
+
             <tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
 			<tr><td class="ps3">Configuration</td><td></td></tr>
 			<tr><td class="pc1">Camera name & mDNS record</td><td ><input type="text" name="mdns" id=mdnsid ><span class=pc1>.local</span>&nbsp;<button class="btn_save" onclick="changeValue(document.getElementById('mdnsid').value, 'set_mdns?mdns=', 'system')">Save</button></td></tr>
@@ -1016,6 +1018,7 @@ function get_data(val) {
 				$("#sd_free_p").text(obj.sd_free_p);
 				$("#sd_used_p").text(obj.sd_used_p);
 				$("#mcu_temp").text(obj.mcu_temp);
+				$("#fw_file").text(obj.fw_file);
 
 				var sd_free_prog = document.getElementById("progress_bar_sd_free");
 				sd_free_prog.style.width = obj.sd_free_p + "%";

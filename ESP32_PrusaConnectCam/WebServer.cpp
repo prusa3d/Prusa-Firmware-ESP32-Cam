@@ -1241,6 +1241,7 @@ String Server_GetJsonData() {
   doc_json["sw_build"] = SW_BUILD;
   doc_json["sw_ver"] = SW_VERSION;
   doc_json["sw_new_ver"] = FirmwareUpdate.NewVersionFw;
+  doc_json["fw_file"] = OTA_UPDATE_FW_FILE;
   doc_json["extsens_stat"] = ExternalTemperatureSensor.GetSensorStatus();
   doc_json["extsen_en"] = ExternalTemperatureSensor.GetUserEnableSensor();
   doc_json["ext_temp"] = ExternalTemperatureSensor.GetTemperatureString();
