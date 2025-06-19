@@ -202,6 +202,11 @@ const char page_wifi_html[] PROGMEM = R"rawliteral(
 			<tr><td class="w2" align="right">Default gateway</td><td><input type="text" name="net_gw" id=net_gw_id></td></tr>
 			<tr><td class="w2" align="right">DNS server</td><td><input type="text" name="net_dns" id=net_dns_id></td></tr>
 			<tr><td></td><td align="center"><button class="btn_save_w" onclick="setWifiNet(document.getElementById('net_ip_id').value, document.getElementById('net_mask_id').value, document.getElementById('net_gw_id').value, document.getElementById('net_dns_id').value)">Save</button></td></tr>
+			<tr><td style="height: 10px;"></td></tr>
+			<tr><td class="w2" align="right">Enable WPA2-Enterprise </td><td><label class="switch"><input type="checkbox" name="wpa2_eap_enable" id="wpa2_eapid" onchange="changeValue(this.checked, 'set_bool?wpa2_eap_enable=', 'wifi')"><span class="checkbox_slider round"></span></label></label> <span class="w1" id="status_wpa2_eap"></span></td></tr>
+			<tr><td class="w2" align="right">Username</td><td><input type="text" name="wpa2_eap_user" id=wpa2_eap_user_id></td></tr>
+			<tr><td class="w2" align="right">Password</td><td><input type="text" name="wpa2_eap_pass" id=wpa2_eap_pass_id></td></tr>
+			<tr><td></td><td align="center"><button class="btn_save_w" onclick="setWPA2EAP(document.getElementById('wpa2_eap_user_id').value, document.getElementById('wpa2_eap_pass_id').value)">Save</button></td></tr>
 		</table>
 	</div>
 </body>
@@ -1160,6 +1165,14 @@ function setWifi(val_ssid, val_pass) {
 function setWifiNet(val_ip, val_mask, val_gw, val_dns) {	
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.open("GET", "wifi_net_cfg?ip=" +  encodeURIComponent(val_ip) + "&mask=" + encodeURIComponent(val_mask) + "&gw=" + encodeURIComponent(val_gw) + "&dns=" + encodeURIComponent(val_dns), false);
+	xmlHttp.send(null);
+	alert(xmlHttp.responseText);
+	get_data("wifi");
+}
+
+function setWPA2EAP(val_user, val_pass) {	
+	var xmlHttp = new XMLHttpRequest();
+	xmlHttp.open("GET", "wifi_wpa2_eap?user=" +  encodeURIComponent(val_user) + "&pass=" + encodeURIComponent(val_pass), false);
 	xmlHttp.send(null);
 	alert(xmlHttp.responseText);
 	get_data("wifi");

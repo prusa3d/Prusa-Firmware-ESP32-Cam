@@ -255,6 +255,14 @@ function setWifiNet(val_ip, val_mask, val_gw, val_dns) {
 	get_data("wifi");
 }
 
+function setWPA2EAP(val_user, val_pass) {	
+	var xmlHttp = new XMLHttpRequest();
+	xmlHttp.open("GET", "wifi_wpa2_eap?user=" +  encodeURIComponent(val_user) + "&pass=" + encodeURIComponent(val_pass), false);
+	xmlHttp.send(null);
+	alert(xmlHttp.responseText);
+	get_data("wifi");
+}
+
 function scanWifi() {
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.open("GET", "wifi_scan?", false);
