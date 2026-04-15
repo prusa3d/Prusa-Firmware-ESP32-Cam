@@ -56,6 +56,7 @@ These are currently known or tested camera modules:
 | OV2640IR    | 160° |    2MP     |   Yes  |  Yes  |                                          |
 | OV8225N     | 66°  |    2MP     |   Yes  |  Yes  |                                          |
 | OV3360      | 66°  |    3MP     |   Yes  |  Yes  |                                          |
+| OV3660      | 66°  |    3MP     |   Yes  |  Yes  | Max resolution SXGA (1280x1024)          |
 | OV5640-AF   | 72°  |    5MP     |   Yes  |  Yes  | Overheating, slow photo loading          |
 
 <a name="different_mcu"></a>

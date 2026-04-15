@@ -107,7 +107,7 @@ void Camera::InitCameraModule() {
   CameraConfig.pin_sccb_scl = SIOC_GPIO_NUM;
   CameraConfig.pin_pwdn = PWDN_GPIO_NUM;
   CameraConfig.pin_reset = RESET_GPIO_NUM;
-  CameraConfig.xclk_freq_hz = 15000000;       // or 3000000; 16500000; 20000000
+  CameraConfig.xclk_freq_hz = 20000000;       // or 3000000; 15000000; 16500000
   CameraConfig.pixel_format = PIXFORMAT_JPEG; /* YUV422,GRAYSCALE,RGB565,JPEG */
 
   /* OV2640
@@ -322,6 +322,18 @@ void Camera::ApplyCameraCfg() {
   sensor->set_vflip(sensor, vflip);                   // vertical flip 0 = disable , 1 = enable
   sensor->set_dcw(sensor, 1);                         // 0 = disable , 1 = enable
   sensor->set_colorbar(sensor, 0);                    // external collor lines, 0 = disable , 1 = enable
+
+  /* OV3660-specific initialization */
+  if (sensor->id.PID == OV3660_PID) {
+    sensor->set_vflip(sensor, 1);          // OV3660 image is natively inverted
+    sensor->set_saturation(sensor, -2);    // reduce initial oversaturation
+    /* OV3660 max resolution is SXGA (1280x1024); clamp if a larger size was stored */
+    if (TFrameSize > FRAMESIZE_SXGA) {
+      log->AddEvent(LogLevel_Warning, F("OV3660: frame size exceeds SXGA, clamping"));
+      TFrameSize = FRAMESIZE_SXGA;
+      sensor->set_framesize(sensor, FRAMESIZE_SXGA);
+    }
+  }
 }
 
 /**
