@@ -72,6 +72,9 @@ public:
   void SetTimeLapsPhotoSaveStatus(bool);
 
   void SavePhotoToSdCard();
+#if (true == CERT_DIAGNOSTIC)
+  void CertificateDiagnostic();
+#endif
 
   uint8_t GetRefreshInterval();
   String GetBackendReceivedStatus();

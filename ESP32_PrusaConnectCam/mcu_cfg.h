@@ -22,17 +22,20 @@
 #define ESP32_S3_WROOM_FREENOVE         false
 
 /* ---------------- BASIC MCU CFG  --------------*/
-#define SW_VERSION                  "1.1.3-rc1"                 ///< SW version
+#define SW_VERSION                  "1.1.3-rc2"             ///< SW version
 #define SW_BUILD                    __DATE__ " " __TIME__   ///< build number
 #define CONSOLE_VERBOSE_DEBUG       false                   ///< enable/disable verbose debug log level for console
+#define CERT_DIAGNOSTIC             true                    ///< TEMPORARY: enable/disable one-time diagnostic of the Prusa Connect TLS certificate chain
 #define DEVICE_HOSTNAME             "Prusa-ESP32cam"        ///< device hostname
 #define CAMERA_MAX_FAIL_CAPTURE     10                      ///< maximum count for failed capture
+#define TLS_PSRAM_ALLOC_MIN_SIZE    4096                    ///< mbedTLS allocations from this size (TLS buffers) are in PSRAM, smaller allocations in internal RAM [B]
 
 /* ------------ PRUSA BACKEND CFG  --------------*/
 #define HOST_URL_CAM_PATH           "/c/snapshot"           ///< path for sending photo to prusa connect
 #define HOST_URL_INFO_PATH          "/c/info"               ///< path for sending info to prusa connect
 #define REFRESH_INTERVAL_MIN        10                      ///< minimum refresh interval for sending photo to prusa connect [s]
 #define REFRESH_INTERVAL_MAX        240                     ///< maximum refresh interval for sending photo to prusa connect [s]
+#define HOST_RESPONSE_TIMEOUT       10000                   ///< timeout for response from prusa connect [ms]
 
 /* -------------- STATUS LED CFG ----------------*/
 #define STATUS_LED_ON_DURATION      100                     ///< time for blink status LED when is module in the ON state [ms]

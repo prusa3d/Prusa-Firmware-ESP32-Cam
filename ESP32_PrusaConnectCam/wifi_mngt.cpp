@@ -182,8 +182,11 @@ void WiFiMngt::WifiManagement() {
 void WiFiMngt::WiFiReconnect() {
   if ((WiFi.status() != WL_CONNECTED) && (FirstConnected == true)) {
     log->AddEvent(LogLevel_Warning, F("Reconnecting to WiFi. STA"));
-    WiFi.disconnect();
-    log->AddEvent(LogLevel_Warning, F("Disconnect from WiFi"));
+    /* in arduino-esp32 3.3.x disconnect() also aborts the running connection attempt. Disconnect only when STA is connected (behavior of arduino-esp32 3.1.x) */
+    if (true == WiFi.STA.connected()) {
+      WiFi.disconnect();
+      log->AddEvent(LogLevel_Warning, F("Disconnect from WiFi"));
+    }
     WiFi.reconnect();
     log->AddEvent(LogLevel_Warning, F("Reconnecting to WiFi. STA"));
   } else if (WiFi.status() == WL_CONNECTED) {
@@ -194,7 +197,10 @@ void WiFiMngt::WiFiReconnect() {
 
   if (Connect.GetBackendAvailabilitStatus() == BackendUnavailable) {
     log->AddEvent(LogLevel_Warning, F("Reconnecting to WiFi. STA. Problem with connecting to backend!"));
-    WiFi.disconnect();
+    /* in arduino-esp32 3.3.x disconnect() also aborts the running connection attempt. Disconnect only when STA is connected (behavior of arduino-esp32 3.1.x) */
+    if (true == WiFi.STA.connected()) {
+      WiFi.disconnect();
+    }
     WiFi.reconnect();
     Connect.SetBackendAvailabilitStatus(WaitForFirstConnection);
   }
@@ -945,10 +951,9 @@ void WiFiMngt_WiFiEventGotIP(WiFiEvent_t event, WiFiEventInfo_t info) {
   /* update device information */
   Connect.UpdateDeviceInformation();
 
-  /* check first NTP time sync after boot */
-  if (false == SystemWifiMngt.GetNtpFirstTimeSync()) {
-    SystemWifiMngt.SyncNtpTime();
-  }
+  /* first NTP time sync after boot is done in the WiFiMngt::WifiManagement() (WiFi management task).
+     In arduino-esp32 3.3.x the network event callbacks run with locked network event mutex,
+     and SyncNtpTime() blocks the callback up to 10s. */
 }
 
 /**

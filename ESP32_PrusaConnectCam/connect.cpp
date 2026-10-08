@@ -13,6 +13,10 @@
 
 PrusaConnect Connect(&SystemConfig, &SystemLog, &SystemCamera, &SystemWifiMngt);
 
+#if (true == CERT_DIAGNOSTIC)
+static bool CertDiagnosticRunning = false;  ///< TEMPORARY: certificate diagnostic is running, data is not sent to backend
+#endif
+
 /**
  * @brief Constructor for PrusaConnect class
  *
@@ -77,6 +81,14 @@ void PrusaConnect::TakePicture() {
  * @return false - if data was not sent successfully
  */
 bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i_content_type, String i_type, String i_url_path, SendDataToBackendType i_data_type) {
+#if (true == CERT_DIAGNOSTIC)
+  /* TEMPORARY: do not send data during certificate diagnostic */
+  if (true == CertDiagnosticRunning) {
+    log->AddEvent(LogLevel_Info, "Sending " + i_type + " skipped. Certificate diagnostic is running");
+    return false;
+  }
+#endif
+
   WiFiClientSecure client;
   BackendReceivedStatus = "";
   bool ret = false;
@@ -191,8 +203,19 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
       String fullResponse = "";
       delay(10); // wait for response
       log->AddEvent(LogLevel_Verbose, F("Response:"));
+      unsigned long ResponseStartTime = millis();
       while (client.connected()) {
-        if (client.available()) {
+        /* timeout for response from server */
+        if ((millis() - ResponseStartTime) > HOST_RESPONSE_TIMEOUT) {
+          log->AddEvent(LogLevel_Warning, F("Timeout for response from server!"));
+          break;
+        }
+
+        if (0 == client.available()) {
+          /* waiting for data from server */
+          delay(1);
+
+        } else {
           response = client.readStringUntil('\n');
           fullResponse += response;
           log->AddEvent(LogLevel_Verbose, response.c_str());
@@ -247,6 +270,12 @@ void PrusaConnect::SendPhotoToBackend() {
   } else if (camera->GetStreamStatus() == false) {
     total_len = camera->GetPhotoFb()->len;
   } else {
+    /* check duplicate photo buffer from stream */
+    if ((camera->GetPhotoFbDuplicate() == NULL) || (camera->GetPhotoFbDuplicate()->buf == NULL)) {
+      log->AddEvent(LogLevel_Error, F("Photo from stream is not available. Stop sending to backend!"));
+      camera->SetPhotoSending(false);
+      return;
+    }
     total_len = camera->GetPhotoFbDuplicate()->len;
   }
   SendDataToBackend(&Photo, total_len, F("image/jpg"), F("Photo"), HOST_URL_CAM_PATH, SendPhoto);
@@ -662,5 +691,194 @@ bool PrusaConnect::CheckSendingIntervalExpired() {
 
   return ret;
 }
+
+#if (true == CERT_DIAGNOSTIC)
+#include "mbedtls/x509_crt.h"
+#include "mbedtls/pk.h"
+#include "mbedtls/md.h"
+
+/**
+ * @brief TEMPORARY: verify callback for the certificate diagnostic. Log verification flags for each certificate in the chain
+ *
+ * @param void* - label of the trusted CA
+ * @param mbedtls_x509_crt* - certificate
+ * @param int - depth of the certificate in the chain
+ * @param uint32_t* - verification flags
+ * @return int - 0
+ */
+static int Connect_CertDiagnosticVerifyCb(void *i_label, mbedtls_x509_crt *i_crt, int i_depth, uint32_t *i_flags) {
+  char name[96] = { '\0' };
+  char info[160] = { '\0' };
+
+  mbedtls_x509_dn_gets(name, sizeof(name), &i_crt->subject);
+  if (0 != *i_flags) {
+    mbedtls_x509_crt_verify_info(info, sizeof(info), "", *i_flags);
+  }
+  SystemLog.AddEvent(LogLevel_Info, "CertDiag verify [" + String((const char *)i_label) + "] depth " + String(i_depth) + ": " + String(name) + ", flags: 0x" + String(*i_flags, HEX) + " " + String(info));
+
+  return 0;
+}
+
+/**
+ * @brief TEMPORARY: check signature of the certificate by the public key of the parent certificate
+ *
+ * @param mbedtls_x509_crt* - certificate
+ * @param mbedtls_x509_crt* - parent certificate
+ * @param String - label for log message
+ * @return none
+ */
+static void Connect_CertDiagnosticCheckSignature(const mbedtls_x509_crt *i_child, mbedtls_x509_crt *i_parent, String i_label) {
+  unsigned char hash[MBEDTLS_MD_MAX_SIZE];
+  const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type(i_child->MBEDTLS_PRIVATE(sig_md));
+  int ret = -1;
+
+  if (md_info != NULL) {
+    ret = mbedtls_md(md_info, i_child->tbs.p, i_child->tbs.len, hash);
+    if (0 == ret) {
+      ret = mbedtls_pk_verify_ext(i_child->MBEDTLS_PRIVATE(sig_pk), i_child->MBEDTLS_PRIVATE(sig_opts), &i_parent->pk, i_child->MBEDTLS_PRIVATE(sig_md),
+                                  hash, mbedtls_md_get_size(md_info), i_child->MBEDTLS_PRIVATE(sig).p, i_child->MBEDTLS_PRIVATE(sig).len);
+    }
+  }
+
+  SystemLog.AddEvent(LogLevel_Info, "CertDiag signature " + i_label + ": ret " + String(ret) + " (-0x" + String((unsigned int)(-ret), HEX) + "), parent key " + String(mbedtls_pk_get_bitlen(&i_parent->pk)) + " bit");
+}
+
+/**
+ * @brief TEMPORARY: diagnostic of the TLS certificate chain of the Prusa Connect backend.
+ *        Log the server certificate chain, the signature check of each certificate and the verification flags.
+ *
+ * @param none
+ * @return none
+ */
+void PrusaConnect::CertificateDiagnostic() {
+  /* stop sending data to backend and wait for the end of the running sending */
+  CertDiagnosticRunning = true;
+  log->AddEvent(LogLevel_Info, F("CertDiag: waiting 5s"));
+  delay(5000);
+  esp_task_wdt_reset();
+
+  log->AddEvent(LogLevel_Info, "CertDiag: start. Hostname: " + PrusaConnectHostname + ", Free RAM: " + String(ESP.getFreeHeap()) + " B, Max block: " + String(ESP.getMaxAllocHeap()));
+  log->AddEvent(LogLevel_Info, "CertDiag: Free DRAM (8-bit): " + String(heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT)) + " B, Min: " + String(heap_caps_get_minimum_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT)) + ", Max block: " + String(heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT)));
+
+  /* 1. connection with certificate verification, the same as in the SendDataToBackend */
+  {
+    WiFiClientSecure client;
+    client.setCACert(root_CAs);
+    client.setTimeout(1000);
+    if (client.connect(PrusaConnectHostname.c_str(), 443)) {
+      log->AddEvent(LogLevel_Info, F("CertDiag: connection with root_CAs OK"));
+    } else {
+      char err_buf[100];
+      int err = client.lastError(err_buf, sizeof(err_buf));
+      log->AddEvent(LogLevel_Info, "CertDiag: connection with root_CAs failed: " + String(err) + " - " + String(err_buf));
+    }
+    client.stop();
+  }
+  esp_task_wdt_reset();
+
+  /* 2. connection without certificate verification. Get the server certificate chain */
+  WiFiClientSecure client;
+  client.setInsecure();
+  client.setTimeout(1000);
+  if (!client.connect(PrusaConnectHostname.c_str(), 443)) {
+    log->AddEvent(LogLevel_Info, F("CertDiag: insecure connection failed"));
+    CertDiagnosticRunning = false;
+    return;
+  }
+  esp_task_wdt_reset();
+
+  log->AddEvent(LogLevel_Info, "CertDiag: TLS connected. Free DRAM (8-bit): " + String(heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT)) + " B, Max block: " + String(heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT)) + ", Free PSRAM: " + String(ESP.getFreePsram()) + " B");
+
+  const mbedtls_x509_crt *peer = client.getPeerCertificate();
+  if (peer == NULL) {
+    log->AddEvent(LogLevel_Info, F("CertDiag: server certificate chain is not available"));
+    client.stop();
+    CertDiagnosticRunning = false;
+    return;
+  }
+
+  /* server certificate chain */
+  int depth = 0;
+  for (const mbedtls_x509_crt *crt = peer; crt != NULL; crt = crt->next) {
+    char subject[96] = { '\0' };
+    char issuer[96] = { '\0' };
+    mbedtls_x509_dn_gets(subject, sizeof(subject), &crt->subject);
+    mbedtls_x509_dn_gets(issuer, sizeof(issuer), &crt->issuer);
+    log->AddEvent(LogLevel_Info, "CertDiag chain [" + String(depth) + "]: " + String(subject) + " <- " + String(issuer) + ", key " + String(mbedtls_pk_get_bitlen(&crt->pk)) + " bit, DER " + String(crt->raw.len) + " B");
+    depth++;
+  }
+
+  /* root CA certificates */
+  mbedtls_x509_crt *ca = (mbedtls_x509_crt *)calloc(1, sizeof(mbedtls_x509_crt));
+  if (ca == NULL) {
+    log->AddEvent(LogLevel_Info, F("CertDiag: memory allocation failed"));
+    client.stop();
+    CertDiagnosticRunning = false;
+    return;
+  }
+  mbedtls_x509_crt_init(ca);
+  int ret = mbedtls_x509_crt_parse(ca, (const unsigned char *)root_CAs, strlen(root_CAs) + 1);
+  int ca_count = 0;
+  for (mbedtls_x509_crt *c = ca; (c != NULL) && (c->version != 0); c = c->next) {
+    char subject[96] = { '\0' };
+    mbedtls_x509_dn_gets(subject, sizeof(subject), &c->subject);
+    log->AddEvent(LogLevel_Info, "CertDiag root CA [" + String(ca_count) + "]: " + String(subject) + ", key " + String(mbedtls_pk_get_bitlen(&c->pk)) + " bit");
+    ca_count++;
+  }
+  log->AddEvent(LogLevel_Info, "CertDiag: root_CAs parse ret: " + String(ret) + ", certificates: " + String(ca_count));
+
+  /* signature of each certificate in the chain by the next certificate in the chain */
+  depth = 0;
+  for (const mbedtls_x509_crt *crt = peer; (crt != NULL) && (crt->next != NULL); crt = crt->next) {
+    Connect_CertDiagnosticCheckSignature(crt, crt->next, "chain[" + String(depth) + "] by chain[" + String(depth + 1) + "]");
+    depth++;
+  }
+  esp_task_wdt_reset();
+
+  /* signature of the certificates in the chain by the root CA certificates with the same name */
+  depth = 0;
+  for (const mbedtls_x509_crt *crt = peer; crt != NULL; crt = crt->next) {
+    int ca_index = 0;
+    for (mbedtls_x509_crt *c = ca; (c != NULL) && (c->version != 0); c = c->next) {
+      if ((crt->issuer_raw.len == c->subject_raw.len) && (0 == memcmp(crt->issuer_raw.p, c->subject_raw.p, c->subject_raw.len))) {
+        Connect_CertDiagnosticCheckSignature(crt, c, "chain[" + String(depth) + "] by root CA [" + String(ca_index) + "]");
+      }
+      ca_index++;
+    }
+    depth++;
+  }
+  esp_task_wdt_reset();
+
+  /* verification of the chain with all root CA certificates */
+  uint32_t flags = 0;
+  ret = mbedtls_x509_crt_verify((mbedtls_x509_crt *)peer, ca, NULL, PrusaConnectHostname.c_str(), &flags, Connect_CertDiagnosticVerifyCb, (void *)"all");
+  log->AddEvent(LogLevel_Info, "CertDiag verify [all]: ret " + String(ret) + ", flags: 0x" + String(flags, HEX));
+  esp_task_wdt_reset();
+
+  /* verification of the chain with each root CA certificate separately */
+  int ca_index = 0;
+  for (mbedtls_x509_crt *c = ca; (c != NULL) && (c->version != 0); c = c->next) {
+    mbedtls_x509_crt *single = (mbedtls_x509_crt *)calloc(1, sizeof(mbedtls_x509_crt));
+    if (single != NULL) {
+      mbedtls_x509_crt_init(single);
+      mbedtls_x509_crt_parse_der(single, c->raw.p, c->raw.len);
+      String label = "root CA [" + String(ca_index) + "]";
+      flags = 0;
+      ret = mbedtls_x509_crt_verify((mbedtls_x509_crt *)peer, single, NULL, PrusaConnectHostname.c_str(), &flags, Connect_CertDiagnosticVerifyCb, (void *)label.c_str());
+      log->AddEvent(LogLevel_Info, "CertDiag verify [" + label + "]: ret " + String(ret) + ", flags: 0x" + String(flags, HEX));
+      mbedtls_x509_crt_free(single);
+      free(single);
+    }
+    ca_index++;
+    esp_task_wdt_reset();
+  }
+
+  mbedtls_x509_crt_free(ca);
+  free(ca);
+  client.stop();
+  CertDiagnosticRunning = false;
+  log->AddEvent(LogLevel_Info, "CertDiag: done. Free RAM: " + String(ESP.getFreeHeap()) + " B, Max block: " + String(ESP.getMaxAllocHeap()));
+}
+#endif
 
 /* EOF */

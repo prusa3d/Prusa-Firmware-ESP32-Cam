@@ -413,6 +413,12 @@ void Camera::CapturePhoto() {
     const int maxAttempts = 5;
     PhotoExifData.header = NULL;
     do {
+      /* return invalid frame buffer from the previous attempt to the camera driver. Camera has only one frame buffer */
+      if ((attempts > 0) && (FrameBuffer != NULL)) {
+        esp_camera_fb_return(FrameBuffer);
+        FrameBuffer = NULL;
+      }
+
       log->AddEvent(LogLevel_Info, F("Taking photo..."));
 
       FrameBuffer = esp_camera_fb_get();
@@ -481,17 +487,17 @@ void Camera::CapturePhoto() {
 /**
    @brief Capture Stream
    @param camera_fb_t * - pointer to camera_fb_t
-   @return none
+   @return bool - true = frame captured, false = capture failed
 */
-void Camera::CaptureStream(camera_fb_t* i_buf) {
+bool Camera::CaptureStream(camera_fb_t* i_buf) {
   if (xSemaphoreTake(frameBufferSemaphore, portMAX_DELAY)) {
     do {
       /* capture final photo */
       FrameBuffer = esp_camera_fb_get();
       if (!FrameBuffer) {
         log->AddEvent(LogLevel_Error, F("Camera capture failed! stream"));
-        i_buf = NULL;
-        return;
+        xSemaphoreGive(frameBufferSemaphore);  // Release semaphore before returning
+        return false;
       }
 
       /* check if photo is correctly saved */
@@ -528,7 +534,8 @@ void Camera::CaptureStream(camera_fb_t* i_buf) {
         FrameBufferExif->buf = (uint8_t*)heap_caps_malloc(totalSize, MALLOC_CAP_SPIRAM);
         if (FrameBufferExif->buf == NULL) {
           log->AddEvent(LogLevel_Error, F("Failed to allocate memory for EXIF buffer"));
-          return;
+          xSemaphoreGive(frameBufferSemaphore);  // Release semaphore before returning
+          return false;
         }
 
         /* copy the EXIF data to the buffer */
@@ -590,6 +597,7 @@ void Camera::CaptureStream(camera_fb_t* i_buf) {
       if (!FrameBufferDuplicate->buf) {
         /* Handle error */
         free(FrameBufferDuplicate);
+        FrameBufferDuplicate = NULL; /* Set to NULL after freeing */
         Serial.println("Failed to allocate memory for the duplicate frame buffer");
       } else {
         /* Copy the image data */
@@ -603,7 +611,10 @@ void Camera::CaptureStream(camera_fb_t* i_buf) {
     }
 
     xSemaphoreGive(frameBufferSemaphore);
+    return true;
   }
+
+  return false;
 }
 
 /**

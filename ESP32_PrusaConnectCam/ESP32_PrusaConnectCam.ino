@@ -4,16 +4,16 @@
    It's neccesary install support for ESP32 board to the arduino IDE. In the board manager we need add next link
    https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
    Then we can install "ESP32 by Espressif Systems" board in the board manager.
-   ESP32 lib version: 3.1.3 (ESP-IDF v5.3) by Espressif Systems
+   ESP32 lib version: 3.3.12 (ESP-IDF v5.5.5) by Espressif Systems
 
    This project uses other libraries. It is necessary to install them in the arduino IDE.
    - Library           - License  - Version - Link
-   - ESPAsyncWebServer - LGPL 3.0 - 3.7.2   - https://github.com/mathieucarbou/ESPAsyncWebServer moved to https://github.com/ESP32Async/ESPAsyncWebServer
-   - AsyncTCP          - LGPL 3.0 - 3.3.7   - https://github.com/mathieucarbou/AsyncTCP moved to https://github.com/ESP32Async/AsyncTCP
-   - ArduinoJson       - MIT      - 7.3.1   - https://github.com/bblanchon/ArduinoJson
+   - ESPAsyncWebServer - LGPL 3.0 - 3.12.1  - https://github.com/mathieucarbou/ESPAsyncWebServer moved to https://github.com/ESP32Async/ESPAsyncWebServer
+   - AsyncTCP          - LGPL 3.0 - 3.5.0   - https://github.com/mathieucarbou/AsyncTCP moved to https://github.com/ESP32Async/AsyncTCP
+   - ArduinoJson       - MIT      - 7.4.3   - https://github.com/bblanchon/ArduinoJson
    - ArduinoUniqueID   - MIT      - 1.3.0   - https://github.com/ricaun/ArduinoUniqueID
-   - arduino-esp32     - LGPL 2.1 - 3.1.3   - https://github.com/espressif/arduino-esp32
-   - DHTnew            - MIT      - 0.5.3   - https://github.com/RobTillaart/DHTNew
+   - arduino-esp32     - LGPL 2.1 - 3.3.12  - https://github.com/espressif/arduino-esp32
+   - DHTnew            - MIT      - 0.5.5   - https://github.com/RobTillaart/DHTNew
 
    Arduino IDE configuration for the MCU are stored in the module_XXX.h file.
 
@@ -140,6 +140,16 @@ void setup() {
 void loop() {
   /* reset wdg */
   esp_task_wdt_reset();
+
+#if (true == CERT_DIAGNOSTIC)
+  /* TEMPORARY: one-time diagnostic of the Prusa Connect TLS certificate chain after WiFi connection */
+  static bool CertDiagnosticDone = false;
+  if ((false == CertDiagnosticDone) && (WL_CONNECTED == WiFi.status())) {
+    CertDiagnosticDone = true;
+    Connect.CertificateDiagnostic();
+  }
+#endif
+
   delay(1000);
 }
 

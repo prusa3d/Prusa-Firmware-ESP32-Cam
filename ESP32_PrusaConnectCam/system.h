@@ -20,6 +20,8 @@
 #include <ArduinoJson.h>
 #include <esp_wifi.h>
 #include <esp_task_wdt.h>
+#include <esp_heap_caps.h>
+#include "mbedtls/platform.h"
 
 #if defined(CONFIG_IDF_TARGET_ESP32)
     #include "esp32/rom/rtc.h"
@@ -48,6 +50,9 @@
 void System_Init();
 void System_LoadCfg();
 bool System_CheckIfPsramIsUsed();
+void System_SetMbedtlsMemoryAlloc();
+void *System_MbedtlsCalloc(size_t, size_t);
+void System_MbedtlsFree(void *);
 void System_Main();
 void System_UpdateInit();
 

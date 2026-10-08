@@ -38,6 +38,7 @@ void System_Init() {
   SystemLog.AddEvent(LogLevel_Info, "Flash Size: " + String(ESP.getFlashChipSize()) + ", Flash Speed " + String(ESP.getFlashChipSpeed()) + ", Flash Mode: " + String(ESP.getFlashChipMode()));
   
   System_CheckIfPsramIsUsed();
+  System_SetMbedtlsMemoryAlloc();
 }
 
 /**
@@ -76,6 +77,48 @@ bool System_CheckIfPsramIsUsed() {
   }
 
   return ret;
+}
+
+/**
+   @brief Function for set memory allocation for mbedTLS (TLS connection).
+          arduino-esp32 3.3.x allocates mbedTLS memory only from the internal RAM (CONFIG_MBEDTLS_INTERNAL_MEM_ALLOC).
+          With camera, web server and WiFi is internal RAM not enough for TLS connection, and certificate verification
+          fails with MBEDTLS_ERR_MPI_ALLOC_FAILED (X509 error -9984).
+          TLS buffers are allocated in the PSRAM, small allocations in the internal RAM.
+   @param none
+   @return none
+*/
+void System_SetMbedtlsMemoryAlloc() {
+  if (psramFound()) {
+    int ret = mbedtls_platform_set_calloc_free(System_MbedtlsCalloc, System_MbedtlsFree);
+    SystemLog.AddEvent(LogLevel_Info, "mbedTLS memory: PSRAM for allocations from " + String(TLS_PSRAM_ALLOC_MIN_SIZE) + " B. Ret: " + String(ret));
+  } else {
+    SystemLog.AddEvent(LogLevel_Info, F("mbedTLS memory: internal RAM"));
+  }
+}
+
+/**
+   @brief Calloc function for mbedTLS. Large allocations (TLS buffers) in PSRAM, small allocations in internal RAM.
+          When the preferred memory is full, the second memory is used.
+   @param size_t - number of elements
+   @param size_t - size of element
+   @return void* - pointer to allocated memory
+*/
+void *System_MbedtlsCalloc(size_t i_count, size_t i_size) {
+  if ((i_count * i_size) >= TLS_PSRAM_ALLOC_MIN_SIZE) {
+    return heap_caps_calloc_prefer(i_count, i_size, 2, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+  }
+
+  return heap_caps_calloc_prefer(i_count, i_size, 2, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+}
+
+/**
+   @brief Free function for mbedTLS
+   @param void* - pointer to allocated memory
+   @return none
+*/
+void System_MbedtlsFree(void *i_ptr) {
+  heap_caps_free(i_ptr);
 }
 
 /**
@@ -250,7 +293,7 @@ bool System_OtaUpdateStart() {
   /* set certificat for secure connection, set timeout and follow redirect */
   client.setCACert(root_CAs_ota);
   // client.setInsecure();
-  client.setTimeout(12000 / SECOND_TO_MILISECOND);  /* timeout argument is defined in seconds for setTimeout */
+  client.setTimeout(12000);  /* timeout argument is defined in milliseconds for setTimeout */
   httpUpdate.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS); /* HTTPC_FORCE_FOLLOW_REDIRECTS */
 
   /* set callback function */
@@ -631,7 +674,8 @@ void System_TaskSystemTelemetry(void *pvParameters) {
       SystemCamera.StreamClearFrameData();
     }
 
-    SystemLog.AddEvent(LogLevel_Info, "Free RAM: " + String(ESP.getFreeHeap()) + " B" + ", Min: " + String(ESP.getMinFreeHeap()));
+    SystemLog.AddEvent(LogLevel_Info, "Free RAM: " + String(ESP.getFreeHeap()) + " B" + ", Min: " + String(ESP.getMinFreeHeap()) + ", Max block: " + String(ESP.getMaxAllocHeap()));
+    SystemLog.AddEvent(LogLevel_Info, "Free DRAM (8-bit): " + String(heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT)) + " B" + ", Min: " + String(heap_caps_get_minimum_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT)) + ", Max block: " + String(heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT)));
     SystemLog.AddEvent(LogLevel_Info, "Free PSRAM: " + String(ESP.getFreePsram()) + " B" + ", Min: " + String(ESP.getMinFreePsram()));
     SystemLog.AddEvent(LogLevel_Info, "MCU Temperature: " + String(McuTemperature.TemperatureCelsius) + " *C");
 

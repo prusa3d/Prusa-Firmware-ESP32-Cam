@@ -95,7 +95,7 @@ public:
   void ReinitCameraModule();
   void GetCameraModel();
   void CapturePhoto();
-  void CaptureStream(camera_fb_t *);
+  bool CaptureStream(camera_fb_t *);
   void CaptureReturnFrameBuffer();
   void SetStreamStatus(bool);
   bool GetStreamStatus();

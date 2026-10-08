@@ -269,7 +269,21 @@ void Server_InitWebServer_WebPages() {
       return;
 
     if (true == SystemLog.GetCardDetectedStatus()) {
-      request->send(SD_MMC, SystemLog.GetFilePath() + SystemLog.GetFileName(), "text/plain");
+      /* ESPAsyncWebServer 3.12 returns error 500 for missing or empty file. Keep previous behavior: 404 for missing file, empty response for empty file */
+      String LogFile = SystemLog.GetFilePath() + SystemLog.GetFileName();
+      if (false == SD_MMC.exists(LogFile)) {
+        request->send(404);
+      } else {
+        File file = SD_MMC.open(LogFile, FILE_READ);
+        size_t FileSize = file.size();
+        file.close();
+
+        if (0 == FileSize) {
+          request->send(200, "text/plain", "");
+        } else {
+          request->send(SD_MMC, LogFile, "text/plain");
+        }
+      }
       //SystemLog.LogOpenFile();
     } else {
       request->send(404, "text/plain", "Micro SD card not found with FAT32 partition!");
