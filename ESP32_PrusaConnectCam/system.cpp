@@ -580,6 +580,37 @@ void System_TaskCaptureAndSendPhoto(void *pvParameters) {
 }
 
 /**
+ * @brief Function for print free stack size of all tasks, also system and library tasks (loopTask, async_tcp, cam_task...). Only for log level verbose
+ *
+ * @param none
+ * @return none
+ */
+void System_PrintTasksStackFreeSize() {
+  if (SystemLog.GetLogLevel() < LogLevel_Verbose) {
+    return;
+  }
+
+  /* array of task states is in PSRAM, the stack of the telemetry task is small. +2 for tasks created in the meantime */
+  UBaseType_t task_count = uxTaskGetNumberOfTasks() + 2;
+  TaskStatus_t *tasks = (TaskStatus_t *)heap_caps_malloc_prefer(task_count * sizeof(TaskStatus_t), 2, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+  if (NULL == tasks) {
+    return;
+  }
+
+  task_count = uxTaskGetSystemState(tasks, task_count, NULL);
+  String msg = "Tasks stack free size: ";
+  for (UBaseType_t i = 0; i < task_count; i++) {
+    msg += String(tasks[i].pcTaskName) + " " + String(tasks[i].usStackHighWaterMark) + "B";
+    if ((i + 1) < task_count) {
+      msg += ", ";
+    }
+  }
+  heap_caps_free(tasks);
+
+  SystemLog.AddEvent(LogLevel_Verbose, msg);
+}
+
+/**
  * @brief Function for logger task. Only this task prints log messages to the console and writes them to the log file on the micro SD card
  *
  * @param void *pvParameters
@@ -677,6 +708,7 @@ void System_TaskSystemTelemetry(void *pvParameters) {
   while (1) {
     esp_task_wdt_reset();
     SystemLog.AddEvent(LogLevel_Verbose, F("SystemTelemetry task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + "B");
+    System_PrintTasksStackFreeSize();
     if (SystemCamera.GetStreamStatus()) {
       char buf[80] = { '\0' };
       sprintf(buf, "Stream, average data in %dsec. FPS: %.1f, Size: %uKB", (TASK_SYSTEM_TELEMETRY / SECOND_TO_MILISECOND), SystemCamera.StreamGetFrameAverageFps(), SystemCamera.StreamGetFrameAverageSize());
@@ -698,27 +730,6 @@ void System_TaskSystemTelemetry(void *pvParameters) {
     vTaskDelayUntil(&xLastWakeTime, TASK_SYSTEM_TELEMETRY / portTICK_PERIOD_MS);
   }
 }
-
-/**
- * @brief Function for system led task
- * 
- * @param void *pvParameters
- * @return none
- */
-void System_TaskSysLed(void *pvParameters) {
-  SystemLog.AddEvent(LogLevel_Info, F("SystemLed task. core: "), String(xPortGetCoreID()));
-  TickType_t xLastWakeTime = xTaskGetTickCount();
-
-  while (1) {
-    system_led.toggle();
-    /* reset wdg */
-    esp_task_wdt_reset();
-    SystemLog.AddEvent(LogLevel_Verbose, F("SystemLed task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + "B"); 
-
-    /* next start task */
-    vTaskDelayUntil(&xLastWakeTime, system_led.getTimer() / portTICK_PERIOD_MS);
-  }
-} 
 
 /**
  * @brief Function for WiFi watchdog task

@@ -126,16 +126,25 @@ void setup() {
 #endif
   xTaskCreatePinnedToCore(System_TaskSerialCfg, "CheckSerialConfiguration", 2800, NULL, 5, &Task_SerialCfg, 0);                 /*function, description, stack size, parameters, priority, task handle, core*/
   ESP_ERROR_CHECK(esp_task_wdt_add(Task_SerialCfg));
-  xTaskCreatePinnedToCore(System_TaskSystemTelemetry, "PrintSystemTelemetry", 2800, NULL, 6, &Task_SystemTelemetry, 0);         /*function, description, stack size, parameters, priority, task handle, core*/
+  xTaskCreatePinnedToCore(System_TaskSystemTelemetry, "PrintSystemTelemetry", 3000, NULL, 6, &Task_SystemTelemetry, 0);         /*function, description, stack size, parameters, priority, task handle, core*/
   ESP_ERROR_CHECK(esp_task_wdt_add(Task_SystemTelemetry));
-  xTaskCreatePinnedToCore(System_TaskSysLed, "SystemLed", 2800, NULL, 7, &Task_SysLed, 0);                                      /*function, description, stack size, parameters, priority, task handle, core*/
-  ESP_ERROR_CHECK(esp_task_wdt_add(Task_SysLed));
+  /* system LED blinks from the esp_timer task, without own task */
+  if (false == system_led.start()) {
+    SystemLog.AddEvent(LogLevel_Error, F("System LED timer start failed"));
+  }
   xTaskCreatePinnedToCore(System_TaskWiFiWatchdog, "WiFiWatchdog", 2900, NULL, 8, &Task_WiFiWatchdog, 0);                       /*function, description, stack size, parameters, priority, task handle, core*/
   ESP_ERROR_CHECK(esp_task_wdt_add(Task_WiFiWatchdog));
   //xTaskCreatePinnedToCore(System_TaskSdCardRemove, "SdCardRemove", 3000, NULL, 9, &Task_SdCardFileRemove, 0);                   /*function, description, stack size, parameters, priority, task handle, core*/
   //esp_task_wdt_add(Task_SdCardFileRemove);
+  /* stack size of the async_tcp task (web server) is set in the build_opt.h: -DCONFIG_ASYNC_TCP_STACK_SIZE */
 
   SystemLog.AddEvent(LogLevel_Info, F("MCU configuration done"));
+
+#if (false == CERT_DIAGNOSTIC)
+  /* loop() is used only for the certificate diagnostic. The loopTask is deleted and its stack (8 KB) is free for other tasks */
+  esp_task_wdt_delete(NULL);
+  vTaskDelete(NULL);
+#endif
 }
 
 void loop() {
@@ -143,7 +152,7 @@ void loop() {
   esp_task_wdt_reset();
 
 #if (true == CERT_DIAGNOSTIC)
-  /* TEMPORARY: one-time diagnostic of the Prusa Connect TLS certificate chain after WiFi connection */
+  /* one-time diagnostic of the Prusa Connect TLS certificate chain after WiFi connection */
   static bool CertDiagnosticDone = false;
   if ((false == CertDiagnosticDone) && (WL_CONNECTED == WiFi.status())) {
     CertDiagnosticDone = true;

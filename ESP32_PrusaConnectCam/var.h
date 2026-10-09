@@ -50,7 +50,6 @@ extern TaskHandle_t Task_SystemMain;                 ///< task handle for system
 extern TaskHandle_t Task_SdCardCheck;                ///< task handle for sd card check  
 extern TaskHandle_t Task_SerialCfg;                  ///< task handle for serial configuration
 extern TaskHandle_t Task_SystemTelemetry;            ///< task handle for system telemetry
-extern TaskHandle_t Task_SysLed;                     ///< task handle for system led
 extern TaskHandle_t Task_WiFiWatchdog;               ///< task handle for wifi watchdog
 extern TaskHandle_t Task_Logger;                     ///< task handle for logger
 //extern TaskHandle_t Task_SdCardFileRemove;           ///< task handle for remove file from sd card  
