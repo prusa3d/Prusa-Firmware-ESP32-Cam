@@ -22,13 +22,13 @@
 #define ESP32_S3_WROOM_FREENOVE         false
 
 /* ---------------- BASIC MCU CFG  --------------*/
-#define SW_VERSION                  "1.1.3-rc2"             ///< SW version
+#define SW_VERSION                  "1.1.3-rc3"             ///< SW version
 #define SW_BUILD                    __DATE__ " " __TIME__   ///< build number
 #define CONSOLE_VERBOSE_DEBUG       false                   ///< enable/disable verbose debug log level for console
-#define CERT_DIAGNOSTIC             true                    ///< TEMPORARY: enable/disable one-time diagnostic of the Prusa Connect TLS certificate chain
+#define CERT_DIAGNOSTIC             false                   ///< enable/disable one-time diagnostic of the TLS certificate chain
 #define DEVICE_HOSTNAME             "Prusa-ESP32cam"        ///< device hostname
-#define CAMERA_MAX_FAIL_CAPTURE     10                      ///< maximum count for failed capture
-#define TLS_PSRAM_ALLOC_MIN_SIZE    4096                    ///< mbedTLS allocations from this size (TLS buffers) are in PSRAM, smaller allocations in internal RAM [B]
+#define CAMERA_MAX_FAIL_CAPTURE     5                       ///< maximum count for failed capture
+#define TLS_PSRAM_ALLOC_MIN_SIZE    1024                    ///< mbedTLS allocations from this size (TLS buffers, certificates, handshake) are in PSRAM, smaller allocations in internal RAM [B]
 
 /* ------------ PRUSA BACKEND CFG  --------------*/
 #define HOST_URL_CAM_PATH           "/c/snapshot"           ///< path for sending photo to prusa connect
@@ -53,6 +53,7 @@
 #define TASK_WIFI_WATCHDOG          20000                   ///< wifi watchdog task interval [ms]
 #define TASK_PHOTO_SEND             1000                    ///< photo send task interval [ms]
 #define TASK_SDCARD_FILE_REMOVE     30000                   ///< sd card file remove task interval [ms]
+#define TASK_LOGGER                 25000                   ///< logger task interval for print stack free size [ms]
 
 /* --------------- WEB SERVER CFG  --------------*/
 #define WEB_SERVER_PORT             80                      ///< WEB server port 
@@ -72,10 +73,17 @@
 #define CFG_RESET_LOOP_DELAY        100                     ///< delay in the loop for reset cfg
 
 /* ---------------- MicroSD Logs ----------------*/
-#define LOGS_FILE_NAME              "SysLog.log"            ///< syslog file name
+#define LOGS_FILE_PREFIX            "SysLog_"               ///< syslog file name prefix, file name is prefix + NNNN + suffix
+#define LOGS_FILE_SUFFIX            ".log"                  ///< syslog file name suffix
 #define LOGS_FILE_PATH              "/"                     ///< directory for log files
 #define LOGS_FILE_MAX_SIZE          1024                    ///< maximum file size in the [kb]
+#define LOGS_FILE_MAX_COUNT         10                      ///< maximum count of the log files on the micro SD card
 #define FILE_REMOVE_MAX_COUNT       5                       ///< maximum count for remove files from sd card
+#define LOGS_QUEUE_SIZE             32768                   ///< size of the queue for log messages, in PSRAM [B]
+#define LOGS_MSG_MAX_LEN            4096                    ///< maximum length of the log message, longer message is cut [B]
+#define LOGS_FLUSH_TIMEOUT          500                     ///< maximum waiting for log message and fsync interval [ms]
+#define LOGS_CARD_RETRY             10000                   ///< interval for mount the micro SD card again, when the card was removed [ms]
+static_assert((LOGS_MSG_MAX_LEN + 16) <= (LOGS_QUEUE_SIZE / 2), "LOGS_MSG_MAX_LEN is too big for LOGS_QUEUE_SIZE");
 
 /* ---------------- AP MODE CFG  ----------------*/
 #define STA_AP_MODE_TIMEOUT         300000                  ///< how long is AP enable after start, when is module in the STA mode [ms]

@@ -81,13 +81,13 @@ String lastTwoChars = command.substring(command.length() - 2);
   } else if (command.startsWith("setwifipass:") && command.endsWith(";")) {
     /* remove prefix "setwifipass:" and end of command symbol ";" */
     wifi_pass = command.substring(12, command.length() -1);
-    log->AddEvent(LogLevel_Info, F("--> Console set WiFi password: "), wifi_pass);
+    log->AddEvent(LogLevel_Info, F("--> Console set WiFi password: "), log->MaskSensitiveData(wifi_pass));
     wifim->SetStaPassword(wifi_pass);
   
   } else if (command.startsWith("setauthtoken:") && command.endsWith(";")) {
     /* remove prefix "setauthtoken:" and end of command symbol ";" */
     auth_token = command.substring(13, command.length() -1);
-    log->AddEvent(LogLevel_Info, F("--> Console set auth TOKEN for backend: "), auth_token);
+    log->AddEvent(LogLevel_Info, F("--> Console set auth TOKEN for backend: "), log->MaskSensitiveData(auth_token));
     connect->SetToken(auth_token);
 
   } else if (command.startsWith("wificonnect") && command.endsWith(";")) {

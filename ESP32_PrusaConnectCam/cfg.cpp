@@ -447,7 +447,7 @@ void Configuration::SaveRefreshInterval(uint8_t i_interval) {
    @return none
 */
 void Configuration::SaveToken(String i_token) {
-  Log->AddEvent(LogLevel_Verbose, F("Save Token["), String(i_token.length()) + "]: " + i_token);
+  Log->AddEvent(LogLevel_Verbose, F("Save Token["), String(i_token.length()) + "]: " + Log->MaskSensitiveData(i_token));
   SaveString(EEPROM_ADDR_TOKEN_START, EEPROM_ADDR_TOKEN_LENGTH, i_token);
 }
 

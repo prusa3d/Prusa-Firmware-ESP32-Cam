@@ -79,6 +79,7 @@
 
 /* --------------- SD CARD CFG  ---------------*/
 #define ENABLE_SD_CARD              true    ///< Enable SD card function
+#define ENABLE_SD_CARD_HOTPLUG      true    ///< SD card hotplug, remount the card during runtime
 #define SD_PIN_CLK                  42      ///< GPIO pin for SD card clock
 #define SD_PIN_CMD                  39      ///< GPIO pin for SD card command
 #define SD_PIN_DATA0                41      ///< GPIO pin for SD card data 0

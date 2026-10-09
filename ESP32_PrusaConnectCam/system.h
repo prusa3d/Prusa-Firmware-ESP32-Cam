@@ -70,6 +70,7 @@ String System_printMcuResetReasonSimple();
 void System_TaskWifiManagement(void *);
 void System_TaskMain(void *);
 void System_TaskCaptureAndSendPhoto(void *);
+void System_TaskLogger(void *);
 void System_TaskSdCardCheck(void *);
 void System_TaskSerialCfg(void *);
 void System_TaskSystemTelemetry(void *);

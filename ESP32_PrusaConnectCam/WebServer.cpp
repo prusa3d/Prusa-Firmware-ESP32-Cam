@@ -271,18 +271,19 @@ void Server_InitWebServer_WebPages() {
     if (true == SystemLog.GetCardDetectedStatus()) {
       /* ESPAsyncWebServer 3.12 returns error 500 for missing or empty file. Keep previous behavior: 404 for missing file, empty response for empty file */
       String LogFile = SystemLog.GetFilePath() + SystemLog.GetFileName();
-      if (false == SD_MMC.exists(LogFile)) {
+      int32_t FileSize = SystemLog.GetFileSizeBytes(SD_MMC, LogFile);
+      if (FileSize < 0) {
         request->send(404);
+      } else if (0 == FileSize) {
+        request->send(200, "text/plain", "");
       } else {
-        File file = SD_MMC.open(LogFile, FILE_READ);
-        size_t FileSize = file.size();
-        file.close();
-
-        if (0 == FileSize) {
-          request->send(200, "text/plain", "");
-        } else {
-          request->send(SD_MMC, LogFile, "text/plain");
-        }
+        /* file is read in parts under the mutex for SD card. The logger task can unmount the removed card during sending */
+        request->sendChunked("text/plain", [LogFile, FileSize](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
+          if (index >= (size_t)FileSize) {
+            return 0;
+          }
+          return SystemLog.ReadFilePart(SD_MMC, LogFile, index, buffer, min(maxLen, (size_t)FileSize - index));
+        });
       }
       //SystemLog.LogOpenFile();
     } else {
@@ -1263,7 +1264,13 @@ String Server_GetJsonData() {
   doc_json["exttemp_unit"] = ExternalTemperatureSensor.GetTemperatureUnit();
 
   serializeJson(doc_json, string_json);
-  SystemLog.AddEvent(LogLevel_Verbose, string_json);
+
+  /* the token is masked in the log, the copy of the json is created only when the message is printed */
+  if ((SystemLog.GetLogLevel() >= LogLevel_Verbose) || (true == CONSOLE_VERBOSE_DEBUG)) {
+    String log_json = string_json;
+    log_json.replace(Connect.GetToken(), SystemLog.MaskSensitiveData(Connect.GetToken()));
+    SystemLog.AddEvent(LogLevel_Verbose, log_json);
+  }
   return string_json;
 }
 

@@ -425,8 +425,8 @@ void Camera::CapturePhoto() {
       if (!FrameBuffer) {
         CameraCaptureFailedCounter++;
         log->AddEvent(LogLevel_Error, F("Camera capture failed! photo. Attempt: "), String(CameraCaptureFailedCounter));
-        xSemaphoreGive(frameBufferSemaphore);  // Release semaphore before returning
-        return;
+        /* without return: below is disabled flash, released semaphore and checked counter for reinit camera module */
+        break;
       }
 
       char buf[150] = { '\0' };

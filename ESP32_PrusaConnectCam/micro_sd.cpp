@@ -19,21 +19,57 @@
 MicroSd::MicroSd() {
   CardDetected = false;
   DetectAfterBoot = false;
-  sdCardMutex = xSemaphoreCreateMutex();
+  sdCardMutex = xSemaphoreCreateRecursiveMutex();
+}
+
+/**
+   @brief Take the recursive mutex for SD card
+   @param none
+   @return none
+*/
+void MicroSd::SdLock() {
+  xSemaphoreTakeRecursive(sdCardMutex, portMAX_DELAY);
+}
+
+/**
+   @brief Give the recursive mutex for SD card
+   @param none
+   @return none
+*/
+void MicroSd::SdUnlock() {
+  xSemaphoreGiveRecursive(sdCardMutex);
 }
 
 /**
    @brief Reinit micro SD card
+   @param bool - print messages to the console
+   @return none
+*/
+void MicroSd::ReinitCard(bool i_verbose) {
+  SdLock();
+  if (true == i_verbose) {
+    Serial.println(F("Reinit micro SD card!"));
+    Serial.println(F("Deinit micro SD card"));
+  }
+  SD_MMC.end();
+  delay(50);
+  if (true == i_verbose) {
+    Serial.println(F("Init micro SD card"));
+  }
+  InitSdCard(i_verbose);
+  SdUnlock();
+}
+
+/**
+   @brief Deinit micro SD card
    @param none
    @return none
 */
-void MicroSd::ReinitCard() {
-  Serial.println(F("Reinit micro SD card!"));
-  Serial.println(F("Deinit micro SD card"));
+void MicroSd::DeinitSdCard() {
+  SdLock();
   SD_MMC.end();
-  delay(50);
-  Serial.println(F("Init micro SD card"));
-  InitSdCard();
+  CardDetected = false;
+  SdUnlock();
 }
 
 /**
@@ -47,6 +83,7 @@ void MicroSd::ReinitCard() {
 bool MicroSd::OpenFile(File *i_file, String i_path) {
     bool status = false;
 
+  SdLock();
   if (true == CardDetected) {
 #if (true == CONSOLE_VERBOSE_DEBUG)
     Serial.println("Opening file: " + i_path);
@@ -71,18 +108,21 @@ bool MicroSd::OpenFile(File *i_file, String i_path) {
       }
     }
   }
+  SdUnlock();
   return status;
 }
 
 /**
  * @brief Close file
- * 
+ *
  * @param i_file - file
  */
 void MicroSd::CloseFile(File *i_file) {
+  SdLock();
   if (*i_file) {
     i_file->close();
   }
+  SdUnlock();
 }
 
 /**
@@ -105,44 +145,55 @@ bool MicroSd::CheckOpenFile(File *i_file) {
 
 /**
    @brief Init SD card. And check, if is SD card inserted
-   @param none
+   @param bool - print messages to the console
    @return none
 */
-void MicroSd::InitSdCard() {
+void MicroSd::InitSdCard(bool i_verbose) {
+  SdLock();
   /* Start INIT Micro SD card */
-  Serial.println(F("Start init micro-SD Card"));
+  if (true == i_verbose) {
+    Serial.println(F("Start init micro-SD Card"));
+  }
 
   /* set SD card to 1-line/1-bit mode. GPIO 4 is used for LED and for microSD card. But communication is slower. */
   /* https://github.com/espressif/arduino-esp32/blob/master/libraries/SD_MMC/src/SD_MMC.h */
 
   SD_MMC.setPins(SD_PIN_CLK, SD_PIN_CMD, SD_PIN_DATA0);
 
-  if (!SD_MMC.begin("/sdcard", true)) {
-    Serial.println(F("SD Card Mount Failed"));
+  if (!SD_MMC.begin(SD_CARD_MOUNT_POINT, true)) {
+    if (true == i_verbose) {
+      Serial.println(F("SD Card Mount Failed"));
+    }
     CardDetected = false;
     CardSizeMB = 0;
+    SdUnlock();
     return;
   }
 
   /* check microSD card and card type */
   uint8_t cardType = SD_MMC.cardType();
   if (cardType == CARD_NONE) {
-    Serial.println(F("No SD_MMC card attached"));
+    if (true == i_verbose) {
+      Serial.println(F("No SD_MMC card attached"));
+    }
     CardDetected = false;
     CardSizeMB = 0;
+    SdUnlock();
     return;
   }
 
   /* print card type */
-  Serial.print(F("Found card. Card Type: "));
-  if (cardType == CARD_MMC) {
-    Serial.println(F("MMC"));
-  } else if (cardType == CARD_SD) {
-    Serial.println(F("SDSC"));
-  } else if (cardType == CARD_SDHC) {
-    Serial.println(F("SDHC"));
-  } else {
-    Serial.println(F("UNKNOWN"));
+  if (true == i_verbose) {
+    Serial.print(F("Found card. Card Type: "));
+    if (cardType == CARD_MMC) {
+      Serial.println(F("MMC"));
+    } else if (cardType == CARD_SD) {
+      Serial.println(F("SDSC"));
+    } else if (cardType == CARD_SDHC) {
+      Serial.println(F("SDHC"));
+    } else {
+      Serial.println(F("UNKNOWN"));
+    }
   }
 
   CardDetected = true;
@@ -150,6 +201,7 @@ void MicroSd::InitSdCard() {
 
   /* calculation card size */
   CheckCardUsedStatus();
+  SdUnlock();
 }
 
 /**
@@ -160,16 +212,19 @@ void MicroSd::InitSdCard() {
    @return none
 */
 void MicroSd::ListDir(fs::FS &fs, String DirName, uint8_t levels) {
+  SdLock();
   if (true == CardDetected) {
     Serial.printf("Listing directory: %s\n", DirName.c_str());
 
     File root = fs.open(DirName.c_str());
     if (!root) {
       Serial.println(F("Failed to open directory"));
+      SdUnlock();
       return;
     }
     if (!root.isDirectory()) {
       Serial.println(F("Not a directory"));
+      SdUnlock();
       return;
     }
 
@@ -190,6 +245,7 @@ void MicroSd::ListDir(fs::FS &fs, String DirName, uint8_t levels) {
       file = root.openNextFile();
     }
   }
+  SdUnlock();
 }
 
 /**
@@ -200,16 +256,18 @@ void MicroSd::ListDir(fs::FS &fs, String DirName, uint8_t levels) {
 */
 bool MicroSd::CheckDir(fs::FS &fs, String path) {
   bool status = false;
+  SdLock();
   if (true == CardDetected) {
 #if (true == CONSOLE_VERBOSE_DEBUG)
     Serial.printf("Checking Dir: %s... ", path.c_str());
 #endif
-  
+
     if (fs.exists(path.c_str())) {
       status = true;
     }
 
   }
+  SdUnlock();
   return status;
 }
 
@@ -221,6 +279,7 @@ bool MicroSd::CheckDir(fs::FS &fs, String path) {
 */
 bool MicroSd::CreateDir(fs::FS &fs, String path) {
   bool status = false;
+  SdLock();
   if (true == CardDetected) {
 #if (true == CONSOLE_VERBOSE_DEBUG)
     Serial.printf("Creating Dir: %s... ", path.c_str());
@@ -234,6 +293,7 @@ bool MicroSd::CreateDir(fs::FS &fs, String path) {
     Serial.println((status == true) ? "Created" : "Failed");
 #endif
   }
+  SdUnlock();
   return status;
 }
 
@@ -245,6 +305,7 @@ bool MicroSd::CreateDir(fs::FS &fs, String path) {
 */
 bool MicroSd::RemoveDir(fs::FS &fs, String path) {
   bool status = false;
+  SdLock();
   if (true == CardDetected) {
 #if (true == CONSOLE_VERBOSE_DEBUG)
     Serial.printf("Removing Dir: %s... ", path.c_str());
@@ -258,6 +319,7 @@ bool MicroSd::RemoveDir(fs::FS &fs, String path) {
     Serial.println((status == true) ? "Removed" : "Failed");
 #endif
   }
+  SdUnlock();
   return status;
 }
 
@@ -268,12 +330,14 @@ bool MicroSd::RemoveDir(fs::FS &fs, String path) {
    @return none
 */
 void MicroSd::ReadFileConsole(fs::FS &fs, String path) {
+  SdLock();
   if (true == CardDetected) {
     Serial.printf("Reading file: %s\n", path.c_str());
 
     File file = fs.open(path.c_str());
     if (!file) {
       Serial.println(F("Failed to open file for reading"));
+      SdUnlock();
       return;
     }
 
@@ -282,6 +346,7 @@ void MicroSd::ReadFileConsole(fs::FS &fs, String path) {
       Serial.write(file.read());
     }
   }
+  SdUnlock();
 }
 
 /**
@@ -293,6 +358,7 @@ void MicroSd::ReadFileConsole(fs::FS &fs, String path) {
 */
 bool MicroSd::WriteFile(fs::FS &fs, String path, String message) {
   bool status = false;
+  SdLock();
   if (true == CardDetected) {
 #if (true == CONSOLE_VERBOSE_DEBUG)
     Serial.printf("Writing file: %s... ", path.c_str());
@@ -313,6 +379,7 @@ bool MicroSd::WriteFile(fs::FS &fs, String path, String message) {
 #endif
     }
   }
+  SdUnlock();
   return status;
 }
 
@@ -326,6 +393,7 @@ bool MicroSd::WriteFile(fs::FS &fs, String path, String message) {
 bool MicroSd::AppendFile(fs::FS &fs, String path, String message) {
   bool status = false;
 
+  SdLock();
   if (true == CardDetected) {
 #if (true == CONSOLE_VERBOSE_DEBUG)
     Serial.printf("Appending to file: %s... ", path.c_str());
@@ -347,6 +415,7 @@ bool MicroSd::AppendFile(fs::FS &fs, String path, String message) {
 #endif
     }
   }
+  SdUnlock();
   return status;
 }
 
@@ -358,12 +427,12 @@ bool MicroSd::AppendFile(fs::FS &fs, String path, String message) {
 */
 bool MicroSd::AppendFile(File *i_file, String *i_msg) {
   /* take mutex */
-  xSemaphoreTake(sdCardMutex, portMAX_DELAY);
+  SdLock();
   bool status = false;
 
   /* check if card is corrupted */
   if (false == isCardCorrupted()) {
-    xSemaphoreGive(sdCardMutex);
+    SdUnlock();
     return false;
   }
   
@@ -410,7 +479,7 @@ bool MicroSd::AppendFile(File *i_file, String *i_msg) {
   }
 
   /* give mutex */
-  xSemaphoreGive(sdCardMutex);
+  SdUnlock();
   return status;
 }
 
@@ -423,6 +492,7 @@ bool MicroSd::AppendFile(File *i_file, String *i_msg) {
 */
 bool MicroSd::RenameFile(fs::FS &fs, String path1, String path2) {
   bool status = false;
+  SdLock();
   if (true == CardDetected) {
 #if (true == CONSOLE_VERBOSE_DEBUG)
     Serial.printf("Renaming file %s to %s... ", path1.c_str(), path2.c_str());
@@ -436,6 +506,7 @@ bool MicroSd::RenameFile(fs::FS &fs, String path1, String path2) {
 #endif
   }
 
+  SdUnlock();
   return status;
 }
 
@@ -447,6 +518,7 @@ bool MicroSd::RenameFile(fs::FS &fs, String path1, String path2) {
 */
 bool MicroSd::DeleteFile(fs::FS &fs, String path) {
   bool status = false;
+  SdLock();
   if (true == CardDetected) {
 #if (true == CONSOLE_VERBOSE_DEBUG)
     Serial.printf("Deleting file: %s... ", path.c_str());
@@ -460,6 +532,7 @@ bool MicroSd::DeleteFile(fs::FS &fs, String path) {
 #endif
   }
 
+  SdUnlock();
   return status;
 }
 
@@ -471,6 +544,7 @@ bool MicroSd::DeleteFile(fs::FS &fs, String path) {
 */
 uint32_t MicroSd::GetFileSize(fs::FS &fs, String path) {
   uint32_t ret = 0;
+  SdLock();
   if (true == CardDetected) {
 #if (true == CONSOLE_VERBOSE_DEBUG)
     Serial.printf("Getting file size: %s... ", path.c_str());
@@ -480,6 +554,7 @@ uint32_t MicroSd::GetFileSize(fs::FS &fs, String path) {
 #if (true == CONSOLE_VERBOSE_DEBUG)
       Serial.println("Failed to open file for appending");
 #endif
+      SdUnlock();
       return 0;
     }
 
@@ -489,7 +564,53 @@ uint32_t MicroSd::GetFileSize(fs::FS &fs, String path) {
 #endif
   }
 
+  SdUnlock();
   return ret; /* kb*/
+}
+
+/**
+   @brief Get file size in bytes, without creating the file
+   @param fs::FS - card
+   @param String - file name
+   @return int32_t - size [B], -1 = card not detected or file not found
+*/
+int32_t MicroSd::GetFileSizeBytes(fs::FS &fs, String path) {
+  int32_t ret = -1;
+  SdLock();
+  if (true == CardDetected) {
+    File file = fs.open(path.c_str(), FILE_READ);
+    if (file) {
+      ret = (int32_t)file.size();
+      file.close();
+    }
+  }
+  SdUnlock();
+  return ret;
+}
+
+/**
+   @brief Read part of the file. The file is opened only during this read under the mutex for SD card, so the card can be unmounted between two reads
+   @param fs::FS - card
+   @param String - file name
+   @param size_t - offset in the file
+   @param uint8_t * - output buffer
+   @param size_t - maximum length for read
+   @return size_t - read bytes, 0 = end of file or error
+*/
+size_t MicroSd::ReadFilePart(fs::FS &fs, String path, size_t i_offset, uint8_t *o_buf, size_t i_max_len) {
+  size_t ret = 0;
+  SdLock();
+  if (true == CardDetected) {
+    File file = fs.open(path.c_str(), FILE_READ);
+    if (file) {
+      if (true == file.seek(i_offset)) {
+        ret = file.read(o_buf, i_max_len);
+      }
+      file.close();
+    }
+  }
+  SdUnlock();
+  return ret;
 }
 
 /**
@@ -501,6 +622,7 @@ uint32_t MicroSd::GetFileSize(fs::FS &fs, String path) {
 */
 uint16_t MicroSd::FileCount(fs::FS &fs, String DirName, String FileName) {
   uint16_t FileCount = 0;
+  SdLock();
   if (true == CardDetected) {
 #if (true == CONSOLE_VERBOSE_DEBUG)
     Serial.printf("File name count: %s\n", DirName.c_str());
@@ -509,10 +631,12 @@ uint16_t MicroSd::FileCount(fs::FS &fs, String DirName, String FileName) {
     File root = fs.open(DirName.c_str());
     if (!root) {
       Serial.println(F("Failed to open directory"));
+      SdUnlock();
       return 0;
     }
     if (!root.isDirectory()) {
       Serial.println(F("Not a directory"));
+      SdUnlock();
       return 0;
     }
 
@@ -539,6 +663,7 @@ uint16_t MicroSd::FileCount(fs::FS &fs, String DirName, String FileName) {
     }
   }
 
+  SdUnlock();
   return FileCount;
 }
 
@@ -551,8 +676,10 @@ uint16_t MicroSd::FileCount(fs::FS &fs, String DirName, String FileName) {
 */
 bool MicroSd::RemoveFilesInDir(fs::FS &fs, String path, int maxFiles) {
   bool ret = false;
+  SdLock();
   File dir = fs.open(path.c_str());
   if (!dir) {
+    SdUnlock();
     return ret;
   }
 
@@ -570,12 +697,18 @@ bool MicroSd::RemoveFilesInDir(fs::FS &fs, String path, int maxFiles) {
     file = dir.openNextFile();
   }
 
+  /* close files before the mutex is released */
+  file.close();
+  dir.close();
+  SdUnlock();
   return ret;
 }
 
 
 int MicroSd::CountFilesInDir(fs::FS &fs, String path) {
+  SdLock();
   uint16_t file_count = FileCount(fs, path, "");
+  SdUnlock();
   return file_count;
 }
 
@@ -585,17 +718,24 @@ int MicroSd::CountFilesInDir(fs::FS &fs, String path) {
    @return bool - status
 */
 void MicroSd::CheckCardUsedStatus() {
+  SdLock();
 
   CardSizeMB = SD_MMC.cardSize()  / (1024 * 1024);
   CardTotalMB = SD_MMC.totalBytes() / (1024 * 1024);
   CardUsedMB = SD_MMC.usedBytes() / (1024 * 1024);
   CardFreeMB = CardSizeMB - CardUsedMB;
-  FreeSpacePercent = (CardFreeMB * 100) / CardSizeMB;
+  /* card size is 0 when the card was removed */
+  if (0 != CardSizeMB) {
+    FreeSpacePercent = (CardFreeMB * 100) / CardSizeMB;
+  } else {
+    FreeSpacePercent = 0;
+  }
   UsedSpacePercent = 100 - FreeSpacePercent;
 
 #if (true == CONSOLE_VERBOSE_DEBUG)  
   Serial.printf("Card size: %d MB, Total: %d MB, Used: %d MB, Free: %d GB, Free: %d %% \n", CardSizeMB, CardTotalMB, CardUsedMB, CardFreeMB, FreeSpacePercent);
 #endif
+  SdUnlock();
 }
 
 /**
@@ -606,6 +746,7 @@ void MicroSd::CheckCardUsedStatus() {
  */
 bool MicroSd::isCardCorrupted() {
   bool ret = true;
+  SdLock();
   if (true == CardDetected) {
 #if (true == CONSOLE_VERBOSE_DEBUG)   
     //Serial.println(F("Checking card..."));
@@ -640,6 +781,7 @@ bool MicroSd::isCardCorrupted() {
     ret = false;
   }
 
+  SdUnlock();
   return ret;
 }
 
@@ -655,6 +797,7 @@ bool MicroSd::WritePicture(String i_PhotoName, uint8_t *i_PhotoData, size_t i_Ph
 #endif
   bool ret_stat = false;
 
+  SdLock();
   File file = SD_MMC.open(i_PhotoName, FILE_WRITE);
 
   if (file) {
@@ -671,7 +814,8 @@ bool MicroSd::WritePicture(String i_PhotoName, uint8_t *i_PhotoData, size_t i_Ph
   } else {
     Serial.printf("Failed. Could not open file: %s\n", i_PhotoName.c_str());
   }
-  
+  SdUnlock();
+
  return ret_stat;
 }
 
@@ -692,6 +836,7 @@ bool MicroSd::WritePicture(String i_PhotoName, uint8_t *i_PhotoData, size_t i_Ph
 #endif
   bool ret_stat = false;
 
+  SdLock();
   File file = SD_MMC.open(i_PhotoName, FILE_WRITE);
 
   if (file) {
@@ -717,8 +862,20 @@ bool MicroSd::WritePicture(String i_PhotoName, uint8_t *i_PhotoData, size_t i_Ph
 #endif
     ret_stat = false;
   }
-  
+  SdUnlock();
+
  return ret_stat;
+}
+
+/**
+   @brief Set card detected status, without mount/unmount of the card
+   @param bool - status
+   @return none
+*/
+void MicroSd::SetCardDetectedStatus(bool i_data) {
+  SdLock();
+  CardDetected = i_data;
+  SdUnlock();
 }
 
 /**

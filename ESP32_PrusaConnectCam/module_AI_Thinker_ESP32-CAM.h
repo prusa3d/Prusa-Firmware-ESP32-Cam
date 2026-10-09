@@ -70,6 +70,7 @@
 
 /* --------------- SD CARD CFG  ---------------*/
 #define ENABLE_SD_CARD              true    ///< Enable SD card function
+#define ENABLE_SD_CARD_HOTPLUG      false   ///< SD card hotplug. ESP32: false, SD card init during runtime breaks the camera
 #define SD_PIN_CLK                  14      ///< GPIO pin for SD card clock
 #define SD_PIN_CMD                  15      ///< GPIO pin for SD card command
 #define SD_PIN_DATA0                2       ///< GPIO pin for SD card data 0

@@ -240,7 +240,7 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
     /* err message */
     log->AddEvent(LogLevel_Verbose, F("ERROR SEND DATA TO SERVER! INVALID DATA!"));
     log->AddEvent(LogLevel_Verbose, "Fingerprint: " + Fingerprint);
-    log->AddEvent(LogLevel_Verbose, "Token: " + Token);
+    log->AddEvent(LogLevel_Verbose, "Token: " + log->MaskSensitiveData(Token));
 
     if (Fingerprint.length() == 0) {
       BackendReceivedStatus = F("Missing fingerprint");

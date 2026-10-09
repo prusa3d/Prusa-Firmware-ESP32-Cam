@@ -23,6 +23,7 @@ TaskHandle_t Task_SerialCfg;
 TaskHandle_t Task_SystemTelemetry;
 TaskHandle_t Task_SysLed;
 TaskHandle_t Task_WiFiWatchdog;
+TaskHandle_t Task_Logger;
 //TaskHandle_t Task_SdCardFileRemove;
 
 uint8_t StartRemoveSdCard = 0;

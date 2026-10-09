@@ -580,8 +580,39 @@ void System_TaskCaptureAndSendPhoto(void *pvParameters) {
 }
 
 /**
+ * @brief Function for logger task. Only this task prints log messages to the console and writes them to the log file on the micro SD card
+ *
+ * @param void *pvParameters
+ * @return none
+ */
+void System_TaskLogger(void *pvParameters) {
+  /* without queue for log messages, the messages are printed directly to the console */
+  if (false == SystemLog.LoggerStart()) {
+    vTaskDelete(NULL);
+  }
+
+  /* task is created before WDG init in setup(), therefore it adds itself to the WDG */
+  esp_task_wdt_add(NULL);
+  SystemLog.AddEvent(LogLevel_Info, F("Logger task. core: "), String(xPortGetCoreID()));
+  uint32_t LastStackReport = millis();
+
+  while (1) {
+    /* print and write log messages, waiting for next message is max LOGS_FLUSH_TIMEOUT */
+    SystemLog.LoggerProcess();
+
+    /* reset wdg */
+    esp_task_wdt_reset();
+
+    if ((millis() - LastStackReport) >= TASK_LOGGER) {
+      LastStackReport = millis();
+      SystemLog.AddEvent(LogLevel_Verbose, F("Logger task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + "B");
+    }
+  }
+}
+
+/**
  * @brief Function for micro SD card check task
- * 
+ *
  * @param void *pvParameters
  * @return none
  */
@@ -591,33 +622,12 @@ void System_TaskSdCardCheck(void *pvParameters) {
 
   while (1) {
     esp_task_wdt_reset();
-    /* check micro SD card */
-    if ((true == SystemLog.GetCardDetectAfterBoot()) && (false == SystemLog.GetCardDetectedStatus())) {
-      SystemLog.LogCloseFile();
-      SystemLog.ReinitCard();
-      SystemLog.LogOpenFile();
-      SystemLog.AddEvent(LogLevel_Warning, F("Reinit micro SD card done!"));
-    }
+    /* reinit micro SD card, log file size and opening of the log file are checked by the logger task */
 
     /* check card free space */
     if (true == SystemLog.GetCardDetectedStatus()) {
       SystemLog.AddEvent(LogLevel_Verbose, F("Check card free space"));
       SystemLog.CheckCardSpace();
-    }
-
-    /* check maximum log file size */
-    if (true == SystemLog.GetCardDetectedStatus()) {
-      SystemLog.AddEvent(LogLevel_Verbose, F("Check maximum log file size"));
-      SystemLog.CheckMaxLogFileSize();
-    }
-
-    /* check if log file is opened */
-    if (true == SystemLog.GetCardDetectedStatus()) {
-      SystemLog.LogCheckOpenedFile();
-      if (false == SystemLog.GetLogFileOpened()) {
-        SystemLog.LogOpenFile();
-        SystemLog.AddEvent(LogLevel_Warning, F("Log file is not opened!"));
-      }
     }
 
     SystemLog.AddEvent(LogLevel_Info, "CardStatus: " + String(SystemLog.GetCardDetectedStatus()) + " FileStatus: " + String(SystemLog.GetLogFileOpened()));

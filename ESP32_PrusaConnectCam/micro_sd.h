@@ -31,6 +31,8 @@
 #include "module_templates.h"
 #include "var.h"
 
+#define SD_CARD_MOUNT_POINT         "/sdcard"               ///< mount point of the micro SD card in the VFS
+
 class MicroSd {
 private:
   bool CardDetected;              ///< Card detected status
@@ -42,14 +44,20 @@ private:
   uint8_t FreeSpacePercent;       ///< Free space in percent
   uint8_t UsedSpacePercent;       ///< Used space in percent
   File file;                      ///< File object
-  SemaphoreHandle_t sdCardMutex;  ///< Mutex for SD card
+  SemaphoreHandle_t sdCardMutex;  ///< Recursive mutex for SD card
+
+protected:
+  void SdLock();
+  void SdUnlock();
+  void SetCardDetectedStatus(bool);
 
 public:
   MicroSd();
   ~MicroSd(){};
 
-  void InitSdCard();
-  void ReinitCard();
+  void InitSdCard(bool i_verbose = true);
+  void ReinitCard(bool i_verbose = true);
+  void DeinitSdCard();
   bool OpenFile(File*, String);
   void CloseFile(File*);
   bool CheckOpenFile(File*);
@@ -65,6 +73,8 @@ public:
   bool RenameFile(fs::FS &, String, String);
   bool DeleteFile(fs::FS &, String);
   uint32_t GetFileSize(fs::FS &, String);
+  int32_t GetFileSizeBytes(fs::FS &, String);
+  size_t ReadFilePart(fs::FS &, String, size_t, uint8_t *, size_t);
   uint16_t FileCount(fs::FS &, String, String);
   bool RemoveFilesInDir(fs::FS &, String, int );
   int CountFilesInDir(fs::FS &, String );
