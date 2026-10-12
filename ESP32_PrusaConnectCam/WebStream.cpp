@@ -242,12 +242,16 @@ size_t AsyncJpegStreamResponse::_content(uint8_t *buffer, size_t maxLen, size_t 
 
     /* get frame */
     _frame.index = 0;
+    _dframe.buf = NULL;
+    _dframe.len = 0;
     camera->CaptureStream(&_dframe);
     _frame.fb = &_dframe;
 
-    if (_frame.fb == NULL) {
+    /* _frame.fb is a member address, never NULL: test the buffer. TRY_AGAIN keeps the stream open */
+    if ((NULL == _frame.fb->buf) || (0 == _frame.fb->len)) {
       log->AddEvent(LogLevel_Error, F("Stream capture frame failed"));
-      return 0;
+      _frame.fb = NULL;
+      return RESPONSE_TRY_AGAIN;
     }
 
     /* send boundary */

@@ -20,20 +20,22 @@ struct WebBasicAuth_struct {
   String Password;                        ///< password for basic auth
 };
 
+/* volatile: shared between tasks (String members are not covered) */
 struct FirmwareUpdate_struct {
   String UpdatingStatus;                  ///< Updateing status
-  bool Processing;                        ///< status abour processing firmware update
-  uint8_t PercentProcess;                 ///< processed firmware update
-  int TransferedBytes;                    ///< transfered bytes
+  volatile bool Processing;               ///< status abour processing firmware update
+  volatile uint8_t PercentProcess;        ///< processed firmware update
+  volatile int TransferedBytes;           ///< transfered bytes
 
-  int FirmwareSize;                       ///< uploaded firmware size
+  volatile int FirmwareSize;              ///< uploaded firmware size
 
-  bool StartOtaUpdate;                    ///< Start OTA update process
-  bool CheckNewVersionAfterBoot;          ///< Check new version OTA update after MCU boot
+  volatile bool StartOtaUpdate;           ///< Start OTA update process
+  volatile bool CheckNewVersionAfterBoot; ///< Check new version OTA update after MCU boot
+  volatile bool RequestNewVersionCheck;   ///< re-check requested by the web UI
   String NewVersionFw;                    ///< New FW version
   String CheckNewVersionFwStatus;         ///< connection status from checking new OTA update version
   String OtaUpdateFwUrl;                  ///< URL for OTA update
-  bool OtaUpdateFwAvailable;              ///< flag for available new FW version
+  volatile bool OtaUpdateFwAvailable;     ///< flag for available new FW version
 };
 
 struct McuTemperature_struct {

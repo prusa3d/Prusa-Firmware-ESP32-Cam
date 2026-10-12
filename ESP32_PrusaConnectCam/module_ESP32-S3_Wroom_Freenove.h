@@ -15,6 +15,7 @@
    Tools -> Erase all Flash Before Sketch Upload -> Disable (first flash, new board = enable. otherwise = disable)
    Tools -> Events Run On -> Core 0
    Tools -> Flash Mode -> QIO 80MHz
+                          (use DIO if QIO boot-loops, upstream #117)
    Tools -> Flash Size -> 8MB
    Tools -> Jtag Adapter -> Disable
    Tools -> Arduino Runs On -> Core 0
@@ -55,6 +56,8 @@
 #define HREF_GPIO_NUM               7       ///< Line sync pin
 #define PCLK_GPIO_NUM               13      ///< Pixel clock pin
 #define XCLK_GPIO_NUM               15      ///< External clock pin
+/* XCLK harmonics at default drive desense the WiFi receiver; CAP_1 is not enough */
+#define CAMERA_XCLK_DRIVE_CAP       GPIO_DRIVE_CAP_0
 
 /* ------------------ MCU CFG  ------------------*/
 #define BOARD_NAME                  F("ESP32-S3 WROOM Freenove") ///< Board name
@@ -84,6 +87,8 @@
 #define SD_PIN_CLK                  39      ///< GPIO pin for SD card clock
 #define SD_PIN_CMD                  38      ///< GPIO pin for SD card command
 #define SD_PIN_DATA0                40      ///< GPIO pin for SD card data 0
+/* default 40 MHz fails SD init on ESP32-S3-WROOM-1 (esp-idf#8521) */
+#define SD_MMC_FREQUENCY            SDMMC_FREQ_DEFAULT  ///< SDMMC bus frequency (20MHz)
 
 /* ---------- RESET CFG CONFIGURATION  ----------*/
 #define CFG_RESET_PIN               21      ///< GPIO 12 is for reset CFG to default
@@ -96,8 +101,8 @@
 #define STATUS_LED_OFF_PIN_LEVEL    LOW     ///< GPIO pin level for status LED ON
 
 /* -------------- DHT SENSOR CFG ----------------*/
-#define DHT_SENSOR_ENABLE           false   ///< enable/disable DHT sensor
-#define DHT_SENSOR_PIN              47     ///< GPIO pin for DHT sensor
+#define DHT_SENSOR_ENABLE           true    ///< enable/disable DHT sensor
+#define DHT_SENSOR_PIN              47      ///< GPIO pin for DHT sensor. Free on this board: not used by the camera, SD, flash LED or reset
 
 #endif  // AI_THINKER_ESP32_CAM
 /* EOF */

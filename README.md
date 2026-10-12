@@ -3,15 +3,13 @@
 This repository includes source code and firmware releases for the **ESP32-cam** module programmed in the **Arduino IDE**. Currently, several versions of boards built on **ESP32/ESP32S3** processors with a camera chip are supported. You can find a list of supported boards below. Additionally, for each supported board, there is a guide on how to upload the firmware, how to compile code for it, some basic information and a list of known issues for this particular board.
 
 This project uses other libraries. It is necessary to install them in the Arduino IDE:
-- App [Arduino IDE 2.3.4](https://www.arduino.cc/en/software)
-- MCU support [arduino-ESP32 3.1.0](https://github.com/espressif/arduino-esp32)
-- ~~Library [ESPAsyncWebSrv 1.2.7](https://github.com/dvarrel/ESPAsyncWebSrv)~~ To version **1.0.3-rc1**
-- ~~Library [AsyncTCP 1.1.4](https://github.com/dvarrel/AsyncTCP)~~ To version **1.0.3-rc1**
-- Library [AsyncTCP 3.3.1](https://github.com/mathieucarbou/AsyncTCP)
-- Library [ESPAsyncWebServer 3.4.5](https://github.com/mathieucarbou/ESPAsyncWebServer) 
-- Library [ArduinoJson 7.3.0](https://github.com/bblanchon/ArduinoJson)
+- App [Arduino IDE 2.3.10](https://www.arduino.cc/en/software)
+- MCU support [arduino-ESP32 3.3.11](https://github.com/espressif/arduino-esp32)
+- Library [AsyncTCP 3.5.0](https://github.com/ESP32Async/AsyncTCP)
+- Library [ESPAsyncWebServer 3.12.1](https://github.com/ESP32Async/ESPAsyncWebServer) 
+- Library [ArduinoJson 7.4.3](https://github.com/bblanchon/ArduinoJson)
 - Library [UniqueID 1.3.0](https://github.com/ricaun/ArduinoUniqueID)
-- Library [DHTnew 0.5.2](https://github.com/RobTillaart/DHTNew)
+- Library [DHTnew 0.5.5](https://github.com/RobTillaart/DHTNew)
 
 What we need for functionality:
 - Supported versions of boards built on **ESP32/ESP32-S3** processors with a camera [here](#supported_boards)

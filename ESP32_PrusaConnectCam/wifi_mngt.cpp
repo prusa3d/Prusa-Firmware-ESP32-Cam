@@ -10,6 +10,7 @@
 */
 
 #include "wifi_mngt.h"
+#include <esp_sntp.h>
 
 WiFiMngt SystemWifiMngt(&SystemConfig, &SystemLog, &SystemCamera);
 
@@ -32,6 +33,7 @@ WiFiMngt::WiFiMngt(Configuration *i_conf, Logs *i_log, Camera *i_cam) {
 
   NtpFirstSync = false;
   StartStaWdg = false;
+  WiFiMutex = xSemaphoreCreateRecursiveMutex();
 }
 
 /**
@@ -138,6 +140,7 @@ void WiFiMngt::Init() {
    @return none
 */
 void WiFiMngt::WifiManagement() {
+  xSemaphoreTakeRecursive(WiFiMutex, portMAX_DELAY);
   /* check disable service AP */
   unsigned long currentMillis = millis();
   if (currentMillis - TaskAp_previousMillis >= STA_AP_MODE_TIMEOUT) {
@@ -171,6 +174,7 @@ void WiFiMngt::WifiManagement() {
   if ((true == config->CheckActifeWifiCfgFlag()) && (false == NtpFirstSync) && (WL_CONNECTED == WiFi.status())) {
     SyncNtpTime();
   }
+  xSemaphoreGiveRecursive(WiFiMutex);
 }
 
 /**
@@ -179,6 +183,7 @@ void WiFiMngt::WifiManagement() {
    @return none
 */
 void WiFiMngt::WiFiReconnect() {
+  xSemaphoreTakeRecursive(WiFiMutex, portMAX_DELAY);
   if ((WiFi.status() != WL_CONNECTED) && (FirstConnected == true)) {
     log->AddEvent(LogLevel_Warning, F("Reconnecting to WiFi. STA"));
     WiFi.disconnect();
@@ -197,6 +202,7 @@ void WiFiMngt::WiFiReconnect() {
     WiFi.reconnect();
     Connect.SetBackendAvailabilitStatus(WaitForFirstConnection);
   }
+  xSemaphoreGiveRecursive(WiFiMutex);
 }
 
 /**
@@ -227,6 +233,7 @@ void WiFiMngt::SetWifiEvents() {
    @note https://espressif-docs.readthedocs-hosted.com/projects/arduino-esp32/en/latest/api/wifi.html#sta-connection
 */
 void WiFiMngt::WiFiStaConnect() {
+  xSemaphoreTakeRecursive(WiFiMutex, portMAX_DELAY);
   if (config->CheckActifeWifiCfgFlag() == true) {
     system_led.setTimer(STATUS_LED_STA_CONNECTING);
     if (false == WiFiStaMultipleNetwork) {
@@ -250,6 +257,7 @@ void WiFiMngt::WiFiStaConnect() {
     WiFi.setSleep(false);
     WiFi.setAutoReconnect(true);
   }
+  xSemaphoreGiveRecursive(WiFiMutex);
 }
 
 /**
@@ -280,6 +288,9 @@ void WiFiMngt::SyncNtpTime() {
     if (true == log->GetNtpTimeSynced()) {
       log->AddEvent(LogLevel_Info, F("Sync NTP time done. Set UTC timezone"));
       NtpFirstSync = true;
+
+      /* stop once synced: a pending SNTP DNS callback in another task asserts (udp_new_ip_type) */
+      esp_sntp_stop();
     } else {
       log->AddEvent(LogLevel_Info, F("Sync NTP time fail"));
     }
@@ -779,6 +790,8 @@ String WiFiMngt::GetNetStaticDns() {
    @return none
 */
 void WiFiMngt::SetStaCredentials(String i_ssid, String i_pass) {
+  /* one unit: SSID and password */
+  xSemaphoreTakeRecursive(WiFiMutex, portMAX_DELAY);
   WifiSsid = i_ssid;
   config->SaveWifiSsid(WifiSsid);
 
@@ -786,6 +799,7 @@ void WiFiMngt::SetStaCredentials(String i_ssid, String i_pass) {
   config->SaveWifiPassword(WifiPassword);
 
   config->SaveWifiCfgFlag(CFG_WIFI_SETTINGS_SAVED);
+  xSemaphoreGiveRecursive(WiFiMutex);
 }
 
 /**
@@ -794,8 +808,10 @@ void WiFiMngt::SetStaCredentials(String i_ssid, String i_pass) {
    @return none
 */
 void WiFiMngt::SetStaSsid(String i_ssid) {
+  xSemaphoreTakeRecursive(WiFiMutex, portMAX_DELAY);
   WifiSsid = i_ssid;
   config->SaveWifiSsid(WifiSsid);
+  xSemaphoreGiveRecursive(WiFiMutex);
 }
 
 /**
@@ -804,8 +820,10 @@ void WiFiMngt::SetStaSsid(String i_ssid) {
    @return none
 */
 void WiFiMngt::SetStaPassword(String i_pass) {
+  xSemaphoreTakeRecursive(WiFiMutex, portMAX_DELAY);
   WifiPassword = i_pass;
   config->SaveWifiPassword(WifiPassword);
+  xSemaphoreGiveRecursive(WiFiMutex);
 }
 
 /**
@@ -824,8 +842,13 @@ void WiFiMngt::SetEnableServiceAp(bool i_data) {
    @return none
 */
 void WiFiMngt::ConnectToSta() {
+  xSemaphoreTakeRecursive(WiFiMutex, portMAX_DELAY);
   config->SaveWifiCfgFlag(CFG_WIFI_SETTINGS_SAVED);
+  /* disconnect first, else begin() fails: "sta is connecting" */
+  WiFi.disconnect();
+  delay(100);
   WiFiStaConnect();
+  xSemaphoreGiveRecursive(WiFiMutex);
 }
 
 /**
@@ -862,6 +885,8 @@ void WiFiMngt::SetFirstConnection(bool i_data) {
    @return none
 */
 void WiFiMngt::SetNetworkConfig(String i_ip, String i_mask, String i_gw, String i_dns) {
+  /* one unit: a new IP with a stale gateway/mask makes the device unreachable */
+  xSemaphoreTakeRecursive(WiFiMutex, portMAX_DELAY);
   NetStaticIp.fromString(i_ip);
   NetStaticMask.fromString(i_mask);
   NetStaticGateway.fromString(i_gw);
@@ -871,6 +896,7 @@ void WiFiMngt::SetNetworkConfig(String i_ip, String i_mask, String i_gw, String 
   config->SaveNetworkMask(NetStaticMask.toString());
   config->SaveNetworkGateway(NetStaticGateway.toString());
   config->SaveNetworkDns(NetStaticDns.toString());
+  xSemaphoreGiveRecursive(WiFiMutex);
 }
 
 /**

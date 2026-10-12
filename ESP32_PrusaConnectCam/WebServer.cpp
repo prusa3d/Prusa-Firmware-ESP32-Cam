@@ -46,21 +46,30 @@ void Server_InitWebServer() {
     }
     SystemCamera.SetPhotoSending(true);
 
-    SystemLog.AddEvent(LogLevel_Verbose, "Photo size: " + String(SystemCamera.GetPhotoFb()->len) + " bytes");
+    /* validate the buffer itself: the capture-success flag outlives it */
+    camera_fb_t *fb = SystemCamera.GetPhotoFb();
+    if ((NULL == fb) || (NULL == fb->buf) || (0 == fb->len)) {
+      SystemLog.AddEvent(LogLevel_Warning, F("Photo buffer not available!"));
+      SystemCamera.SetPhotoSending(false);
+      request->send(404, "text/plain", "Photo not found!");
+      return;
+    }
+
+    SystemLog.AddEvent(LogLevel_Verbose, "Photo size: " + String(fb->len) + " bytes");
 
     if (SystemCamera.GetPhotoExifData()->header != NULL) {
       /* send photo with exif data */
       SystemLog.AddEvent(LogLevel_Verbose, F("Send photo with EXIF data"));
-      size_t total_len = SystemCamera.GetPhotoExifData()->len + SystemCamera.GetPhotoFb()->len - SystemCamera.GetPhotoExifData()->offset;
-      auto response = request->beginChunkedResponse("image/jpg", [total_len](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
+      size_t total_len = SystemCamera.GetPhotoExifData()->len + fb->len - SystemCamera.GetPhotoExifData()->offset;
+      auto response = request->beginChunkedResponse("image/jpeg", [total_len, fb](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
         size_t len = 0;
         if (index < SystemCamera.GetPhotoExifData()->len) {
           len = min(maxLen, SystemCamera.GetPhotoExifData()->len - index);
           memcpy(buffer, SystemCamera.GetPhotoExifData()->header + index, len);
         } else {
           size_t offset = index - SystemCamera.GetPhotoExifData()->len + SystemCamera.GetPhotoExifData()->offset;
-          len = min(maxLen, SystemCamera.GetPhotoFb()->len - offset);
-          memcpy(buffer, SystemCamera.GetPhotoFb()->buf + offset, len);
+          len = min(maxLen, fb->len - offset);
+          memcpy(buffer, fb->buf + offset, len);
         }
         return len;
       });
@@ -70,7 +79,7 @@ void Server_InitWebServer() {
     } else {
       /* send photo without exif data */
       SystemLog.AddEvent(LogLevel_Verbose, F("Send photo without EXIF data"));
-      request->send(200, "image/jpg", SystemCamera.GetPhotoFb()->buf, SystemCamera.GetPhotoFb()->len);
+      request->send(200, "image/jpeg", fb->buf, fb->len);
     }
 
     SystemCamera.SetPhotoSending(false);
@@ -867,6 +876,9 @@ void Server_InitWebServer_Sets() {
 
       /* save ssid and password */
       SystemWifiMngt.SetStaCredentials(TmpSsid, TmpPassword);
+      /* disconnect first, else begin() fails: "sta is connecting, cannot set config" */
+      WiFi.disconnect();
+      delay(100);
       SystemWifiMngt.WiFiStaConnect();
 
     } else {
@@ -1093,7 +1105,8 @@ void Server_InitWebServer_Update() {
     if (Server_CheckBasicAuth(request) == false)
       return;
 
-    System_CheckNewVersion();
+    /* flag only: the check blocks for seconds and must not run on the AsyncTCP task */
+    FirmwareUpdate.RequestNewVersionCheck = true;
     request->send(200, F("text/html"), FirmwareUpdate.CheckNewVersionFwStatus.c_str());
   });
 }

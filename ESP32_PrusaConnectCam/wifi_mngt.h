@@ -86,6 +86,9 @@ private:
   Logs *log;                          ///< pointer to log class
   Camera *cam;                        ///< pointer to camera class
 
+  /* serialises WiFi state changes across tasks; recursive (WifiManagement/ConnectToSta -> WiFiStaConnect) */
+  SemaphoreHandle_t WiFiMutex;        ///< mutex for WiFi state changes
+
 public:
   WiFiMngt(Configuration*, Logs*, Camera*);
   ~WiFiMngt() {};

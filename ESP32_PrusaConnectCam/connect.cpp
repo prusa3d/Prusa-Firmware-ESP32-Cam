@@ -86,8 +86,8 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
   if ((Fingerprint.length() > 0) && (Token.length() > 0)) {
     client.setCACert(root_CAs);
     //client.setInsecure();
-    client.setTimeout(1000);
-    client.setNoDelay(true);
+    /* setTimeout() takes seconds (upstream 1000 = 16 min). setNoDelay() after connect(): no socket before */
+    client.setTimeout(PRUSA_CONNECT_TIMEOUT_S);
 
     log->AddEvent(LogLevel_Verbose, F("Connecting to server..."));
 
@@ -105,6 +105,9 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
       return false;
 
     } else {
+      /* socket exists now */
+      client.setNoDelay(true);
+
       /* send data to server */
       log->AddEvent(LogLevel_Verbose, F("Connected to server!"));
       client.println("PUT https://" + PrusaConnectHostname + i_url_path + " HTTP/1.1");
@@ -159,6 +162,7 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
             sendet_data += client.write(fbBuf, remainder);
           }
         }
+
         client.println("\r\n");
 
         /* log message */
@@ -191,6 +195,9 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
       String fullResponse = "";
       delay(10); // wait for response
       log->AddEvent(LogLevel_Verbose, F("Response:"));
+
+      /* connected() stays true while the peer idles: yield and bound the wait */
+      unsigned long ResponseStart = millis();
       while (client.connected()) {
         if (client.available()) {
           response = client.readStringUntil('\n');
@@ -206,6 +213,13 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
               ret = true;
             }
           }
+
+        } else if ((millis() - ResponseStart) >= ((unsigned long)PRUSA_CONNECT_TIMEOUT_S * SECOND_TO_MILISECOND)) {
+          log->AddEvent(LogLevel_Warning, F("Timeout waiting for backend response"));
+          break;
+
+        } else {
+          delay(1);
         }
       }
       log->AddEvent(LogLevel_Verbose, "Full response: " + fullResponse);
@@ -238,18 +252,26 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
  */
 void PrusaConnect::SendPhotoToBackend() {
   log->AddEvent(LogLevel_Info, F("Start sending photo to prusaconnect"));
+
+  /* validate the buffer itself: the capture-success flag outlives it */
+  camera_fb_t *fb = (camera->GetStreamStatus() == false) ? camera->GetPhotoFb() : camera->GetPhotoFbDuplicate();
+
+  if ((NULL == fb) || (NULL == fb->buf) || (0 == fb->len)) {
+    log->AddEvent(LogLevel_Error, F("No valid photo in buffer. Skip sending to backend!"));
+    return;
+  }
+
   camera->SetPhotoSending(true);
   String Photo = "";
   size_t total_len = 0;
 
   if ((camera->GetPhotoExifData()->header != NULL) && (camera->GetStreamStatus() == false)) {
-    total_len = camera->GetPhotoExifData()->len + camera->GetPhotoFb()->len - camera->GetPhotoExifData()->offset;
-  } else if (camera->GetStreamStatus() == false) {
-    total_len = camera->GetPhotoFb()->len;
+    total_len = camera->GetPhotoExifData()->len + fb->len - camera->GetPhotoExifData()->offset;
   } else {
-    total_len = camera->GetPhotoFbDuplicate()->len;
+    total_len = fb->len;
   }
-  SendDataToBackend(&Photo, total_len, F("image/jpg"), F("Photo"), HOST_URL_CAM_PATH, SendPhoto);
+  /* image/jpg is not a registered MIME type; Connect showed no snapshot */
+  SendDataToBackend(&Photo, total_len, F("image/jpeg"), F("Photo"), HOST_URL_CAM_PATH, SendPhoto);
   camera->SetPhotoSending(false);
 }
 
@@ -496,16 +518,28 @@ void PrusaConnect::SavePhotoToSdCard() {
       return;
     }
 
-    /* check if folder for time laps photos exists */
+    /* /timelapse/YYYY-MM-DD/YYYY-MM-DD_HH-MM-SS.jpg: one directory per day bounds directory size */
     if (false == log->CheckDir(SD_MMC, TIMELAPS_PHOTO_FOLDER)) {
       log->AddEvent(LogLevel_Info, F("Create folder for TimeLaps photos"));
       log->CreateDir(SD_MMC, TIMELAPS_PHOTO_FOLDER);
     }
 
-    /* create file name */
-    String FileName = String(TIMELAPS_PHOTO_FOLDER) + "/" + String(TIMELAPS_PHOTO_PREFIX) + "_";
-    FileName += log->GetSystemTime();
-    FileName += TIMELAPS_PHOTO_SUFFIX;
+    /* skip until the clock is set */
+    String SysTime = log->GetSystemTime();
+    if ((SysTime.length() < 19) || (SysTime.startsWith("0000-00-00"))) {
+      log->AddEvent(LogLevel_Warning, F("Time not synced yet. Skip saving TimeLaps photo"));
+      return;
+    }
+
+    /* "YYYY-MM-DD_HH-MM-SS" -> dir "YYYY-MM-DD" */
+    String DirName = String(TIMELAPS_PHOTO_FOLDER) + "/" + SysTime.substring(0, 10);
+
+    if (false == log->CheckDir(SD_MMC, DirName)) {
+      log->AddEvent(LogLevel_Info, F("Create TimeLaps day folder: "), DirName);
+      log->CreateDir(SD_MMC, DirName);
+    }
+
+    String FileName = DirName + "/" + SysTime + TIMELAPS_PHOTO_SUFFIX;
     log->AddEvent(LogLevel_Verbose, F("Saving file: "), FileName);
 
     /* save photo to SD card */

@@ -21,6 +21,9 @@ Configuration SystemConfig(&SystemLog);
 Configuration::Configuration(Logs* i_log) {
   Log = i_log;
   WiFiMacAddress = WiFi.macAddress();
+  /* commit() rewrites a whole flash sector: serialise all EEPROM access.
+     Lock order EepromMutex -> LogMutex -> sdCardMutex. */
+  EepromMutex = xSemaphoreCreateRecursiveMutex();
 }
 
 /**
@@ -269,6 +272,7 @@ void Configuration::GetFingerprint() {
    @return none
 */
 void Configuration::SaveUint8(uint16_t address, uint8_t data) {
+  xSemaphoreTakeRecursive(EepromMutex, portMAX_DELAY);
   EEPROM.write(address, data);
 
   if (EEPROM.commit()) {
@@ -277,6 +281,7 @@ void Configuration::SaveUint8(uint16_t address, uint8_t data) {
     Log->AddEvent(LogLevel_Error, F("Failed to write uint8_t"));
     EEPROM.commit(); // try again
   }
+  xSemaphoreGiveRecursive(EepromMutex);
 }
 /**
    @info Function for save int8_t to EEPROM
@@ -285,6 +290,7 @@ void Configuration::SaveUint8(uint16_t address, uint8_t data) {
    @return none
 */
 void Configuration::SaveInt8(uint16_t address, int8_t data) {
+  xSemaphoreTakeRecursive(EepromMutex, portMAX_DELAY);
   EEPROM.write(address, data);
 
   if (EEPROM.commit()) {
@@ -293,6 +299,7 @@ void Configuration::SaveInt8(uint16_t address, int8_t data) {
     Log->AddEvent(LogLevel_Error, F("Failed to write int8_t"));
     EEPROM.commit(); // try again
   }
+  xSemaphoreGiveRecursive(EepromMutex);
 }
 /**
    @info Function for save bool to EEPROM
@@ -301,6 +308,7 @@ void Configuration::SaveInt8(uint16_t address, int8_t data) {
    @return none
 */
 void Configuration::SaveBool(uint16_t address, bool data) {
+  xSemaphoreTakeRecursive(EepromMutex, portMAX_DELAY);
   EEPROM.write(address, data);
 
   if (EEPROM.commit()) { 
@@ -309,6 +317,7 @@ void Configuration::SaveBool(uint16_t address, bool data) {
     Log->AddEvent(LogLevel_Error, F("Failed to write bool"));
     EEPROM.commit(); // try again
   }
+  xSemaphoreGiveRecursive(EepromMutex);
 }
 /**
    @info Function for save uint16_t to EEPROM
@@ -320,6 +329,7 @@ void Configuration::SaveUint16(uint16_t address, uint16_t data) {
   uint8_t highByte = highByte(data);
   uint8_t lowByte = lowByte(data);
 
+  xSemaphoreTakeRecursive(EepromMutex, portMAX_DELAY);
   EEPROM.write(address, highByte);
   EEPROM.write(address + 1, lowByte);
 
@@ -329,6 +339,7 @@ void Configuration::SaveUint16(uint16_t address, uint16_t data) {
     Log->AddEvent(LogLevel_Error, F("Failed to write uint16_t"));
     EEPROM.commit(); // try again
   }
+  xSemaphoreGiveRecursive(EepromMutex);
 }
 
 /**
@@ -339,6 +350,7 @@ void Configuration::SaveUint16(uint16_t address, uint16_t data) {
    @return none
 */
 void Configuration::SaveString(uint16_t address, uint16_t max_length, String data) {
+  xSemaphoreTakeRecursive(EepromMutex, portMAX_DELAY);
   if (data.length() < max_length) {
     /* save data length to first byte */
     EEPROM.write(address, data.length());
@@ -357,6 +369,7 @@ void Configuration::SaveString(uint16_t address, uint16_t max_length, String dat
   } else {
     Log->AddEvent(LogLevel_Verbose, F("Skip write string"));
   }
+  xSemaphoreGiveRecursive(EepromMutex);
 }
 
 /**
@@ -368,6 +381,7 @@ void Configuration::SaveString(uint16_t address, uint16_t max_length, String dat
 void Configuration::SaveIpAddress(uint16_t address, String data) {
   IPAddress ip;
   if (ip.fromString(data)) {
+    xSemaphoreTakeRecursive(EepromMutex, portMAX_DELAY);
     EEPROM.write(address, ip[0]);
     EEPROM.write(address + 1, ip[1]);
     EEPROM.write(address + 2, ip[2]);
@@ -378,6 +392,7 @@ void Configuration::SaveIpAddress(uint16_t address, String data) {
     } else {
       Log->AddEvent(LogLevel_Error, F("Failed to write IP address"));
     }
+    xSemaphoreGiveRecursive(EepromMutex);
   }
 }
 
@@ -387,7 +402,10 @@ void Configuration::SaveIpAddress(uint16_t address, String data) {
    @return uint16_t data
 */
 uint16_t Configuration::LoadUint16(uint16_t address) {
+  /* reads locked too: a concurrent save may be half-applied */
+  xSemaphoreTakeRecursive(EepromMutex, portMAX_DELAY);
   uint16_t tmp = uint16_t(EEPROM.read(address) << 8) | (EEPROM.read(address + 1));
+  xSemaphoreGiveRecursive(EepromMutex);
   return tmp;
 }
 
@@ -400,6 +418,7 @@ uint16_t Configuration::LoadUint16(uint16_t address) {
 */
 String Configuration::LoadString(uint16_t address, uint16_t max_length, bool show_sensitive_data) {
   String tmp = "";
+  xSemaphoreTakeRecursive(EepromMutex, portMAX_DELAY);
   uint8_t len = EEPROM.read(address);
 
   if ((len <= max_length) && (len > 0)) {
@@ -407,6 +426,7 @@ String Configuration::LoadString(uint16_t address, uint16_t max_length, bool sho
       tmp += (char)EEPROM.read(i);
     }
   }
+  xSemaphoreGiveRecursive(EepromMutex);
 
   String LogMsg = "";
   if (false == show_sensitive_data) {
@@ -423,10 +443,12 @@ String Configuration::LoadString(uint16_t address, uint16_t max_length, bool sho
 
 String Configuration::LoadIpAddress(uint16_t address) {
   IPAddress ip;
+  xSemaphoreTakeRecursive(EepromMutex, portMAX_DELAY);
   ip[0] = EEPROM.read(address);
   ip[1] = EEPROM.read(address + 1);
   ip[2] = EEPROM.read(address + 2);
   ip[3] = EEPROM.read(address + 3);
+  xSemaphoreGiveRecursive(EepromMutex);
 
   return ip.toString();
 }

@@ -54,13 +54,15 @@
 /* --------------- WEB SERVER CFG  --------------*/
 #define WEB_SERVER_PORT             80                      ///< WEB server port 
 #define SERIAL_PORT_SPEED           115200                  ///< baud rate 
-#define WDG_TIMEOUT                 40000                   ///< wdg timeout [second]
+#define WDG_TIMEOUT                 40000                   ///< wdg timeout [ms]
+#define PRUSA_CONNECT_TIMEOUT_S     10                      ///< PrusaConnect socket timeout [s]
 #define PHOTO_FRAGMENT_SIZE         2048                    ///< photo fragmentation size [bytes]
 #define LOOP_DELAY                  100                     ///< loop delay [ms]
 #define WIFI_CLIENT_WAIT_CON        false                   ///< wait for connecting to WiFi network
 #define WEB_CACHE_INTERVAL          86400                   ///< cache interval for browser [s] 86400s = 24h
 
 /* --------------- OTA UPDATE CFG  --------------*/
+#define OTA_CHECK_RESPONSE_TIMEOUT  10000                   ///< max ms spent reading the OTA version response [ms]
 #define OTA_UPDATE_API_SERVER       "api.github.com"        ///< OTA update server URL
 #define OTA_UPDATE_API_URL          F("/repos/prusa3d/Prusa-Firmware-ESP32-Cam/releases/latest")  ///< path to file with OTA update
 
@@ -106,7 +108,6 @@
 
 /* ---------------- TIMELAPS CFG ----------------*/
 #define TIMELAPS_PHOTO_FOLDER       "/timelapse"            ///< folder for timelaps photos
-#define TIMELAPS_PHOTO_PREFIX       "photo"                 ///< photo name for timelaps
 #define TIMELAPS_PHOTO_SUFFIX       ".jpg"                  ///< photo file type for timelaps
 
 /* ---------------- FACTORY CFG  ----------------*/
