@@ -44,36 +44,27 @@ void Server_InitWebServer() {
       request->send(404, "text/plain", "Photo not found!");
       return;
     }
-    SystemCamera.SetPhotoSending(true);
 
-    SystemLog.AddEvent(LogLevel_Verbose, "Photo size: " + String(SystemCamera.GetPhotoFb()->len) + " bytes");
-
-    if (SystemCamera.GetPhotoExifData()->header != NULL) {
-      /* send photo with exif data */
-      SystemLog.AddEvent(LogLevel_Verbose, F("Send photo with EXIF data"));
-      size_t total_len = SystemCamera.GetPhotoExifData()->len + SystemCamera.GetPhotoFb()->len - SystemCamera.GetPhotoExifData()->offset;
-      auto response = request->beginChunkedResponse("image/jpg", [total_len](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
-        size_t len = 0;
-        if (index < SystemCamera.GetPhotoExifData()->len) {
-          len = min(maxLen, SystemCamera.GetPhotoExifData()->len - index);
-          memcpy(buffer, SystemCamera.GetPhotoExifData()->header + index, len);
-        } else {
-          size_t offset = index - SystemCamera.GetPhotoExifData()->len + SystemCamera.GetPhotoExifData()->offset;
-          len = min(maxLen, SystemCamera.GetPhotoFb()->len - offset);
-          memcpy(buffer, SystemCamera.GetPhotoFb()->buf + offset, len);
-        }
-        return len;
-      });
-      response->addHeader("Content-Length", String(total_len));
-      request->send(response);
-
-    } else {
-      /* send photo without exif data */
-      SystemLog.AddEvent(LogLevel_Verbose, F("Send photo without EXIF data"));
-      request->send(200, "image/jpg", SystemCamera.GetPhotoFb()->buf, SystemCamera.GetPhotoFb()->len);
+    /* copy of the photo (EXIF + JPEG) in PSRAM under the frame buffer semaphore. The response is sent later from async_tcp,
+       the photo task or the stream can capture a new photo into the frame buffer during sending */
+    uint8_t *photo = NULL;
+    size_t photo_len = 0;
+    if (false == SystemCamera.CopyPhoto(&photo, &photo_len, WEB_PHOTO_COPY_TIMEOUT)) {
+      request->send(503, "text/plain", "Photo is not available, try again");
+      return;
     }
+    SystemLog.AddEvent(LogLevel_Verbose, "Photo size: " + String(photo_len) + " bytes");
 
-    SystemCamera.SetPhotoSending(false);
+    /* the copy is released together with the response */
+    std::shared_ptr<uint8_t> photo_copy(photo, heap_caps_free);
+    request->send("image/jpg", photo_len, [photo_copy, photo_len](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
+      if (index >= photo_len) {
+        return 0;
+      }
+      size_t len = min(maxLen, photo_len - index);
+      memcpy(buffer, photo_copy.get() + index, len);
+      return len;
+    });
   });
 
   /* route to jquery */

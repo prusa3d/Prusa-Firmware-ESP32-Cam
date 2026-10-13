@@ -112,6 +112,7 @@ public:
   void CopyPhoto(String*);
   void CopyPhoto(String*, int, int);
   void CopyPhoto(char*, int, int);
+  bool CopyPhoto(uint8_t **, size_t *, uint32_t);
   int GetPhotoSize();
   String GetPhoto();
   camera_fb_t *GetPhotoFb();

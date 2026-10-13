@@ -757,6 +757,44 @@ void Camera::CopyPhoto(camera_fb_t* i_data) {
 }
 
 /**
+   @brief Copy the last photo (EXIF header + JPEG data) to PSRAM under the frame buffer semaphore.
+          The copy is sent by the web server, the photo task can capture a new photo during sending
+   @param uint8_t ** - pointer to the copy of the photo. The caller releases it with heap_caps_free()
+   @param size_t * - length of the copy
+   @param uint32_t - maximum waiting for the frame buffer semaphore [ms]
+   @return bool - true = copy created
+*/
+bool Camera::CopyPhoto(uint8_t **o_buf, size_t *o_len, uint32_t i_timeout) {
+  *o_buf = NULL;
+  *o_len = 0;
+
+  if (pdTRUE != xSemaphoreTake(frameBufferSemaphore, pdMS_TO_TICKS(i_timeout))) {
+    return false;
+  }
+
+  if ((true == CameraCaptureSuccess) && (NULL != FrameBuffer) && (NULL != FrameBuffer->buf) && (FrameBuffer->len > 0)) {
+    /* EXIF header replaces the beginning of the JPEG data (up to offset) */
+    bool exif = ((NULL != PhotoExifData.header) && (PhotoExifData.offset <= FrameBuffer->len));
+    size_t exif_len = (true == exif) ? PhotoExifData.len : 0;
+    size_t jpeg_offset = (true == exif) ? PhotoExifData.offset : 0;
+    size_t len = exif_len + FrameBuffer->len - jpeg_offset;
+
+    uint8_t *buf = (uint8_t *)heap_caps_malloc(len, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    if (NULL != buf) {
+      if (true == exif) {
+        memcpy(buf, PhotoExifData.header, exif_len);
+      }
+      memcpy(buf + exif_len, FrameBuffer->buf + jpeg_offset, FrameBuffer->len - jpeg_offset);
+      *o_buf = buf;
+      *o_len = len;
+    }
+  }
+
+  xSemaphoreGive(frameBufferSemaphore);
+  return (NULL != *o_buf);
+}
+
+/**
    @brief Copy Photo
    @param String* - pointer to string
    @return none

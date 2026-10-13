@@ -63,6 +63,7 @@
 #define LOOP_DELAY                  100                     ///< loop delay [ms]
 #define WIFI_CLIENT_WAIT_CON        false                   ///< wait for connecting to WiFi network
 #define WEB_CACHE_INTERVAL          86400                   ///< cache interval for browser [s] 86400s = 24h
+#define WEB_PHOTO_COPY_TIMEOUT      2000                    ///< maximum waiting for the copy of the photo for the web server, during capture of the photo [ms]
 
 /* --------------- OTA UPDATE CFG  --------------*/
 #define OTA_UPDATE_API_SERVER       "api.github.com"        ///< OTA update server URL
