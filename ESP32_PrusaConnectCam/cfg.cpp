@@ -235,6 +235,7 @@ void Configuration::CheckResetCfg() {
     digitalWrite(CFG_RESET_LED_PIN, !CFG_RESET_LED_LEVEL_ON);
 
     DefaultCfg();
+    Log->LoggerFlush(LOGS_RESTART_FLUSH_TIMEOUT);
     ESP.restart();
 
   } else {

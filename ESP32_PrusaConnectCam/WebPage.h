@@ -1268,6 +1268,11 @@ if (typeof FileSize === 'undefined') {
 	var FileSize = 0;
 }
 
+/* request for the update (upload of the file or start of the cloud update) is finished. Before that, the update is not done */
+if (typeof updateRequestDone === 'undefined') {
+	var updateRequestDone = false;
+}
+
 function uploadFile() {
 	alert("Started updating...");
 	const firmwareInput = document.getElementById('firmwareInput');
@@ -1280,6 +1285,7 @@ function uploadFile() {
 		statusDiv.innerText = 'Updating...';
 		const formData = new FormData();
 		formData.append('firmware', file);
+		updateRequestDone = false;
 		uploadingFirmware = true;
 
 		fetch('/upload', {
@@ -1287,6 +1293,7 @@ function uploadFile() {
 				body: formData,
 			})
 			.then((response) => {
+				updateRequestDone = true;
 				if (response.ok) {
 					response.text().then((data) => {
 						const jsonData = JSON.parse(data);
@@ -1305,6 +1312,7 @@ function uploadFile() {
 			})
 			.catch((error) => {
 				console.error('Error:', error);
+				updateRequestDone = true;
 				uploadingFirmware = false;
 			});
 	} else {
@@ -1340,8 +1348,9 @@ function updateProgress() {
 			progressBar.innerHTML = data.processed_percent + "%";
 
 			statusDiv.innerText = data.message;
-			uploadingFirmware = data.updating;
-			if (data.updating == false  && !updateCompleted) {
+			/* the upload of the file can start later than the first check of the status */
+			uploadingFirmware = (data.updating || !updateRequestDone);
+			if (data.updating == false && updateRequestDone && !updateCompleted) {
 				alert('Operation done. Please reboot MCU.');
 				uploadingFirmware = false;
 				updateCompleted = true;
@@ -1370,6 +1379,7 @@ function updateWeb() {
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.open("GET", "web_ota_update?update=true", false);
 	xmlHttp.send(null);
+	updateRequestDone = true;
 	uploadingFirmware = true;
 }
 

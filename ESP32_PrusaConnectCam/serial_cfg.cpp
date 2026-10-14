@@ -151,6 +151,7 @@ String lastTwoChars = command.substring(command.length() - 2);
 
   } else if (command.startsWith("mcureboot") && command.endsWith(";")) {
     log->AddEvent(LogLevel_Warning, F("--> Reboot MCU!"));
+    log->LoggerFlush(LOGS_RESTART_FLUSH_TIMEOUT);
     ESP.restart();
 
   } else if (command.startsWith("commandslist") && command.endsWith(";")) {

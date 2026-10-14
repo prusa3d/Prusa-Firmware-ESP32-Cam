@@ -69,6 +69,7 @@ void MicroSd::DeinitSdCard() {
   SdLock();
   SD_MMC.end();
   CardDetected = false;
+  ResetCardUsedStatus();
   SdUnlock();
 }
 
@@ -165,7 +166,7 @@ void MicroSd::InitSdCard(bool i_verbose) {
       Serial.println(F("SD Card Mount Failed"));
     }
     CardDetected = false;
-    CardSizeMB = 0;
+    ResetCardUsedStatus();
     SdUnlock();
     return;
   }
@@ -177,7 +178,7 @@ void MicroSd::InitSdCard(bool i_verbose) {
       Serial.println(F("No SD_MMC card attached"));
     }
     CardDetected = false;
-    CardSizeMB = 0;
+    ResetCardUsedStatus();
     SdUnlock();
     return;
   }
@@ -727,15 +728,30 @@ void MicroSd::CheckCardUsedStatus() {
   /* card size is 0 when the card was removed */
   if (0 != CardSizeMB) {
     FreeSpacePercent = (CardFreeMB * 100) / CardSizeMB;
+    UsedSpacePercent = 100 - FreeSpacePercent;
   } else {
     FreeSpacePercent = 0;
+    UsedSpacePercent = 0;
   }
-  UsedSpacePercent = 100 - FreeSpacePercent;
 
-#if (true == CONSOLE_VERBOSE_DEBUG)  
+#if (true == CONSOLE_VERBOSE_DEBUG)
   Serial.printf("Card size: %d MB, Total: %d MB, Used: %d MB, Free: %d GB, Free: %d %% \n", CardSizeMB, CardTotalMB, CardUsedMB, CardFreeMB, FreeSpacePercent);
 #endif
   SdUnlock();
+}
+
+/**
+   @brief Reset card used status (size, used and free space). Without the card, the web page does not show the values of the last card
+   @param none
+   @return none
+*/
+void MicroSd::ResetCardUsedStatus() {
+  CardSizeMB = 0;
+  CardTotalMB = 0;
+  CardUsedMB = 0;
+  CardFreeMB = 0;
+  FreeSpacePercent = 0;
+  UsedSpacePercent = 0;
 }
 
 /**
@@ -875,6 +891,9 @@ bool MicroSd::WritePicture(String i_PhotoName, uint8_t *i_PhotoData, size_t i_Ph
 void MicroSd::SetCardDetectedStatus(bool i_data) {
   SdLock();
   CardDetected = i_data;
+  if (false == i_data) {
+    ResetCardUsedStatus();
+  }
   SdUnlock();
 }
 

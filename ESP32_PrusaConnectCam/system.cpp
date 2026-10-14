@@ -131,7 +131,7 @@ void System_UpdateInit() {
     /* update from file */
     SystemCamera.SetFlashStatus(true);
     digitalWrite(FW_STATUS_LED_PIN, FW_STATUS_LED_LEVEL_ON);
-    uint8_t updateProgress = (progress * 100) / FirmwareUpdate.FirmwareSize;
+    uint8_t updateProgress = (FirmwareUpdate.FirmwareSize > 0) ? ((progress * 100) / FirmwareUpdate.FirmwareSize) : 0;
     SystemLog.AddEvent(LogLevel_Info, "Updating: " + String(FirmwareUpdate.FirmwareSize) + "/" + String(progress) + " -> " + String(updateProgress) + "%");
     FirmwareUpdate.PercentProcess = updateProgress;
     FirmwareUpdate.TransferedBytes = progress;
@@ -342,7 +342,7 @@ bool System_OtaUpdateStart() {
 void System_OtaUpdateProgressCB(int cur, int total) {
   /* OTA update from server */
   FirmwareUpdate.FirmwareSize = total;
-  uint8_t updateProgress = (cur * 100) / FirmwareUpdate.FirmwareSize;
+  uint8_t updateProgress = (FirmwareUpdate.FirmwareSize > 0) ? ((cur * 100) / FirmwareUpdate.FirmwareSize) : 0;
   FirmwareUpdate.PercentProcess = updateProgress;
   FirmwareUpdate.TransferedBytes = cur;
   SystemLog.AddEvent(LogLevel_Info, "Downloaded: " + String(cur) + "/" + String(FirmwareUpdate.FirmwareSize) + " -> " + String(FirmwareUpdate.PercentProcess) + "%");

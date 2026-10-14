@@ -44,6 +44,8 @@ private:
   RingbufHandle_t LogQueue;                           ///< queue for log messages
   std::atomic<bool> LoggerRunning;                    ///< logger task is running, false = synchronous mode
   std::atomic<uint32_t> DroppedMsgCount;              ///< count of the dropped log messages
+  std::atomic<uint32_t> FlushRequestCount;            ///< count of the requests for write all log messages now (LoggerFlush)
+  std::atomic<uint32_t> FlushDoneCount;               ///< last request for write all log messages done by the logger task
   uint32_t LastCardRetryTime;                         ///< last attempt for mount the micro SD card
   bool SdLogQuiet;                                    ///< IDF log of the micro SD card driver is disabled
   bool LogCardFullState;                              ///< micro SD card is full, log file is closed
@@ -73,6 +75,7 @@ public:
   void Init();
   bool LoggerStart();
   void LoggerProcess();
+  void LoggerFlush(uint32_t);
   void LogOpenFile();
   void LogCloseFile();
   void LogCheckOpenedFile();

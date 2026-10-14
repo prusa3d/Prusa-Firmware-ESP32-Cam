@@ -58,6 +58,7 @@
 /* --------------- WEB SERVER CFG  --------------*/
 #define WEB_SERVER_PORT             80                      ///< WEB server port 
 #define SERIAL_PORT_SPEED           115200                  ///< baud rate 
+#define SERIAL_USB_CDC_TX_TIMEOUT   5                       ///< console over USB CDC (ESP32-S3): TX timeout [ms], when the PC does not read data. Core default is 100 ms
 #define WDG_TIMEOUT                 40000                   ///< wdg timeout [second]
 #define PHOTO_FRAGMENT_SIZE         2048                    ///< photo fragmentation size [bytes]
 #define LOOP_DELAY                  100                     ///< loop delay [ms]
@@ -84,6 +85,7 @@
 #define LOGS_MSG_MAX_LEN            4096                    ///< maximum length of the log message, longer message is cut [B]
 #define LOGS_FLUSH_TIMEOUT          500                     ///< maximum waiting for log message and fsync interval [ms]
 #define LOGS_CARD_RETRY             10000                   ///< interval for mount the micro SD card again, when the card was removed [ms]
+#define LOGS_RESTART_FLUSH_TIMEOUT  2000                    ///< maximum waiting for write the log messages before MCU restart [ms]
 static_assert((LOGS_MSG_MAX_LEN + 16) <= (LOGS_QUEUE_SIZE / 2), "LOGS_MSG_MAX_LEN is too big for LOGS_QUEUE_SIZE");
 
 /* ---------------- AP MODE CFG  ----------------*/

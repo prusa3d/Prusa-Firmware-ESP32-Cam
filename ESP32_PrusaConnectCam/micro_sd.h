@@ -46,6 +46,8 @@ private:
   File file;                      ///< File object
   SemaphoreHandle_t sdCardMutex;  ///< Recursive mutex for SD card
 
+  void ResetCardUsedStatus();
+
 protected:
   void SdLock();
   void SdUnlock();

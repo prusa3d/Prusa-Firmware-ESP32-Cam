@@ -34,6 +34,8 @@ Logs::Logs() {
   LogQueue = NULL;
   LoggerRunning = false;
   DroppedMsgCount = 0;
+  FlushRequestCount = 0;
+  FlushDoneCount = 0;
   LastCardRetryTime = 0;
   SdLogQuiet = false;
   LogCardFullState = false;
@@ -59,6 +61,8 @@ Logs::Logs(String i_FilePath, uint16_t i_FileSize) {
   LogQueue = NULL;
   LoggerRunning = false;
   DroppedMsgCount = 0;
+  FlushRequestCount = 0;
+  FlushDoneCount = 0;
   LastCardRetryTime = 0;
   SdLogQuiet = false;
   LogCardFullState = false;
@@ -84,6 +88,8 @@ Logs::Logs(String i_FilePath, String i_FileName) {
   LogQueue = NULL;
   LoggerRunning = false;
   DroppedMsgCount = 0;
+  FlushRequestCount = 0;
+  FlushDoneCount = 0;
   LastCardRetryTime = 0;
   SdLogQuiet = false;
   LogCardFullState = false;
@@ -110,6 +116,8 @@ Logs::Logs(LogLevel_enum i_LogLevel, String i_FilePath, String i_FileName) {
   LogQueue = NULL;
   LoggerRunning = false;
   DroppedMsgCount = 0;
+  FlushRequestCount = 0;
+  FlushDoneCount = 0;
   LastCardRetryTime = 0;
   SdLogQuiet = false;
   LogCardFullState = false;
@@ -136,6 +144,8 @@ Logs::Logs(String i_FilePath, String i_FileName, uint16_t i_FileSize) {
   LogQueue = NULL;
   LoggerRunning = false;
   DroppedMsgCount = 0;
+  FlushRequestCount = 0;
+  FlushDoneCount = 0;
   LastCardRetryTime = 0;
   SdLogQuiet = false;
   LogCardFullState = false;
@@ -163,6 +173,8 @@ Logs::Logs(LogLevel_enum i_LogLevel, String i_FilePath, String i_FileName, uint1
   LogQueue = NULL;
   LoggerRunning = false;
   DroppedMsgCount = 0;
+  FlushRequestCount = 0;
+  FlushDoneCount = 0;
   LastCardRetryTime = 0;
   SdLogQuiet = false;
   LogCardFullState = false;
@@ -246,12 +258,42 @@ void Logs::LoggerProcess() {
     LogFileFlush();
   }
 
+  /* request from LoggerFlush(): write all log messages from the queue and save the log file now */
+  uint32_t flush_request = FlushRequestCount;
+  if (flush_request != FlushDoneCount) {
+    while (NULL != (item = (char *)xRingbufferReceive(LogQueue, &item_size, 0))) {
+      LoggerWrite(item, item_size);
+      vRingbufferReturnItem(LogQueue, item);
+    }
+    LogFileFlush();
+    FlushDoneCount = flush_request;
+  }
+
 #if (true == ENABLE_SD_CARD)
   /* mount the micro SD card again, when the log file is not opened */
   if (LogFd < 0) {
     LogCardRetry();
   }
 #endif
+}
+
+/**
+   @info Write all log messages from the queue to the console and to the log file now. Used before MCU restart, otherwise the last log messages are lost.
+         The logger task writes the messages, the calling task waits until it is done, maximum i_timeout
+   @param uint32_t - maximum waiting time [ms]
+   @return none
+*/
+void Logs::LoggerFlush(uint32_t i_timeout) {
+  /* synchronous mode, the messages are already on the console */
+  if (false == LoggerRunning) {
+    return;
+  }
+
+  uint32_t flush_request = ++FlushRequestCount;
+  uint32_t start_time = millis();
+  while (((int32_t)(FlushDoneCount - flush_request) < 0) && ((millis() - start_time) < i_timeout)) {
+    delay(10);
+  }
 }
 
 /**

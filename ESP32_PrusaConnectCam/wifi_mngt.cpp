@@ -446,6 +446,7 @@ void WiFiMngt::WiFiWatchdog() {
     if ((true == StartStaWdg) && (currentMillis - TaskWdg_previousMillis >= WIFI_STA_WDG_TIMEOUT)) {
       log->AddEvent(LogLevel_Warning, F("WiFi STA connection lost. WDG timer expired. Restart MCU!"));
       /* restart MCU, or disconnect and connect to WiFi again ? From my point of view, and testing, restart MCU is better */
+      log->LoggerFlush(LOGS_RESTART_FLUSH_TIMEOUT);
       ESP.restart();
     }
 

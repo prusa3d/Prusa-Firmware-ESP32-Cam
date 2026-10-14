@@ -146,6 +146,7 @@ void Camera::InitCameraModule() {
   if (err != ESP_OK) {
     log->AddEvent(LogLevel_Warning, F("Camera init failed. Error: "), String(err, HEX));
     log->AddEvent(LogLevel_Warning, F("Reset ESP32-cam!"));
+    log->LoggerFlush(LOGS_RESTART_FLUSH_TIMEOUT);
     ESP.restart();
   } 
 }

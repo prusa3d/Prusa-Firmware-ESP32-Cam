@@ -523,6 +523,7 @@ void Server_InitWebServer_Actions() {
       return;
     request->send(200, F("text/html"), MSG_REBOOT_MCU);
     delay(100); /* wait for sending data */
+    SystemLog.LoggerFlush(LOGS_RESTART_FLUSH_TIMEOUT);
     ESP.restart();
   });
 
@@ -992,6 +993,11 @@ void Server_InitWebServer_Sets() {
     if (request->hasParam("size")) {
       SystemLog.AddEvent(LogLevel_Info, String(request->getParam("size")->value().toInt()));
       FirmwareUpdate.FirmwareSize = request->getParam("size")->value().toInt();
+
+      /* new update from file: status and progress from the previous update are not valid */
+      FirmwareUpdate.UpdatingStatus = String(SYSTEM_MSG_UPDATE_PROCESS);
+      FirmwareUpdate.PercentProcess = 0;
+      FirmwareUpdate.TransferedBytes = 0;
     }
   });
 
@@ -1063,14 +1069,16 @@ void Server_InitWebServer_Update() {
       }
 
       if (final) {
-        FirmwareUpdate.Processing = false;
         if (Update.end(true)) {
           FirmwareUpdate.UpdatingStatus = String(SYSTEM_MSG_UPDATE_DONE);
           SystemLog.AddEvent(LogLevel_Info, F("Update FW from file done. Reboot MCU"));
         } else {
           Update.printError(Serial);
+          FirmwareUpdate.UpdatingStatus = String(SYSTEM_MSG_UPDATE_FAIL);
           SystemLog.AddEvent(LogLevel_Error, String(SYSTEM_MSG_UPDATE_FAIL));
         }
+        /* update is done after Update.end(), the web page checks this flag */
+        FirmwareUpdate.Processing = false;
       }
     });
 
