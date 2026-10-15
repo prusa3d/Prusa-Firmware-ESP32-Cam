@@ -26,9 +26,10 @@
    Tools -> USB Mode -> Hardware CDC and JTAG
    Tools -> Zigbee mode -> Disable
 
-   https://freenove.com/fnk0085
+   https://docs.m5stack.com/en/unit/Unit_CamS3
+   Board setup guide: doc/M5-Unit-CamS3/README.md
 
-   @bug: no know bug
+   Known limitations are listed in the board setup guide.
 
 */
 

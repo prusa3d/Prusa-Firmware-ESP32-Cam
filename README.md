@@ -42,8 +42,9 @@ What we need for functionality:
 | ESP32-S3-DEV-CAM          | in Progress |        |          | External  |           |             | [ here ](doc/ESP32-S3-DEV-CAM/README.md)          |
 | Seeed Studio XIAO ESP32S3 | Full        | Yes    | Yes      | External  | Yes       | Yes         | [ here ](doc/XIAO_ESP32S3/README.md)              |
 | ESP32-S3-CAM              | Full        | Yes    | Yes      | Board/Ext | Yes       | Yes         | [ here ](doc/ESP32-S3-CAM/README.md)              |
+| M5Stack Unit CamS3        | in Progress | Yes    | Untested | No        | Manual    | No          | [ here ](doc/M5-Unit-CamS3/README.md)             |
 
-The compiled firmware for each supported board is published with every release.
+The compiled firmware for boards included in `fw_build.sh` is published with every release. For the M5Stack Unit CamS3, [build and upload from source](doc/M5-Unit-CamS3/README.md); it is not yet included in the release build script.
 
 <a name="flash_fw"></a>
 ## How to flash binary files to ESP32-cam board from Linux/MAC/Windows
