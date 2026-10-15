@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # This is a script to build the firmware for the ESP32 PrusaConnectCam project.
-# Thi script is created by Miroslav Pivovarsky (miroslav.pivovarsky@gmail.com)
+# This script is created by Miroslav Pivovarsky (miroslav.pivovarsky@gmail.com)
 # The script is provided as-is without any warranty.
 # The script is free to use and modify.
 # Version: 1.0
@@ -10,6 +10,9 @@
 # 1. Ai Thinker ESP32-CAM
 # 2. ESP32 Wrover Dev
 # 3. ESP32-S3-EYE 2.2
+# 4. XIAO ESP32-S3 Sense
+# 5. ESP32-S3-CAM
+# 6. ESP32-S3 WROOM FREENOVE
 #
 # The script compiles the firmware for each board and creates a zip file with the compiled firmware.
 # The zip file contains the firmware binary and other files generated during the compilation.
@@ -23,10 +26,6 @@
 # ├── ESP32_PrusaConnectCam.ino
 # ├── mcu_cfg.h
 # ├── ...
-# ├── libraries/
-# │   ├── zip/
-# │   │   ├── AsyncTCP-3.1.4.zip
-# │   │   └── ESPAsyncWebServer-2.10.8.zip
 # ├── build/
 # │   ├── output/
 # │   ├── esp32-cam/
@@ -81,8 +80,8 @@
 #    ./arduino-cli lib install ArduinoJson
 #    ./arduino-cli lib install ArduinoUniqueID
 #    ./arduino-cli lib install DHTNEW
-#    ./arduino-cli lib install --zip-path ../libraries/zip/AsyncTCP-3.1.4.zip
-#    ./arduino-cli lib install --zip-path ../libraries/zip/ESPAsyncWebServer-2.10.8.zip
+#    ./arduino-cli lib install "Async TCP"
+#    ./arduino-cli lib install "ESP Async WebServer"
 #    Check installed libraries again:
 #    ./arduino-cli lib list
 #

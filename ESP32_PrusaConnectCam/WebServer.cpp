@@ -70,7 +70,15 @@ void Server_InitWebServer() {
     } else {
       /* send photo without exif data */
       SystemLog.AddEvent(LogLevel_Verbose, F("Send photo without EXIF data"));
-      request->send(200, "image/jpg", SystemCamera.GetPhotoFb()->buf, SystemCamera.GetPhotoFb()->len);
+      {
+        size_t fb_len = SystemCamera.GetPhotoFb()->len;
+        request->send(String("image/jpg"), fb_len, [](uint8_t *buffer, size_t maxLen, size_t index) -> size_t
+                      {
+          size_t remain = SystemCamera.GetPhotoFb()->len - index;
+          size_t len = remain > maxLen ? maxLen : remain;
+          memcpy(buffer, SystemCamera.GetPhotoFb()->buf + index, len);
+          return len; });
+      }
     }
 
     SystemCamera.SetPhotoSending(false);
