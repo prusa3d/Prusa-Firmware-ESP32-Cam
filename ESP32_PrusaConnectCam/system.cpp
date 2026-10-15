@@ -505,25 +505,32 @@ void System_TaskCaptureAndSendPhoto(void *pvParameters) {
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while (1) {
-    if (Connect.CheckSendingIntervalExpired()) {
-      Connect.SetSendingIntervalCounter(0);
-      /* send network information to backend */
-      if ((WL_CONNECTED == WiFi.status()) && (false == FirmwareUpdate.Processing)) {
-        SystemLog.AddEvent(LogLevel_Verbose, F("Task photo processing. Start sending info"));
-        esp_task_wdt_reset();
-        Connect.SendInfoToBackend();
-      }
-
-      /* send photo to backend*/
-      if ((WL_CONNECTED == WiFi.status()) && (false == FirmwareUpdate.Processing)) {
-        SystemLog.AddEvent(LogLevel_Verbose, F("Task photo processing. Start sending photo"));
-        esp_task_wdt_reset();
-        Connect.TakePictureAndSendToBackend();
-      }
+    /* Pause periodic snapshots while MJPG stream is active */
+    if (SystemCamera.GetStreamStatus()) {
+      SystemLog.AddEvent(LogLevel_Verbose, F("Photo processing task: stream active, pausing periodic snapshots"));
+      /* do not increase the sending interval counter while streaming */
 
     } else {
-      /* update counter */
-      Connect.IncreaseSendingIntervalCounter();
+      if (Connect.CheckSendingIntervalExpired()) {
+        Connect.SetSendingIntervalCounter(0);
+        /* send network information to backend */
+        if ((WL_CONNECTED == WiFi.status()) && (false == FirmwareUpdate.Processing)) {
+          SystemLog.AddEvent(LogLevel_Verbose, F("Task photo processing. Start sending info"));
+          esp_task_wdt_reset();
+          Connect.SendInfoToBackend();
+        }
+
+        /* send photo to backend*/
+        if ((WL_CONNECTED == WiFi.status()) && (false == FirmwareUpdate.Processing)) {
+          SystemLog.AddEvent(LogLevel_Verbose, F("Task photo processing. Start sending photo"));
+          esp_task_wdt_reset();
+          Connect.TakePictureAndSendToBackend();
+        }
+
+      } else {
+        /* update counter */
+        Connect.IncreaseSendingIntervalCounter();
+      }
     }
     
     SystemLog.AddEvent(LogLevel_Verbose, F("Photo processing task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + "B");
