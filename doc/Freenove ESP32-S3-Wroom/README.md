@@ -2,7 +2,7 @@
 
 What we need for functionality
 - Freenove ESP32-S3 WROOM board with OV2640 camera module [ here ](#esp32)
-- Supported camera modules [here](cam_modules)
+- Supported camera modules [here](#cam_modules)
 - How to flash binary files to board from Linux/MAC/Windows [ here ](#flash_fw)
 - How to compile software in the Arduino IDE [ here ](#arduino_cfg)
 - How to reset the configuration to factory settings [here](#factory_cfg)
