@@ -3,13 +3,13 @@
 <body>
 	<center><table id="data">
 		<tr><td class="ps3">Basic settings</td><td></td></tr>
-        <tr><td class="pc1">Connect Token</td><td ><input type="text" name="token" id=tokenid >&nbsp;<button class="btn_save" onclick="changeValue(encodeURIComponent(document.getElementById('tokenid').value), 'set_token?token=', 'config')">Save</button></td></tr>
-        <tr><td class="pc1">Fingerprint</td><td class=pc2 id="fingerprint"></td></tr>
-		<tr><td class="pc1">Trigger Interval [s]</td><td ><input type="text" name="refresh" id=refreshid >&nbsp;<button class="btn_save" onclick="changeValue(document.getElementById('refreshid').value, 'set_int?refresh=', 'config')">Save</button></td></tr>
+		<tr><td class="pc1" title="Unique identifier used to authenticate camera connections to PrusaConnect server. Must match token configured in Prusa web interface.">Connect Token</td><td ><input type="text" name="token" id=tokenid >&nbsp;<button class="btn_save" onclick="changeValue(encodeURIComponent(document.getElementById('tokenid').value), 'set_token?token=', 'config')">Save</button></td></tr>
+		<tr><td class="pc1" title="SHA1 fingerprint of camera's SSL certificate. Use this to verify secure connections.">Fingerprint</td><td class=pc2 id="fingerprint"></td></tr>
+		<tr><td class="pc1" title="Interval between automatic image captures when camera is in timelapse mode.">Trigger Interval [s]</td><td ><input type="text" name="refresh" id=refreshid >&nbsp;<button class="btn_save" onclick="changeValue(document.getElementById('refreshid').value, 'set_int?refresh=', 'config')">Save</button></td></tr>
 		<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
-		<tr><td class="pc1">Image quality</td><td class="pc2">Low <input type="range" class="slider" name="photo_quality" id=photo_qualityid min="10" max="63" step="1" onchange="changeValue(this.value, 'set_int?photo_quality=', 'config')"> High</td></tr>
+		<tr><td class="pc1" title="Image compression.">Image quality</td><td class="pc2">Low <input type="range" class="slider" name="photo_quality" id=photo_qualityid min="10" max="63" step="1" onchange="changeValue(this.value, 'set_int?photo_quality=', 'config')"> High</td></tr>
 		<tr>
-			<td class="pc1">Resolution</td><td><label for="framesize"></label>
+			<td class="pc1" title="Image resolution. Higher resolutions use more memory and bandwidth, which reduces framerate in streaming mode.">Resolution</td><td><label for="framesize"></label>
 				<select class="select" id="framesizeid" name="framesize" onchange="changeValue(this.value, 'set_int?framesize=', 'config')">
 					<option value="0">320x240</option>
 					<option value="1">352x288</option>
@@ -22,12 +22,12 @@
 			</td>
 		</tr>
 		<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
-		<tr><td class="pc1">Brightness</td><td class="pc2">Low <input type="range" class="slider" name="brightness" id=brightnessid min="-2" max="2" step="1" onchange="changeValue(this.value, 'set_int?brightness=', 'config')">High</td></tr>
-		<tr><td class="pc1">Contrast</td><td class="pc2">Low <input type="range" class="slider" name="contrast" id=contrastid min="-2" max="2" step="1" onchange="changeValue(this.value, 'set_int?contrast=', 'config')"> High</td></tr>
-		<tr><td class="pc1">Saturation</td><td class="pc2">Low <input type="range" class="slider" name="saturation" id=saturationid min="-2" max="2" step="1" onchange="changeValue(this.value, 'set_int?saturation=', 'config')"> High</td></tr>
+		<tr><td class="pc1" title="Overall image brightness adjustment.">Brightness</td><td class="pc2">Low <input type="range" class="slider" name="brightness" id=brightnessid min="-2" max="2" step="1" onchange="changeValue(this.value, 'set_int?brightness=', 'config')">High</td></tr>
+		<tr><td class="pc1" title="Difference between light and dark areas.">Contrast</td><td class="pc2">Low <input type="range" class="slider" name="contrast" id=contrastid min="-2" max="2" step="1" onchange="changeValue(this.value, 'set_int?contrast=', 'config')"> High</td></tr>
+		<tr><td class="pc1" title="Colour saturation">Saturation</td><td class="pc2">Low <input type="range" class="slider" name="saturation" id=saturationid min="-2" max="2" step="1" onchange="changeValue(this.value, 'set_int?saturation=', 'config')"> High</td></tr>
 		<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
 		<tr>
-			<td class="pc1">Image Rotation</td><td><label for="image_rotation"></label>
+			<td class="pc1" title="Rotate image to match camera orientation.">Image Rotation</td><td><label for="image_rotation"></label>
 				<select class="select" id="image_rotationid" name="image_rotation" onchange="changeValue(this.value, 'set_int?image_rotation=', 'config')">
 					<option value="1">0°</option>
 					<option value="6">90°</option>
@@ -36,15 +36,15 @@
 				</select>
 			</td>
 		</tr>
-		<tr><td class="pc1">Horizontal mirror</td><td class="pc2"><label class="switch"><input type="checkbox" name="hmirror" id=hmirrorid  onchange="changeValue(this.checked, 'set_bool?hmirror=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_hmirror"></span></td></tr>
-		<tr><td class="pc1">Vertical flip</td><td class="pc2"><label class="switch"><input type="checkbox" name="vflip" id=vflipid onchange="changeValue(this.checked, 'set_bool?vflip=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_vflip"></span></td></tr>
+		<tr><td class="pc1" title="Mirror image left-to-right.">Horizontal mirror</td><td class="pc2"><label class="switch"><input type="checkbox" name="hmirror" id=hmirrorid  onchange="changeValue(this.checked, 'set_bool?hmirror=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_hmirror"></span></td></tr>
+		<tr><td class="pc1" title="Flip image vertically (upside-down).">Vertical flip</td><td class="pc2"><label class="switch"><input type="checkbox" name="vflip" id=vflipid onchange="changeValue(this.checked, 'set_bool?vflip=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_vflip"></span></td></tr>
 		<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
-		<tr><td class="pc1">LED light</td><td class="pc2"><label class="switch"><input type="checkbox" name="led" id=ledid onchange="changeValue(this.checked, 'action_led?/led=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_led"></span></td></tr>
-		<tr><td class="pc1">LED flash</td><td class="pc2"><label class="switch"><input type="checkbox" name="flash" id=flashid onchange="changeValue(this.checked, 'set_bool?flash=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_flash"></span></td></tr>
-		<tr><td class="pc1">Flash duration</td><td class="pc2">Low <input type="range" class="slider" name="flash_time" id=flash_timeid min="50" max="1500" step="50" onchange="changeValue(this.value, 'set_int?flash_time=', 'config')">High</td></tr>
-		<tr><td class="pc1">Flash duration</td><td class="pc2"><span id="flash_time_value"></span> ms</td></tr>
+		<tr><td class="pc1" title="Keep on/off the camera's built-in LED (usually near lens).">LED light</td><td class="pc2"><label class="switch"><input type="checkbox" name="led" id=ledid onchange="changeValue(this.checked, 'action_led?/led=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_led"></span></td></tr>
+		<tr><td class="pc1" title="Flash LED when taking image">LED flash</td><td class="pc2"><label class="switch"><input type="checkbox" name="flash" id=flashid onchange="changeValue(this.checked, 'set_bool?flash=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_flash"></span></td></tr>
+		<tr><td class="pc1" title="Duration of flash pulse when capturing images.">Flash duration</td><td class="pc2">Short <input type="range" class="slider" name="flash_time" id=flash_timeid min="50" max="1500" step="50" onchange="changeValue(this.value, 'set_int?flash_time=', 'config')">Long</td></tr>
+		<tr><td class="pc1" title="Current flash duration setting in milliseconds.">Flash duration</td><td class="pc2"><span id="flash_time_value"></span> ms</td></tr>
 		<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
-		<tr><td class="pc1">Save images to micro SD</td><td class="pc2"><label class="switch"><input type="checkbox" name="timelaps" id=timelapsid onchange="changeValue(this.checked, 'set_bool?timelaps_enable=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_timelaps"></span></td></tr>
+		<tr><td class="pc1" title="Save captured images to microSD card (if installed). Enables timelapse functionality independent of network connection.">Save images to microSD</td><td class="pc2"><label class="switch"><input type="checkbox" name="timelaps" id=timelapsid onchange="changeValue(this.checked, 'set_bool?timelaps_enable=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_timelaps"></span></td></tr>
 		<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
 	</table></center>
 	<center><button class="btn_collapsible">Advanced settings</button></center>
@@ -52,10 +52,10 @@
 		<center><table id="data">
 			<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
 			<tr><td class="ps3">Advanced settings</td><td></td></tr>
-			<tr><td class="pc1">Automatic white balancing</td><td class="pc2"><label class="switch"><input type="checkbox" name="awb" id=awbid  onchange="changeValue(this.checked, 'set_bool?awb=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_awb"></span></td></tr>
-			<tr><td class="pc1">Automatic white balancing gain</td><td class="pc2"><label class="switch"><input type="checkbox" name="awb_gain" id=awb_gainid  onchange="changeValue(this.checked, 'set_bool?awb_gain=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_awb_gain"></span></td></tr>
+			<tr><td class="pc1" title="Automatic White Balance: Adjusts colours to remove unrealistic colour casts based on lighting conditions. Disable for manual control.">Automatic white balancing</td><td class="pc2"><label class="switch"><input type="checkbox" name="awb" id=awbid  onchange="changeValue(this.checked, 'set_bool?awb=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_awb"></span></td></tr>
+			<tr><td class="pc1" title="Enable/disable automatic gain adjustment for white balance.">Automatic white balancing gain</td><td class="pc2"><label class="switch"><input type="checkbox" name="awb_gain" id=awb_gainid  onchange="changeValue(this.checked, 'set_bool?awb_gain=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_awb_gain"></span></td></tr>
 			<tr>
-				<td class="pc1">Automatic white balancing mode</td><td><label for="wb_mode"></label>
+				<td class="pc1" title="White balance mode.">Automatic white balancing mode</td><td><label for="wb_mode"></label>
 					<select class="select" id="wb_modeid" name="wb_mode" onchange="changeValue(this.value, 'set_int?wb_mode=', 'config')">
 						<option value="0">Auto</option>
 						<option value="1">Sunny</option>
@@ -65,20 +65,20 @@
 				</td>
 			</tr>
 			<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
-			<tr><td class="pc1">Automatic Exposure Control</td><td class="pc2"><label class="switch"><input type="checkbox" name="exposure_ctrl" id=exposure_ctrlid onchange="changeValue(this.checked, 'set_bool?exposure_ctrl=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_exposure_ctrl"></span></td></tr>
-			<tr><td class="pc1">Second Level Automatic Exposure Control</td><td class="pc2"><label class="switch"><input type="checkbox" name="aec2" id=aec2id onchange="changeValue(this.checked, 'set_bool?aec2=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_aec2"></span></td></tr>
-			<tr><td class="pc1">Automatic exposure level</td><td class="pc2">Low <input type="range" class="slider" name="ae_level" id=ae_levelid min="-2" max="2" step="1" onchange="changeValue(this.value, 'set_int?ae_level=', 'config')"> High</td></tr>
-			<tr><td class="pc1">Automatic exposure time</td><td class="pc2">Low <input type="range" class="slider" name="aec_value" id=aec_valueid min="0" max="1200" step="10" onchange="changeValue(this.value, 'set_int?aec_value=', 'config')">High</td></tr>
-			<tr><td class="pc1">Automatic exposure time</td><td class="pc2"><span id="aec_value_value"></span> ms</td></tr>
+			<tr><td class="pc1" title="Automatic Exposure Control: Camera automatically adjusts exposure time based on scene brightness.">Automatic Exposure Control</td><td class="pc2"><label class="switch"><input type="checkbox" name="exposure_ctrl" id=exposure_ctrlid onchange="changeValue(this.checked, 'set_bool?exposure_ctrl=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_exposure_ctrl"></span></td></tr>
+			<tr><td class="pc1" title="Alternative exposure algorithm. Seems to use DSP to change computation method of automatic exposure.">Second-stage Exposure Control (AEC2)</td><td class="pc2"><label class="switch"><input type="checkbox" name="aec2" id=aec2id onchange="changeValue(this.checked, 'set_bool?aec2=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_aec2"></span></td></tr>
+			<tr><td class="pc1" title="Exposure compensation. Not useful when Automatic Exposure Compensation is active">Automatic exposure level</td><td class="pc2">Dark <input type="range" class="slider" name="ae_level" id=ae_levelid min="-2" max="2" step="1" onchange="changeValue(this.value, 'set_int?ae_level=', 'config')"> Bright</td></tr>
+			<tr><td class="pc1" title="Manual exposure time (0-1200ms). Only active when Automatic Exposure Control is DISABLED.">Manual exposure time</td><td class="pc2">Short <input type="range" class="slider" name="aec_value" id=aec_valueid min="0" max="1200" step="10" onchange="changeValue(this.value, 'set_int?aec_value=', 'config')">Long</td></tr>
+			<tr><td class="pc1" title="Current manual exposure time setting in milliseconds.">Manual exposure time</td><td class="pc2"><span id="aec_value_value"></span> ms</td></tr>
 			<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
-			<tr><td class="pc1">Automatic gain control</td><td class="pc2"><label class="switch"><input type="checkbox" name="gain_ctrl" id=gain_ctrlid onchange="changeValue(this.checked, 'set_bool?gain_ctrl=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_gain_ctrl"></span></td></tr>
-			<tr><td class="pc1">Automatic gain control level</td><td class="pc2">Low <input type="range" class="slider" name="agc_gain" id=agc_gainid min="0" max="30" step="1" onchange="changeValue(this.value, 'set_int?agc_gain=', 'config')">High</td></tr>
+			<tr><td class="pc1" title="Automatic Gain Control: Camera adjusts sensor gain (light amplification) automatically.">Automatic gain control</td><td class="pc2"><label class="switch"><input type="checkbox" name="gain_ctrl" id=gain_ctrlid onchange="changeValue(this.checked, 'set_bool?gain_ctrl=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_gain_ctrl"></span></td></tr>
+			<tr><td class="pc1" title="Manual sensor gain. Only active when Automatic Gain Control is DISABLED. Higher values = more amplification = more noise.">Manual gain control level</td><td class="pc2">Low <input type="range" class="slider" name="agc_gain" id=agc_gainid min="0" max="30" step="1" onchange="changeValue(this.value, 'set_int?agc_gain=', 'config')">High</td></tr>
 			<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
-			<tr><td class="pc1">Bad pixel correction</td><td class="pc2"><label class="switch"><input type="checkbox" name="bpc" id=bpcid onchange="changeValue(this.checked, 'set_bool?bpc=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_bpc"></span></td></tr>
-			<tr><td class="pc1">White pixel correction</td><td class="pc2"><label class="switch"><input type="checkbox" name="wpc" id=wpcid onchange="changeValue(this.checked, 'set_bool?wpc=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_wpc"></span></td></tr>
-			<tr><td class="pc1">Raw gamma correction</td><td class="pc2"><label class="switch"><input type="checkbox" name="raw_gama" id=raw_gamaid onchange="changeValue(this.checked, 'set_bool?raw_gama=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_raw_gama"></span></td></tr>
+			<tr><td class="pc1" title="Bad Pixel Correction: Removes dead/stuck pixels from sensor. Usually enabled.">Bad pixel correction</td><td class="pc2"><label class="switch"><input type="checkbox" name="bpc" id=bpcid onchange="changeValue(this.checked, 'set_bool?bpc=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_bpc"></span></td></tr>
+			<tr><td class="pc1" title="White Pixel Correction: Corrects white pixel defects (always-on pixels). Usually enabled.">White pixel correction</td><td class="pc2"><label class="switch"><input type="checkbox" name="wpc" id=wpcid onchange="changeValue(this.checked, 'set_bool?wpc=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_wpc"></span></td></tr>
+			<tr><td class="pc1" title="Raw Gamma Correction: Applies gamma correction to raw sensor data before processing. Affects contrast in shadows/highlights.">Raw gamma correction</td><td class="pc2"><label class="switch"><input type="checkbox" name="raw_gama" id=raw_gamaid onchange="changeValue(this.checked, 'set_bool?raw_gama=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_raw_gama"></span></td></tr>
 			<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
-			<tr><td class="pc1">Lens correction</td><td class="pc2"><label class="switch"><input type="checkbox" name="lenc" id=lencid onchange="changeValue(this.checked, 'set_bool?lenc=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_lensc"></span></td></tr>
+			<tr><td class="pc1" title="Lens Correction: Compensates for lens distortion (vignetting, barrel/pincushion distortion). Keep enabled unless causing issues.">Lens correction</td><td class="pc2"><label class="switch"><input type="checkbox" name="lenc" id=lencid onchange="changeValue(this.checked, 'set_bool?lenc=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_lensc"></span></td></tr>
 		</table></center>
 	</div>
 </body>
