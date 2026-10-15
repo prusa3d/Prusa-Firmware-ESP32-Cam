@@ -177,6 +177,10 @@ void Configuration::DefaultCfg() {
   SaveTimeLapseFunctionStatus(FACTORY_CFG_TIMELAPS_ENABLE);
   SaveExternalTemperatureSensorEnable(FACTORY_CFG_ENABLE_EXT_SENSOR);
   SaveExternalTemperatureSensorUnit(FACTORY_CFG_EXT_SENSOR_UNIT);
+  SaveWifiEapEnable(FACTORY_CFG_WIFI_EAP_ENABLE);
+  SaveWifiEapIdentity(FACTORY_CFG_WIFI_EAP_IDENTITY);
+  SaveWifiEapUsername(FACTORY_CFG_WIFI_EAP_USERNAME);
+  SaveWifiEapPassword(FACTORY_CFG_WIFI_EAP_PASSWORD);
   Log->AddEvent(LogLevel_Warning, F("+++++++++++++++++++++++++++"));
 }
 
@@ -876,6 +880,46 @@ void Configuration::SaveExternalTemperatureSensorUnit(uint8_t i_data) {
 }
 
 /**
+   @info Save WiFi Enterprise (PEAP) enable
+   @param bool - value
+   @return none
+*/
+void Configuration::SaveWifiEapEnable(bool i_data) {
+  Log->AddEvent(LogLevel_Verbose, F("Save WiFi Enterprise enable: "), String(i_data));
+  SaveBool(EEPROM_ADDR_WIFI_EAP_ENABLE_START, i_data);
+}
+
+/**
+   @info Save WiFi Enterprise anonymous identity
+   @param String - identity
+   @return none
+*/
+void Configuration::SaveWifiEapIdentity(String i_data) {
+  Log->AddEvent(LogLevel_Verbose, F("Save WiFi Enterprise identity["), String(i_data.length()) + "]: " + i_data);
+  SaveString(EEPROM_ADDR_WIFI_EAP_IDENTITY_START, EEPROM_ADDR_WIFI_EAP_IDENTITY_LENGTH, i_data);
+}
+
+/**
+   @info Save WiFi Enterprise username
+   @param String - username
+   @return none
+*/
+void Configuration::SaveWifiEapUsername(String i_data) {
+  Log->AddEvent(LogLevel_Verbose, F("Save WiFi Enterprise username["), String(i_data.length()) + "]: " + i_data);
+  SaveString(EEPROM_ADDR_WIFI_EAP_USERNAME_START, EEPROM_ADDR_WIFI_EAP_USERNAME_LENGTH, i_data);
+}
+
+/**
+   @info Save WiFi Enterprise password
+   @param String - password
+   @return none
+*/
+void Configuration::SaveWifiEapPassword(String i_data) {
+  Log->AddEvent(LogLevel_Verbose, F("Save WiFi Enterprise password["), String(i_data.length()) + "]"); /* SENSITIVE DATA! */
+  SaveString(EEPROM_ADDR_WIFI_EAP_PASSWORD_START, EEPROM_ADDR_WIFI_EAP_PASSWORD_LENGTH, i_data);
+}
+
+/**
    @info load refresh interval from eeprom 
    @param none
    @return uint8_t - refresh interval
@@ -1417,6 +1461,55 @@ uint8_t Configuration::LoadExternalTemperatureSensorUnit() {
 
   return ret;
 
+}
+
+/**
+ * @brief Load WiFi Enterprise (PEAP) enable. Only value 1 is enabled, 255 (new item after FW update) is disabled
+ *
+ * @return bool - status
+ */
+bool Configuration::LoadWifiEapEnable() {
+  uint8_t tmp = EEPROM.read(EEPROM_ADDR_WIFI_EAP_ENABLE_START);
+  bool ret = (1 == tmp);
+  Log->AddEvent(LogLevel_Info, F("WiFi Enterprise enable: "), String(ret));
+
+  return ret;
+}
+
+/**
+ * @brief Load WiFi Enterprise anonymous identity
+ *
+ * @return String - identity
+ */
+String Configuration::LoadWifiEapIdentity() {
+  Log->AddEvent(LogLevel_Info, F("WiFi Enterprise identity: "), false);
+  String ret = LoadString(EEPROM_ADDR_WIFI_EAP_IDENTITY_START, EEPROM_ADDR_WIFI_EAP_IDENTITY_LENGTH, true);
+
+  return ret;
+}
+
+/**
+ * @brief Load WiFi Enterprise username
+ *
+ * @return String - username
+ */
+String Configuration::LoadWifiEapUsername() {
+  Log->AddEvent(LogLevel_Info, F("WiFi Enterprise username: "), false);
+  String ret = LoadString(EEPROM_ADDR_WIFI_EAP_USERNAME_START, EEPROM_ADDR_WIFI_EAP_USERNAME_LENGTH, true);
+
+  return ret;
+}
+
+/**
+ * @brief Load WiFi Enterprise password
+ *
+ * @return String - password
+ */
+String Configuration::LoadWifiEapPassword() {
+  Log->AddEvent(LogLevel_Info, F("WiFi Enterprise password: "), false);
+  String ret = LoadString(EEPROM_ADDR_WIFI_EAP_PASSWORD_START, EEPROM_ADDR_WIFI_EAP_PASSWORD_LENGTH, CONSOLE_VERBOSE_DEBUG);
+
+  return ret;
 }
 
 /* EOF */

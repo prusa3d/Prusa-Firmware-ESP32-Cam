@@ -65,6 +65,7 @@
 #define WIFI_CLIENT_WAIT_CON        false                   ///< wait for connecting to WiFi network
 #define WEB_CACHE_INTERVAL          86400                   ///< cache interval for browser [s] 86400s = 24h
 #define WEB_PHOTO_COPY_TIMEOUT      2000                    ///< maximum waiting for the copy of the photo for the web server, during capture of the photo [ms]
+#define WEB_APPLY_CFG_DELAY         500                     ///< apply WiFi cfg or restart MCU after the web response is sent [ms]
 
 /* --------------- OTA UPDATE CFG  --------------*/
 #define OTA_UPDATE_API_SERVER       "api.github.com"        ///< OTA update server URL
@@ -162,6 +163,10 @@ static_assert((LOGS_MSG_MAX_LEN + 16) <= (LOGS_QUEUE_SIZE / 2), "LOGS_MSG_MAX_LE
 #define FACTORY_CFG_TIMELAPS_ENABLE           0                 ///< enable timelaps functionality
 #define FACTORY_CFG_ENABLE_EXT_SENSOR         0                 ///< enable DHT22 sensor
 #define FACTORY_CFG_EXT_SENSOR_UNIT           0                 ///< 0 = celsius, 1 = fahrenheit
+#define FACTORY_CFG_WIFI_EAP_ENABLE           0                 ///< enable WiFi Enterprise (PEAP), 1 = enabled
+#define FACTORY_CFG_WIFI_EAP_IDENTITY         F("")             ///< WiFi Enterprise anonymous identity
+#define FACTORY_CFG_WIFI_EAP_USERNAME         F("")             ///< WiFi Enterprise username
+#define FACTORY_CFG_WIFI_EAP_PASSWORD         F("")             ///< WiFi Enterprise password
 
 /* ---------------- CFG FLAGS  ------------------*/
 #define CFG_WIFI_SETTINGS_SAVED               0x0A              ///< flag saved config
@@ -306,6 +311,18 @@ static_assert((LOGS_MSG_MAX_LEN + 16) <= (LOGS_QUEUE_SIZE / 2), "LOGS_MSG_MAX_LE
 #define EEPROM_ADDR_EXT_SENS_UNIT_START           (EEPROM_ADDR_EXT_SENS_ENABLE_START + EEPROM_ADDR_EXT_SENS_ENABLE_LENGTH)
 #define EEPROM_ADDR_EXT_SENS_UNIT_LENGTH          1
 
+#define EEPROM_ADDR_WIFI_EAP_ENABLE_START         (EEPROM_ADDR_EXT_SENS_UNIT_START + EEPROM_ADDR_EXT_SENS_UNIT_LENGTH)
+#define EEPROM_ADDR_WIFI_EAP_ENABLE_LENGTH        1
+
+#define EEPROM_ADDR_WIFI_EAP_IDENTITY_START       (EEPROM_ADDR_WIFI_EAP_ENABLE_START + EEPROM_ADDR_WIFI_EAP_ENABLE_LENGTH)
+#define EEPROM_ADDR_WIFI_EAP_IDENTITY_LENGTH      65
+
+#define EEPROM_ADDR_WIFI_EAP_USERNAME_START       (EEPROM_ADDR_WIFI_EAP_IDENTITY_START + EEPROM_ADDR_WIFI_EAP_IDENTITY_LENGTH)
+#define EEPROM_ADDR_WIFI_EAP_USERNAME_LENGTH      65
+
+#define EEPROM_ADDR_WIFI_EAP_PASSWORD_START       (EEPROM_ADDR_WIFI_EAP_USERNAME_START + EEPROM_ADDR_WIFI_EAP_USERNAME_LENGTH)
+#define EEPROM_ADDR_WIFI_EAP_PASSWORD_LENGTH      65
+
 #define EEPROM_SIZE (EEPROM_ADDR_REFRESH_INTERVAL_LENGTH + EEPROM_ADDR_FINGERPRINT_LENGTH + EEPROM_ADDR_TOKEN_LENGTH + \
                      EEPROM_ADDR_FRAMESIZE_LENGTH + EEPROM_ADDR_BRIGHTNESS_LENGTH + EEPROM_ADDR_CONTRAST_LENGTH + \
                      EEPROM_ADDR_SATURATION_LENGTH + EEPROM_ADDR_HMIRROR_LENGTH + EEPROM_ADDR_VFLIP_LENGTH + \
@@ -321,7 +338,8 @@ static_assert((LOGS_MSG_MAX_LEN + 16) <= (LOGS_QUEUE_SIZE / 2), "LOGS_MSG_MAX_LE
                      EEPROM_ADDR_HOSTNAME_LENGTH + EEPROM_ADDR_SERVICE_AP_ENABLE_LENGTH + EEPROM_ADDR_NETWORK_IP_METHOD_LENGTH +\
                      EEPROM_ADDR_NETWORK_STATIC_IP_LENGTH + EEPROM_ADDR_NETWORK_STATIC_MASK_LENGTH + EEPROM_ADDR_NETWORK_STATIC_GATEWAY_LENGTH + \
                      EEPROM_ADDR_NETWORK_STATIC_DNS_LENGTH + EEPROM_ADDR_IMAGE_ROTATION_LENGTH + EEPROM_ADDR_TIMELAPS_ENABLE_LENGTH + \
-                     EEPROM_ADDR_EXT_SENS_ENABLE_LENGTH + EEPROM_ADDR_EXT_SENS_UNIT_LENGTH)    ///< how many bits do we need for eeprom memory
+                     EEPROM_ADDR_EXT_SENS_ENABLE_LENGTH + EEPROM_ADDR_EXT_SENS_UNIT_LENGTH + EEPROM_ADDR_WIFI_EAP_ENABLE_LENGTH + \
+                     EEPROM_ADDR_WIFI_EAP_IDENTITY_LENGTH + EEPROM_ADDR_WIFI_EAP_USERNAME_LENGTH + EEPROM_ADDR_WIFI_EAP_PASSWORD_LENGTH)    ///< how many bits do we need for eeprom memory
 
 #endif
 

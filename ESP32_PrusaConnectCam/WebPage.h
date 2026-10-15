@@ -19,6 +19,7 @@
 #define MSG_SAVE_OK           "Save cfg OK"                           ///< WEB app msg save OK
 #define MSG_SAVE_NOTOK        "Save cfg NOT OK!"                      ///< WEB app msg save NOT OK
 #define MSG_SCANNING          "Scanning Wi-Fi networks. Wait 8s..."   ///< WEB app msg Scanning wifi
+#define MSG_WIFI_EAP_NOT_CFG  "Wi-Fi Enterprise not enabled. Save the Wi-Fi network name (SSID), username and password first"
 #define MSG_UPDATE_START      "Start updating"
 
 /* ------------------------------------------------------------------------------------------------------------ */
@@ -203,10 +204,12 @@ const char page_wifi_html[] PROGMEM = R"rawliteral(
 			<tr><td class="w2" align="right">DNS server</td><td><input type="text" name="net_dns" id=net_dns_id></td></tr>
 			<tr><td></td><td align="center"><button class="btn_save_w" onclick="setWifiNet(document.getElementById('net_ip_id').value, document.getElementById('net_mask_id').value, document.getElementById('net_gw_id').value, document.getElementById('net_dns_id').value)">Save</button></td></tr>
 			<tr><td style="height: 10px;"></td></tr>
-			<tr><td class="w2" align="right">Enable WPA2-Enterprise </td><td><label class="switch"><input type="checkbox" name="wpa2_eap_enable" id="wpa2_eapid" onchange="changeValue(this.checked, 'set_bool?wpa2_eap_enable=', 'wifi')"><span class="checkbox_slider round"></span></label></label> <span class="w1" id="status_wpa2_eap"></span></td></tr>
+			<tr><td class="w2" align="right">Enable Wi-Fi Enterprise (WPA2/WPA3, PEAP) </td><td><label class="switch"><input type="checkbox" name="wpa2_eap_enable" id="wpa2_eapid" onchange="changeValue(this.checked, 'set_bool?wpa2_eap_enable=', 'wifi')"><span class="checkbox_slider round"></span></label></label> <span class="w1" id="status_wpa2_eap"></span></td></tr>
+			<tr><td class="w2" align="right">Anonymous identity (optional)</td><td><input type="text" name="wpa2_eap_identity" id=wpa2_eap_identity_id></td></tr>
 			<tr><td class="w2" align="right">Username</td><td><input type="text" name="wpa2_eap_user" id=wpa2_eap_user_id></td></tr>
-			<tr><td class="w2" align="right">Password</td><td><input type="text" name="wpa2_eap_pass" id=wpa2_eap_pass_id></td></tr>
-			<tr><td></td><td align="center"><button class="btn_save_w" onclick="setWPA2EAP(document.getElementById('wpa2_eap_user_id').value, document.getElementById('wpa2_eap_pass_id').value)">Save</button></td></tr>
+			<tr><td class="w2" align="right">Password</td><td><input type="password" name="wpa2_eap_pass" id=wpa2_eap_pass_id></td></tr>
+			<tr><td></td><td class="w2">Wi-Fi network name (SSID) is from "Connect to Wi-Fi network". Server certificate is not verified.</td></tr>
+			<tr><td></td><td align="center"><button class="btn_save_w" onclick="setWPA2EAP(document.getElementById('wpa2_eap_identity_id').value, document.getElementById('wpa2_eap_user_id').value, document.getElementById('wpa2_eap_pass_id').value)">Save</button></td></tr>
 		</table>
 	</div>
 </body>
@@ -989,6 +992,10 @@ function get_data(val) {
 			if (val == "wifi") {
 				document.getElementById('serviceapid').checked = obj.serviceap;
 				$("#status_serviceap").text((obj.serviceap == "true") ? "On" : "Off");
+				document.getElementById('wpa2_eapid').checked = (obj.wpa2_eap == "true");
+				$("#status_wpa2_eap").text((obj.wpa2_eap == "true") ? "On" : "Off");
+				document.getElementById('wpa2_eap_identity_id').value = obj.wpa2_eap_identity;
+				document.getElementById('wpa2_eap_user_id').value = obj.wpa2_eap_user;
 				$("#ssid").text(obj.ssid);
 				$("#rssi").text(obj.rssi);
 				$("#rssi_percentage").text(obj.rssi_percentage);
@@ -1170,9 +1177,9 @@ function setWifiNet(val_ip, val_mask, val_gw, val_dns) {
 	get_data("wifi");
 }
 
-function setWPA2EAP(val_user, val_pass) {	
+function setWPA2EAP(val_identity, val_user, val_pass) {	
 	var xmlHttp = new XMLHttpRequest();
-	xmlHttp.open("GET", "wifi_wpa2_eap?user=" +  encodeURIComponent(val_user) + "&pass=" + encodeURIComponent(val_pass), false);
+	xmlHttp.open("GET", "wifi_wpa2_eap?identity=" + encodeURIComponent(val_identity) + "&user=" +  encodeURIComponent(val_user) + "&pass=" + encodeURIComponent(val_pass), false);
 	xmlHttp.send(null);
 	alert(xmlHttp.responseText);
 	get_data("wifi");
@@ -1234,7 +1241,7 @@ function changeValue(val, url, reload, msg) {
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.open("GET", url + val, false);
 	xmlHttp.send(null);
-	if ((url == "set_int?refresh=") || (url == "set_token?token=") || (url == "set_mdns?mdns=") || (url == "set_int?ipcfg=")) {
+	if ((url == "set_int?refresh=") || (url == "set_token?token=") || (url == "set_mdns?mdns=") || (url == "set_int?ipcfg=") || (url == "set_bool?wpa2_eap_enable=")) {
 		alert(xmlHttp.responseText);
 	}
 	if (url == "set_flash_time?flash_time=") {

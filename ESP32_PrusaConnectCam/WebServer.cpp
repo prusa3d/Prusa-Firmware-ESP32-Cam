@@ -522,9 +522,8 @@ void Server_InitWebServer_Actions() {
     if (Server_CheckBasicAuth(request) == false)
       return;
     request->send(200, F("text/html"), MSG_REBOOT_MCU);
-    delay(100); /* wait for sending data */
-    SystemLog.LoggerFlush(LOGS_RESTART_FLUSH_TIMEOUT);
-    ESP.restart();
+    /* the response is sent after return from this handler, restart MCU later */
+    Server_RestartDelayed();
   });
 
   /* route for change LED status */
@@ -792,6 +791,16 @@ void Server_InitWebServer_Sets() {
       response = true;
     }
 
+    /* set WiFi Enterprise (PEAP) enable */
+    if (request->hasParam("wpa2_eap_enable")) {
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set WiFi Enterprise enable"));
+      if (false == SystemWifiMngt.SetStaEapEnable(Server_TransfeStringToBool(request->getParam("wpa2_eap_enable")->value()))) {
+        request->send(200, F("text/html"), MSG_WIFI_EAP_NOT_CFG);
+        return;
+      }
+      response = true;
+    }
+
     /* set timelaps enable */
     if (request->hasParam("timelaps_enable")) {
       SystemLog.AddEvent(LogLevel_Verbose, F("Set timelaps enable"));
@@ -862,6 +871,14 @@ void Server_InitWebServer_Sets() {
       TmpPassword = request->getParam("wifi_pass")->value();
     }
 
+    /* WiFi Enterprise is enabled: the WiFi password is not used, empty password changes only SSID */
+    if ((true == SystemWifiMngt.GetStaEapEnable()) && (TmpPassword.length() == 0) && (TmpSsid.length() > 0) && (TmpSsid.length() < EEPROM_ADDR_WIFI_SSID_LENGTH)) {
+      request->send(200, F("text/html"), MSG_SAVE_OK_WIFI);
+      SystemWifiMngt.SetStaSsid(TmpSsid);
+      SystemWifiMngt.WiFiStaConnectDelayed();
+      return;
+    }
+
     /* check min and max length WI-FI ssid and password */
 #if (WIFI_DISABLE_UNENCRYPTED_STA_PASS_CHECK == false)
     if (((TmpPassword.length() > 0) && (TmpSsid.length() > 0)) && ((TmpPassword.length() < EEPROM_ADDR_WIFI_PASSWORD_LENGTH) && (TmpSsid.length() < EEPROM_ADDR_WIFI_SSID_LENGTH))) {
@@ -872,10 +889,39 @@ void Server_InitWebServer_Sets() {
       /* send OK response */
       request->send(200, F("text/html"), MSG_SAVE_OK_WIFI);
 
-      /* save ssid and password */
+      /* save ssid and password, connect after the response is sent */
       SystemWifiMngt.SetStaCredentials(TmpSsid, TmpPassword);
-      SystemWifiMngt.WiFiStaConnect();
+      SystemWifiMngt.WiFiStaConnectDelayed();
 
+    } else {
+      request->send(200, F("text/html"), MSG_SAVE_NOTOK);
+    }
+  });
+
+  /* route for set WiFi Enterprise (PEAP) credentials. SSID is from /wifi_cfg */
+  server.on("/wifi_wpa2_eap", HTTP_GET, [](AsyncWebServerRequest* request) {
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: set WiFi Enterprise credentials"));
+    if (Server_CheckBasicAuth(request) == false)
+      return;
+
+    String TmpIdentity = "";
+    String TmpUser = "";
+    String TmpPassword = "";
+    if (request->hasParam("identity")) {
+      TmpIdentity = request->getParam("identity")->value();
+    }
+    if (request->hasParam("user")) {
+      TmpUser = request->getParam("user")->value();
+    }
+    if (request->hasParam("pass")) {
+      TmpPassword = request->getParam("pass")->value();
+    }
+
+    /* check min and max length of the identity, username and password */
+    if ((TmpIdentity.length() < EEPROM_ADDR_WIFI_EAP_IDENTITY_LENGTH) && (TmpUser.length() > 0) && (TmpUser.length() < EEPROM_ADDR_WIFI_EAP_USERNAME_LENGTH) &&
+        (TmpPassword.length() > 0) && (TmpPassword.length() < EEPROM_ADDR_WIFI_EAP_PASSWORD_LENGTH)) {
+      request->send(200, F("text/html"), (true == SystemWifiMngt.GetStaEapEnable()) ? MSG_SAVE_OK_WIFI : MSG_SAVE_OK);
+      SystemWifiMngt.SetStaEapCredentials(TmpIdentity, TmpUser, TmpPassword);
     } else {
       request->send(200, F("text/html"), MSG_SAVE_NOTOK);
     }
@@ -1232,6 +1278,9 @@ String Server_GetJsonData() {
   doc_json["mdns"] = SystemWifiMngt.GetMdns();
   doc_json["service_ap_ssid"] = SystemWifiMngt.GetServiceApSsid();
   doc_json["serviceap"] = Server_TranslateBoolToString(SystemWifiMngt.GetEnableServiceAp());
+  doc_json["wpa2_eap"] = Server_TranslateBoolToString(SystemWifiMngt.GetStaEapEnable());
+  doc_json["wpa2_eap_identity"] = SystemWifiMngt.GetStaEapIdentity();
+  doc_json["wpa2_eap_user"] = SystemWifiMngt.GetStaEapUsername();
   doc_json["auth"] = Server_TranslateBoolToString(WebBasicAuth.EnableAuth);
   doc_json["auth_username"] = WebBasicAuth.UserName;
   doc_json["last_upload_status"] = Connect.GetBackendReceivedStatus();
@@ -1286,6 +1335,42 @@ bool Server_CheckBasicAuth(AsyncWebServerRequest* request) {
   }
 
   return true;
+}
+
+/**
+   @brief Restart MCU after WEB_APPLY_CFG_DELAY. The web response is sent after return from the request handler, restart in the handler stops it
+   @param none
+   @return none
+*/
+void Server_RestartDelayed() {
+  static esp_timer_handle_t restart_timer = NULL;
+
+  if (NULL == restart_timer) {
+    esp_timer_create_args_t timer_args = {};
+    timer_args.callback = &Server_RestartTimerCallback;
+    timer_args.arg = NULL;
+    timer_args.dispatch_method = ESP_TIMER_TASK;
+    timer_args.name = "WebRestart";
+
+    if (ESP_OK != esp_timer_create(&timer_args, &restart_timer)) {
+      restart_timer = NULL;
+      Server_RestartTimerCallback(NULL);
+      return;
+    }
+  }
+
+  esp_timer_stop(restart_timer);
+  esp_timer_start_once(restart_timer, (uint64_t)WEB_APPLY_CFG_DELAY * 1000);
+}
+
+/**
+   @brief Callback of the esp_timer. Write log messages and restart MCU
+   @param void * - not used
+   @return none
+*/
+void Server_RestartTimerCallback(void *i_arg) {
+  SystemLog.LoggerFlush(LOGS_RESTART_FLUSH_TIMEOUT);
+  ESP.restart();
 }
 
 /**

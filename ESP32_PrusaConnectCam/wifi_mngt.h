@@ -15,6 +15,8 @@
 #include <esp_task_wdt.h>
 #include <ESPmDNS.h>
 #include <esp_wifi.h>
+#include <esp_eap_client.h>
+#include <esp_timer.h>
 #include <esp32-hal-cpu.h>
 
 #include "mcu_cfg.h"
@@ -55,6 +57,10 @@ class WiFiMngt {
 private:
   String WifiSsid;                    ///< WI-FI SSID
   String WifiPassword;                ///< WI-FI password
+  bool WifiEapEnable;                 ///< WiFi Enterprise (PEAP) is enabled, connect with WifiEapUsername and WifiEapPassword
+  String WifiEapIdentity;             ///< WiFi Enterprise anonymous identity, empty = username
+  String WifiEapUsername;             ///< WiFi Enterprise username
+  String WifiEapPassword;             ///< WiFi Enterprise password
   bool ServiceMode;                   ///< flag for enable service AP mode after MCU start during STA_AP_MODE_TIMEOUT ms
   String WiFiMode;                    ///< Wi-Fi mode (AP, STA, STA_AP)
   String SericeApSsid;                ///< Service AP SSID
@@ -81,6 +87,9 @@ private:
   unsigned long TaskAp_previousMillis;  ///< previous time for task AP
   unsigned long TaskWdg_previousMillis; ///< previous time for task STA watchdog
 
+  esp_timer_handle_t StaConnectTimer; ///< one-shot timer for connect to STA after the web response is sent
+  static void StaConnectTimerCallback(void *);
+
   String mDNS_record;                 ///< mDNS record
   String WifiScanJson;                ///< global variable with wifi networks
 
@@ -98,6 +107,7 @@ public:
   void WiFiReconnect();
   void SetWifiEvents();
   void WiFiStaConnect();
+  void WiFiStaConnectDelayed();
   void SyncNtpTime();
 
   void ScanWiFiNetwork();
@@ -129,6 +139,9 @@ public:
   String GetNetStaticMask();
   String GetNetStaticGateway();
   String GetNetStaticDns();
+  bool GetStaEapEnable();
+  String GetStaEapIdentity();
+  String GetStaEapUsername();
 
 
   void SetStaCredentials(String, String);
@@ -140,6 +153,8 @@ public:
   void SetFirstConnection(bool);
   void SetNetworkConfig(String, String, String, String);
   void SetNetIpMethod(uint8_t);
+  void SetStaEapCredentials(String, String, String);
+  bool SetStaEapEnable(bool);
 };
 
 extern WiFiMngt SystemWifiMngt;   ///< global variable for wifi management

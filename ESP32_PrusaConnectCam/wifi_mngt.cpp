@@ -32,6 +32,8 @@ WiFiMngt::WiFiMngt(Configuration *i_conf, Logs *i_log, Camera *i_cam) {
 
   NtpFirstSync = false;
   StartStaWdg = false;
+  WifiEapEnable = false;
+  StaConnectTimer = NULL;
 }
 
 /**
@@ -42,6 +44,10 @@ WiFiMngt::WiFiMngt(Configuration *i_conf, Logs *i_log, Camera *i_cam) {
 void WiFiMngt::LoadCfgFromEeprom() {
   WifiSsid = config->LoadWifiSsid();
   WifiPassword = config->LoadWifiPassowrd();
+  WifiEapEnable = config->LoadWifiEapEnable();
+  WifiEapIdentity = config->LoadWifiEapIdentity();
+  WifiEapUsername = config->LoadWifiEapUsername();
+  WifiEapPassword = config->LoadWifiEapPassword();
   
   mDNS_record = config->LoadMdnsRecord();
   EnableServiceAp = config->LoadEnableServiceAp();
@@ -237,7 +243,13 @@ void WiFiMngt::SetWifiEvents() {
 void WiFiMngt::WiFiStaConnect() {
   if (config->CheckActifeWifiCfgFlag() == true) {
     system_led.setTimer(STATUS_LED_STA_CONNECTING);
-    if (false == WiFiStaMultipleNetwork) {
+    if (true == WifiEapEnable) {
+      /* WiFi Enterprise (WPA2/WPA3-Enterprise), PEAP without CA certificate. Empty identity = username */
+      String identity = (WifiEapIdentity.length() > 0) ? WifiEapIdentity : WifiEapUsername;
+      const uint8_t *bssid = (true == WiFiStaMultipleNetwork) ? WiFiStaNetworkBssid : NULL;
+      WiFi.begin(WifiSsid.c_str(), WPA2_AUTH_PEAP, identity.c_str(), WifiEapUsername.c_str(), WifiEapPassword.c_str(), NULL, NULL, NULL, -1, 0, bssid);
+      log->AddEvent(LogLevel_Info, F("Connecting to STA SSID, WiFi Enterprise PEAP"));
+    } else if (false == WiFiStaMultipleNetwork) {
 
 #if (WIFI_DISABLE_UNENCRYPTED_STA_PASS_CHECK == true)      
       if (WifiPassword == "") {
@@ -258,6 +270,41 @@ void WiFiMngt::WiFiStaConnect() {
     WiFi.setSleep(false);
     WiFi.setAutoReconnect(true);
   }
+}
+
+/**
+   @brief Function for connect to STA after WEB_APPLY_CFG_DELAY. Used from the web server, the web response is sent before the WiFi disconnects
+   @param none
+   @return none
+*/
+void WiFiMngt::WiFiStaConnectDelayed() {
+  if (NULL == StaConnectTimer) {
+    esp_timer_create_args_t timer_args = {};
+    timer_args.callback = &WiFiMngt::StaConnectTimerCallback;
+    timer_args.arg = this;
+    timer_args.dispatch_method = ESP_TIMER_TASK;
+    timer_args.name = "StaConnect";
+
+    if (ESP_OK != esp_timer_create(&timer_args, &StaConnectTimer)) {
+      StaConnectTimer = NULL;
+      log->AddEvent(LogLevel_Warning, F("Timer for connect to STA failed, connect now"));
+      WiFiStaConnect();
+      return;
+    }
+  }
+
+  /* next request from the web restarts the timer */
+  esp_timer_stop(StaConnectTimer);
+  esp_timer_start_once(StaConnectTimer, (uint64_t)WEB_APPLY_CFG_DELAY * 1000);
+}
+
+/**
+   @brief Callback of the esp_timer. Connect to STA
+   @param void * - pointer to the WiFiMngt object
+   @return none
+*/
+void WiFiMngt::StaConnectTimerCallback(void *i_arg) {
+  ((WiFiMngt *)i_arg)->WiFiStaConnect();
 }
 
 /**
@@ -611,6 +658,21 @@ String WiFiMngt::TranslateWiFiEncrypion(wifi_auth_mode_t i_data) {
     case WIFI_AUTH_WAPI_PSK:
       ret = F("WAPI");
       break;
+    case WIFI_AUTH_OWE:
+      ret = F("OWE");
+      break;
+    case WIFI_AUTH_WPA_ENTERPRISE:
+      ret = F("WPA-EAP");
+      break;
+    case WIFI_AUTH_WPA3_ENTERPRISE:
+      ret = F("WPA3-EAP");
+      break;
+    case WIFI_AUTH_WPA2_WPA3_ENTERPRISE:
+      ret = F("WPA2+WPA3-EAP");
+      break;
+    case WIFI_AUTH_WPA3_ENT_192:
+      ret = F("WPA3-EAP-192");
+      break;
     default:
       ret = F("unknown");
   }
@@ -890,6 +952,84 @@ void WiFiMngt::SetNetworkConfig(String i_ip, String i_mask, String i_gw, String 
 void WiFiMngt::SetNetIpMethod(uint8_t i_data) {
   NetIpMethod = i_data;
   config->SaveNetworkIpMethod(NetIpMethod);
+}
+
+/**
+   @brief function for get WiFi Enterprise (PEAP) enable status
+   @param none
+   @return bool - status
+*/
+bool WiFiMngt::GetStaEapEnable() {
+  return WifiEapEnable;
+}
+
+/**
+   @brief function for get WiFi Enterprise anonymous identity
+   @param none
+   @return String - identity
+*/
+String WiFiMngt::GetStaEapIdentity() {
+  return WifiEapIdentity;
+}
+
+/**
+   @brief function for get WiFi Enterprise username
+   @param none
+   @return String - username
+*/
+String WiFiMngt::GetStaEapUsername() {
+  return WifiEapUsername;
+}
+
+/**
+   @brief function for set WiFi Enterprise credentials. Connect only when WiFi Enterprise is enabled
+   @param String - anonymous identity, empty = username
+   @param String - username
+   @param String - password
+   @return none
+*/
+void WiFiMngt::SetStaEapCredentials(String i_identity, String i_user, String i_pass) {
+  WifiEapIdentity = i_identity;
+  config->SaveWifiEapIdentity(WifiEapIdentity);
+
+  WifiEapUsername = i_user;
+  config->SaveWifiEapUsername(WifiEapUsername);
+
+  WifiEapPassword = i_pass;
+  config->SaveWifiEapPassword(WifiEapPassword);
+
+  if (true == WifiEapEnable) {
+    WiFiStaConnectDelayed();
+  }
+}
+
+/**
+   @brief function for enable/disable WiFi Enterprise (PEAP) and connect to STA again
+   @param bool - true = enable
+   @return bool - false = enable refused, SSID, username or password is not saved
+*/
+bool WiFiMngt::SetStaEapEnable(bool i_data) {
+  if ((true == i_data) && ((WifiSsid.length() == 0) || (WifiEapUsername.length() == 0) || (WifiEapPassword.length() == 0))) {
+    log->AddEvent(LogLevel_Warning, F("WiFi Enterprise: SSID, username or password is not saved"));
+    return false;
+  }
+
+  if (i_data == WifiEapEnable) {
+    return true;
+  }
+
+  WifiEapEnable = i_data;
+  config->SaveWifiEapEnable(WifiEapEnable);
+
+  if (true == WifiEapEnable) {
+    config->SaveWifiCfgFlag(CFG_WIFI_SETTINGS_SAVED);
+  } else {
+    /* back to the WiFi password. The WiFi driver uses EAP until it is disabled */
+    esp_wifi_sta_enterprise_disable();
+  }
+  WiFiStaConnectDelayed();
+
+  return true;
 }
 
 /* ----------------------- Static function ----------------------- */

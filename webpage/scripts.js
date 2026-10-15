@@ -74,6 +74,10 @@ function get_data(val) {
 			if (val == "wifi") {
 				document.getElementById('serviceapid').checked = obj.serviceap;
 				$("#status_serviceap").text((obj.serviceap == "true") ? "On" : "Off");
+				document.getElementById('wpa2_eapid').checked = (obj.wpa2_eap == "true");
+				$("#status_wpa2_eap").text((obj.wpa2_eap == "true") ? "On" : "Off");
+				document.getElementById('wpa2_eap_identity_id').value = obj.wpa2_eap_identity;
+				document.getElementById('wpa2_eap_user_id').value = obj.wpa2_eap_user;
 				$("#ssid").text(obj.ssid);
 				$("#rssi").text(obj.rssi);
 				$("#rssi_percentage").text(obj.rssi_percentage);
@@ -255,9 +259,9 @@ function setWifiNet(val_ip, val_mask, val_gw, val_dns) {
 	get_data("wifi");
 }
 
-function setWPA2EAP(val_user, val_pass) {	
+function setWPA2EAP(val_identity, val_user, val_pass) {	
 	var xmlHttp = new XMLHttpRequest();
-	xmlHttp.open("GET", "wifi_wpa2_eap?user=" +  encodeURIComponent(val_user) + "&pass=" + encodeURIComponent(val_pass), false);
+	xmlHttp.open("GET", "wifi_wpa2_eap?identity=" + encodeURIComponent(val_identity) + "&user=" +  encodeURIComponent(val_user) + "&pass=" + encodeURIComponent(val_pass), false);
 	xmlHttp.send(null);
 	alert(xmlHttp.responseText);
 	get_data("wifi");
@@ -319,7 +323,7 @@ function changeValue(val, url, reload, msg) {
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.open("GET", url + val, false);
 	xmlHttp.send(null);
-	if ((url == "set_int?refresh=") || (url == "set_token?token=") || (url == "set_mdns?mdns=") || (url == "set_int?ipcfg=")) {
+	if ((url == "set_int?refresh=") || (url == "set_token?token=") || (url == "set_mdns?mdns=") || (url == "set_int?ipcfg=") || (url == "set_bool?wpa2_eap_enable=")) {
 		alert(xmlHttp.responseText);
 	}
 	if (url == "set_flash_time?flash_time=") {
