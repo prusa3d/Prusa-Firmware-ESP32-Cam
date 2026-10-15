@@ -124,6 +124,7 @@ public:
 private:
   Logs *Log;              ///< Pointer to Logs object
   String WiFiMacAddress;  ///< WiFi MAC address
+  SemaphoreHandle_t EepromMutex;  ///< Mutex serialising all EEPROM access
 
   void ReadCfg();
   void DefaultCfg();

@@ -12,7 +12,7 @@
 #include "var.h"
 
 WebBasicAuth_struct WebBasicAuth = { false, "", "" };
-struct FirmwareUpdate_struct FirmwareUpdate = { "Ready", false, 0, 0, 0, false, false, "", "", "", false };
+struct FirmwareUpdate_struct FirmwareUpdate = { "Ready", false, 0, 0, 0, false, false, false, "", "", "", false };
 struct McuTemperature_struct McuTemperature = {0.0};
 
 TaskHandle_t Task_CapturePhotoAndSend;

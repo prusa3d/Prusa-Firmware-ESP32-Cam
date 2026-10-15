@@ -73,6 +73,8 @@ private:
   String Photo;                             ///< photo in string format
   bool StreamOnOff;                         ///< stream on/off
   bool StreamSendingPhoto;                  ///< sending photo to Prusa Connect during stream
+  /* guards FrameBuffer. NOT recursive: never take it twice on one task (see ReinitCameraModule()).
+     Lock order frameBufferSemaphore -> LogMutex -> sdCardMutex. */
   SemaphoreHandle_t frameBufferSemaphore;   ///< semaphore for frame buffer
   float StreamAverageFps;                   ///< stream average fps
   uint16_t StreamAverageSize;               ///< stream average size

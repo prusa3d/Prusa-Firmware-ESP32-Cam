@@ -103,9 +103,21 @@ void System_UpdateInit() {
    @return none
 */
 void System_Main() {
-  /* check new FW version */
-  if (false == FirmwareUpdate.CheckNewVersionAfterBoot) {
+  /* once NTP has synced: TLS needs the clock, and DNS overlapping SNTP asserts (udp_new_ip_type) */
+  if ((false == FirmwareUpdate.CheckNewVersionAfterBoot) && (true == SystemLog.GetNtpTimeSynced())) {
     System_CheckNewVersion();
+  }
+
+  /* re-check requested by /check_web_ota_update */
+  if (true == FirmwareUpdate.RequestNewVersionCheck) {
+    FirmwareUpdate.RequestNewVersionCheck = false;
+    /* needs the clock, as above */
+    if (true == SystemLog.GetNtpTimeSynced()) {
+      System_CheckNewVersion();
+    } else {
+      FirmwareUpdate.CheckNewVersionFwStatus = F("Time not synced yet, try again later");
+      SystemLog.AddEvent(LogLevel_Warning, FirmwareUpdate.CheckNewVersionFwStatus);
+    }
   }
 
   /* task for download and flash FW from server */
@@ -145,10 +157,17 @@ void System_CheckNewVersion() {
       client.println("Connection: close");
       client.println();
 
+      /* connected() stays true while the peer idles: bound both reads, yield in the body loop */
+      unsigned long ResponseStart = millis();
+
       while (client.connected()) {
         String line = client.readStringUntil('\n');
         if (line == "\r") {
           SystemLog.AddEvent(LogLevel_Verbose, "headers received: " + line);
+          break;
+        }
+        if ((millis() - ResponseStart) >= OTA_CHECK_RESPONSE_TIMEOUT) {
+          SystemLog.AddEvent(LogLevel_Warning, F("Timeout reading OTA response headers"));
           break;
         }
       }
@@ -160,6 +179,11 @@ void System_CheckNewVersion() {
         while (client.available()) {
           Data += (char)client.read();
         }
+        if ((millis() - ResponseStart) >= OTA_CHECK_RESPONSE_TIMEOUT) {
+          SystemLog.AddEvent(LogLevel_Warning, F("Timeout reading OTA response body"));
+          break;
+        }
+        delay(1);
       }
 
       SystemLog.AddEvent(LogLevel_Verbose, Data);
@@ -188,6 +212,10 @@ void System_CheckNewVersion() {
           for(int i = 0; i < assetsCount; i++) {
             JsonObject asset = assets[i];
             const char* name = asset["name"];
+            /* NULL when the asset has no "name"; strcmp_P() would panic on it */
+            if (NULL == name) {
+              continue;
+            }
             SystemLog.AddEvent(LogLevel_Info, "Assets[" + String(i) + "]: " + String(name));
 
             /* get FW file and URL */
@@ -450,6 +478,7 @@ String System_printMcuResetReasonSimple() {
 */
 void System_TaskWifiManagement(void *pvParameters) {
   SystemLog.AddEvent(LogLevel_Info, F("Task Wifi Management. core: "), String(xPortGetCoreID()));
+  ESP_ERROR_CHECK(esp_task_wdt_add(NULL));
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while (1) {
@@ -478,6 +507,7 @@ void System_TaskWifiManagement(void *pvParameters) {
  */
 void System_TaskMain(void *pvParameters) {
   SystemLog.AddEvent(LogLevel_Info, F("System task. core: "), String(xPortGetCoreID()));
+  ESP_ERROR_CHECK(esp_task_wdt_add(NULL));
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while (1) {
@@ -502,6 +532,7 @@ void System_TaskMain(void *pvParameters) {
  */
 void System_TaskCaptureAndSendPhoto(void *pvParameters) {
   SystemLog.AddEvent(LogLevel_Info, F("Task photo processing. core: "), String(xPortGetCoreID()));
+  ESP_ERROR_CHECK(esp_task_wdt_add(NULL));
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while (1) {
@@ -544,6 +575,7 @@ void System_TaskCaptureAndSendPhoto(void *pvParameters) {
  */
 void System_TaskSdCardCheck(void *pvParameters) {
   SystemLog.AddEvent(LogLevel_Info, F("MicroSdCard check task. core: "), String(xPortGetCoreID()));
+  ESP_ERROR_CHECK(esp_task_wdt_add(NULL));
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while (1) {
@@ -596,6 +628,7 @@ void System_TaskSdCardCheck(void *pvParameters) {
  */
 void System_TaskSerialCfg(void *pvParameters) {
   SystemLog.AddEvent(LogLevel_Info, F("SerialCg task. core: "), String(xPortGetCoreID()));
+  ESP_ERROR_CHECK(esp_task_wdt_add(NULL));
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while (1) {
@@ -619,6 +652,7 @@ void System_TaskSerialCfg(void *pvParameters) {
  */
 void System_TaskSystemTelemetry(void *pvParameters) {
   SystemLog.AddEvent(LogLevel_Info, F("SystemTelemetry task. core: "), String(xPortGetCoreID()));
+  ESP_ERROR_CHECK(esp_task_wdt_add(NULL));
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while (1) {
@@ -634,6 +668,27 @@ void System_TaskSystemTelemetry(void *pvParameters) {
     SystemLog.AddEvent(LogLevel_Info, "Free RAM: " + String(ESP.getFreeHeap()) + " B" + ", Min: " + String(ESP.getMinFreeHeap()));
     SystemLog.AddEvent(LogLevel_Info, "Free PSRAM: " + String(ESP.getFreePsram()) + " B" + ", Min: " + String(ESP.getMinFreePsram()));
     SystemLog.AddEvent(LogLevel_Info, "MCU Temperature: " + String(McuTemperature.TemperatureCelsius) + " *C");
+
+    /* min free stack per task [bytes] */
+    String StackMsg = F("Task stack min free (B): Photo: ");
+    StackMsg += String(uxTaskGetStackHighWaterMark(Task_CapturePhotoAndSend));
+    StackMsg += F(", WiFiMngt: ");
+    StackMsg += String(uxTaskGetStackHighWaterMark(Task_WiFiManagement));
+    StackMsg += F(", Main: ");
+    StackMsg += String(uxTaskGetStackHighWaterMark(Task_SystemMain));
+#if (true == ENABLE_SD_CARD)
+    StackMsg += F(", SdCard: ");
+    StackMsg += String(uxTaskGetStackHighWaterMark(Task_SdCardCheck));
+#endif
+    StackMsg += F(", SerialCfg: ");
+    StackMsg += String(uxTaskGetStackHighWaterMark(Task_SerialCfg));
+    StackMsg += F(", Telemetry: ");
+    StackMsg += String(uxTaskGetStackHighWaterMark(Task_SystemTelemetry));
+    StackMsg += F(", SysLed: ");
+    StackMsg += String(uxTaskGetStackHighWaterMark(Task_SysLed));
+    StackMsg += F(", WiFiWdg: ");
+    StackMsg += String(uxTaskGetStackHighWaterMark(Task_WiFiWatchdog));
+    SystemLog.AddEvent(LogLevel_Info, StackMsg);
 
     ExternalTemperatureSensor.ReadSensorData();
 
@@ -653,6 +708,7 @@ void System_TaskSystemTelemetry(void *pvParameters) {
  */
 void System_TaskSysLed(void *pvParameters) {
   SystemLog.AddEvent(LogLevel_Info, F("SystemLed task. core: "), String(xPortGetCoreID()));
+  ESP_ERROR_CHECK(esp_task_wdt_add(NULL));
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while (1) {
@@ -674,6 +730,7 @@ void System_TaskSysLed(void *pvParameters) {
  */
 void System_TaskWiFiWatchdog(void *pvParameters) {
   SystemLog.AddEvent(LogLevel_Info, F("WiFiWatchdog task. core: "), String(xPortGetCoreID()));
+  ESP_ERROR_CHECK(esp_task_wdt_add(NULL));
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while (1) {

@@ -4,16 +4,16 @@
    It's neccesary install support for ESP32 board to the arduino IDE. In the board manager we need add next link
    https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
    Then we can install "ESP32 by Espressif Systems" board in the board manager.
-   ESP32 lib version: 3.0.2 (ESP-IDF v5.1.4) by Espressif Systems
+   ESP32 lib version: 3.3.11 (ESP-IDF v5.5.5) by Espressif Systems
 
    This project uses other libraries. It is necessary to install them in the arduino IDE.
    - Library           - License  - Version - Link
-   - ESPAsyncWebServer - LGPL 3.0 - 3.4.5   - https://github.com/mathieucarbou/ESPAsyncWebServer
-   - AsyncTCP          - LGPL 3.0 - 3.3.1   - https://github.com/mathieucarbou/AsyncTCP
-   - ArduinoJson       - MIT      - 7.3.0   - https://github.com/bblanchon/ArduinoJson
+   - ESPAsyncWebServer - LGPL 3.0 - 3.12.1  - https://github.com/ESP32Async/ESPAsyncWebServer
+   - AsyncTCP          - LGPL 3.0 - 3.5.0   - https://github.com/ESP32Async/AsyncTCP
+   - ArduinoJson       - MIT      - 7.4.3   - https://github.com/bblanchon/ArduinoJson
    - ArduinoUniqueID   - MIT      - 1.3.0   - https://github.com/ricaun/ArduinoUniqueID
    - arduino-esp32     - LGPL 2.1 - 3.1.0   - https://github.com/espressif/arduino-esp32
-   - DHTnew            - MIT      - 0.5.2   - https://github.com/RobTillaart/DHTNew
+   - DHTnew            - MIT      - 0.5.5   - https://github.com/RobTillaart/DHTNew
 
    Arduino IDE configuration for the MCU are stored in the module_XXX.h file.
 
@@ -90,9 +90,6 @@ void setup() {
   SystemCamera.CapturePhoto();
   SystemCamera.CaptureReturnFrameBuffer();
 
-  /* init WEB server */
-  Server_InitWebServer();
-
   /* init class for communication with PrusaConnect */
   Connect.Init();
 
@@ -106,33 +103,29 @@ void setup() {
   twdt_config.idle_core_mask = (1 << portNUM_PROCESSORS) - 1,    /* Bitmask of all cores */
   twdt_config.trigger_panic = true;
 	
-  esp_task_wdt_init(&twdt_config);          /* enable panic so ESP32 restarts */
+  /* TWDT already initialised by the core: reconfigure only */
   esp_task_wdt_reconfigure(&twdt_config);
   ESP_ERROR_CHECK(esp_task_wdt_add(NULL));  /* add current thread to WDT watch */
   esp_task_wdt_reset();                     /* reset wdg */
 
-  /* init tasks */
+  /* init tasks. Each task subscribes itself to the watchdog: adding here raced its first reset */
+  /* stacks: measured high-water mark + >=512 B, 512 B multiples; overflow corrupts SDMMC state (#145) */
   SystemLog.AddEvent(LogLevel_Info, F("Start tasks"));
-  xTaskCreatePinnedToCore(System_TaskMain, "SystemNtpOtaUpdate", 5200, NULL, 1, &Task_SystemMain, 0);                           /*function, description, stack size, parameters, priority, task handle, core*/
-  ESP_ERROR_CHECK(esp_task_wdt_add(Task_SystemMain));
-  xTaskCreatePinnedToCore(System_TaskCaptureAndSendPhoto, "CaptureAndSendPhoto", 4400, NULL, 2, &Task_CapturePhotoAndSend, 0);  /*function, description, stack size, parameters, priority, task handle, core*/
-  ESP_ERROR_CHECK(esp_task_wdt_add(Task_CapturePhotoAndSend));
-  xTaskCreatePinnedToCore(System_TaskWifiManagement, "WiFiManagement", 2700, NULL, 3, &Task_WiFiManagement, 0);                 /*function, description, stack size, parameters, priority, task handle, core*/
-  ESP_ERROR_CHECK(esp_task_wdt_add(Task_WiFiManagement));
+  xTaskCreatePinnedToCore(System_TaskMain, "SystemNtpOtaUpdate", 5632, NULL, 1, &Task_SystemMain, 0);                           /*function, description, stack size, parameters, priority, task handle, core*/
+  xTaskCreatePinnedToCore(System_TaskCaptureAndSendPhoto, "CaptureAndSendPhoto", 5120, NULL, 2, &Task_CapturePhotoAndSend, 0);  /*function, description, stack size, parameters, priority, task handle, core*/
+  xTaskCreatePinnedToCore(System_TaskWifiManagement, "WiFiManagement", 3072, NULL, 3, &Task_WiFiManagement, 0);                 /*function, description, stack size, parameters, priority, task handle, core*/
 #if (true == ENABLE_SD_CARD)  
-  xTaskCreatePinnedToCore(System_TaskSdCardCheck, "CheckMicroSdCard", 3000, NULL, 4, &Task_SdCardCheck, 0);                     /*function, description, stack size, parameters, priority, task handle, core*/
-  ESP_ERROR_CHECK(esp_task_wdt_add(Task_SdCardCheck));
+  xTaskCreatePinnedToCore(System_TaskSdCardCheck, "CheckMicroSdCard", 5120, NULL, 4, &Task_SdCardCheck, 0);                     /*function, description, stack size, parameters, priority, task handle, core*/
 #endif
-  xTaskCreatePinnedToCore(System_TaskSerialCfg, "CheckSerialConfiguration", 2300, NULL, 5, &Task_SerialCfg, 0);                 /*function, description, stack size, parameters, priority, task handle, core*/
-  ESP_ERROR_CHECK(esp_task_wdt_add(Task_SerialCfg));
-  xTaskCreatePinnedToCore(System_TaskSystemTelemetry, "PrintSystemTelemetry", 2200, NULL, 6, &Task_SystemTelemetry, 0);         /*function, description, stack size, parameters, priority, task handle, core*/
-  ESP_ERROR_CHECK(esp_task_wdt_add(Task_SystemTelemetry));
-  xTaskCreatePinnedToCore(System_TaskSysLed, "SystemLed", 2000, NULL, 7, &Task_SysLed, 0);                                      /*function, description, stack size, parameters, priority, task handle, core*/
-  ESP_ERROR_CHECK(esp_task_wdt_add(Task_SysLed));
-  xTaskCreatePinnedToCore(System_TaskWiFiWatchdog, "WiFiWatchdog", 2200, NULL, 8, &Task_WiFiWatchdog, 0);                       /*function, description, stack size, parameters, priority, task handle, core*/
-  ESP_ERROR_CHECK(esp_task_wdt_add(Task_WiFiWatchdog));
+  xTaskCreatePinnedToCore(System_TaskSerialCfg, "CheckSerialConfiguration", 3584, NULL, 5, &Task_SerialCfg, 0);                 /*function, description, stack size, parameters, priority, task handle, core*/
+  xTaskCreatePinnedToCore(System_TaskSystemTelemetry, "PrintSystemTelemetry", 2560, NULL, 6, &Task_SystemTelemetry, 0);         /*function, description, stack size, parameters, priority, task handle, core*/
+  xTaskCreatePinnedToCore(System_TaskSysLed, "SystemLed", 2560, NULL, 7, &Task_SysLed, 0);                                      /*function, description, stack size, parameters, priority, task handle, core*/
+  xTaskCreatePinnedToCore(System_TaskWiFiWatchdog, "WiFiWatchdog", 3072, NULL, 8, &Task_WiFiWatchdog, 0);                       /*function, description, stack size, parameters, priority, task handle, core*/
   //xTaskCreatePinnedToCore(System_TaskSdCardRemove, "SdCardRemove", 3000, NULL, 9, &Task_SdCardFileRemove, 0);                   /*function, description, stack size, parameters, priority, task handle, core*/
   //esp_task_wdt_add(Task_SdCardFileRemove);
+
+  /* last: requests arrive as soon as the server starts */
+  Server_InitWebServer();
 
   SystemLog.AddEvent(LogLevel_Info, F("MCU configuration done"));
 }

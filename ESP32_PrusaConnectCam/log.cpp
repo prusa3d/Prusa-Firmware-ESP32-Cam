@@ -24,7 +24,7 @@ Logs::Logs() {
   FileMaxSize = 1024;
   NtpTimeSynced = false;
   LogMsg = "";
-  LogMutex = xSemaphoreCreateMutex();
+  LogMutex = xSemaphoreCreateRecursiveMutex();
 }
 
 /**
@@ -40,7 +40,7 @@ Logs::Logs(String i_FilePath, String i_FileName) {
   FileMaxSize = 1024;
   NtpTimeSynced = false;
   LogMsg = "";
-  LogMutex = xSemaphoreCreateMutex();
+  LogMutex = xSemaphoreCreateRecursiveMutex();
 }
 
 /**
@@ -57,7 +57,7 @@ Logs::Logs(LogLevel_enum i_LogLevel, String i_FilePath, String i_FileName) {
   FileMaxSize = 1024;
   NtpTimeSynced = false;
   LogMsg = "";
-  LogMutex = xSemaphoreCreateMutex();
+  LogMutex = xSemaphoreCreateRecursiveMutex();
 }
 
 /**
@@ -74,7 +74,7 @@ Logs::Logs(String i_FilePath, String i_FileName, uint16_t i_FileSize) {
   FileMaxSize = i_FileSize;
   NtpTimeSynced = false;
   LogMsg = "";
-  LogMutex = xSemaphoreCreateMutex();
+  LogMutex = xSemaphoreCreateRecursiveMutex();
 }
 
 /**
@@ -92,7 +92,7 @@ Logs::Logs(LogLevel_enum i_LogLevel, String i_FilePath, String i_FileName, uint1
   FileMaxSize = i_FileSize;
   NtpTimeSynced = false;
   LogMsg = "";
-  LogMutex = xSemaphoreCreateMutex();
+  LogMutex = xSemaphoreCreateRecursiveMutex();
 }
 
 /**
@@ -145,7 +145,10 @@ void Logs::Init() {
  */
 void Logs::LogOpenFile() {
 #if (true == ENABLE_SD_CARD)
+  /* guards LogFile / LogFileOpened, which AddEvent() also touches */
+  xSemaphoreTakeRecursive(LogMutex, portMAX_DELAY);
   LogFileOpened = OpenFile(&LogFile, FilePath + FileName);
+  xSemaphoreGiveRecursive(LogMutex);
 #endif
 }
 
@@ -155,7 +158,10 @@ void Logs::LogOpenFile() {
  */
 void Logs::LogCloseFile() {
 #if (true == ENABLE_SD_CARD)
+  xSemaphoreTakeRecursive(LogMutex, portMAX_DELAY);
   CloseFile(&LogFile);
+  LogFileOpened = false;
+  xSemaphoreGiveRecursive(LogMutex);
 #endif
 }
 
@@ -165,7 +171,9 @@ void Logs::LogCloseFile() {
  */
 void Logs::LogCheckOpenedFile() { 
 #if (true == ENABLE_SD_CARD)
+  xSemaphoreTakeRecursive(LogMutex, portMAX_DELAY);
   LogFileOpened = CheckOpenFile(&LogFile);
+  xSemaphoreGiveRecursive(LogMutex);
 #endif
 }
 
@@ -187,8 +195,16 @@ void Logs::SetLogLevel(LogLevel_enum level) {
    @return none
 */
 void Logs::AddEvent(LogLevel_enum level, String msg, bool newLine, bool date) {
+  /* filter before locking */
+  if (LogLevel < level) {
+#if (true == CONSOLE_VERBOSE_DEBUG)
+    Serial.println(msg);
+#endif
+    return;
+  }
+
   /* mutex for log */
-  xSemaphoreTake(LogMutex, portMAX_DELAY);
+  xSemaphoreTakeRecursive(LogMutex, portMAX_DELAY);
   /* check log level */
   if (LogLevel >= level) {
 
@@ -224,7 +240,7 @@ void Logs::AddEvent(LogLevel_enum level, String msg, bool newLine, bool date) {
     Serial.println(msg);
   }
 #endif
-  xSemaphoreGive(LogMutex);
+  xSemaphoreGiveRecursive(LogMutex);
 }
 
 /**
@@ -237,8 +253,15 @@ void Logs::AddEvent(LogLevel_enum level, String msg, bool newLine, bool date) {
    @return none
 */
 void Logs::AddEvent(LogLevel_enum level, const __FlashStringHelper *msg, String parameters, bool newLine, bool date) {
+  if (LogLevel < level) {
+#if (true == CONSOLE_VERBOSE_DEBUG)
+    Serial.println(msg);
+#endif
+    return;
+  }
+
   /* mutex for log */
-  xSemaphoreTake(LogMutex, portMAX_DELAY);
+  xSemaphoreTakeRecursive(LogMutex, portMAX_DELAY);
 
   /* check log level */
   if (LogLevel >= level) {
@@ -279,7 +302,7 @@ void Logs::AddEvent(LogLevel_enum level, const __FlashStringHelper *msg, String 
 #endif
 
   /* release mutex */
-  xSemaphoreGive(LogMutex);
+  xSemaphoreGiveRecursive(LogMutex);
  }
 
 /**
@@ -362,6 +385,9 @@ bool Logs::GetNtpTimeSynced() {
 */
 void Logs::CheckMaxLogFileSize() {
 #if (true == ENABLE_SD_CARD)
+  /* rotation atomic w.r.t. AddEvent(); recursive, AddEvent() below takes it too */
+  xSemaphoreTakeRecursive(LogMutex, portMAX_DELAY);
+
   uint32_t FileSize = GetFileSize(SD_MMC, FilePath + FileName);
   AddEvent(LogLevel_Verbose, F("Log file size: "), String(FileSize) + "/" + String(LOGS_FILE_MAX_SIZE) + " B");
 
@@ -372,6 +398,8 @@ void Logs::CheckMaxLogFileSize() {
     RenameFile(SD_MMC, FilePath + FileName, FilePath + FileName + String(file_count));
     LogOpenFile();
   }
+
+  xSemaphoreGiveRecursive(LogMutex);
 #endif
 }
 
