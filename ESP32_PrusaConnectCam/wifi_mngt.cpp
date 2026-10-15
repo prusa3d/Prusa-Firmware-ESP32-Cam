@@ -153,9 +153,9 @@ void WiFiMngt::WifiManagement() {
         && (false == FirmwareUpdate.Processing) && (false == cam->GetStreamStatus())) {
       if (WiFi.softAPgetStationNum() == 0) {
         log->AddEvent(LogLevel_Info, F("Disable service AP mode"));
+        /* STA stays connected after the mode change. WiFiStaConnect() (WiFi.begin) and WiFi.softAPdisconnect(true) here disconnected the STA again */
         WiFi.mode(WIFI_STA);
         esp_wifi_set_ps(WIFI_PS_NONE);
-        WiFiStaConnect();
         //WiFi.begin(WifiSsid, WifiPassword);
         WiFiMode = F("Client");
 
@@ -167,7 +167,6 @@ void WiFiMngt::WifiManagement() {
         log->AddEvent(LogLevel_Verbose, "Connected to WiFi");
 #endif
         ServiceMode = false;
-        WiFi.softAPdisconnect(true);
       } else {
         log->AddEvent(LogLevel_Info, "Client [" + String(WiFi.softAPgetStationNum()) + "] still is connected to Wi-Fi AP!");
       }

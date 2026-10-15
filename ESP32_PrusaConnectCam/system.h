@@ -47,6 +47,19 @@
 #define SYSTEM_MSG_UPDATE_PROCESS F("FW update in progress")
 #define SYSTEM_MSG_UPDATE_NO_FW   F("No new FW version available!")
 
+/**
+ * @brief Allocator for ArduinoJson. JsonDocument in the PSRAM, when the PSRAM is full, in the internal RAM.
+ *        Default allocator (malloc) uses the PSRAM only from CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL (4096 B)
+ */
+class JsonPsramAllocator : public ArduinoJson::Allocator {
+public:
+  void *allocate(size_t) override;
+  void deallocate(void *) override;
+  void *reallocate(void *, size_t) override;
+};
+
+extern JsonPsramAllocator SystemJsonAllocator;  ///< allocator for JsonDocument in the PSRAM
+
 void System_Init();
 void System_LoadCfg();
 bool System_CheckIfPsramIsUsed();

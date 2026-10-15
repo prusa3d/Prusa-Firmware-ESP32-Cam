@@ -51,7 +51,7 @@ void Server_resume();
 
 void Server_handleCacheRequest(AsyncWebServerRequest*, const char*, const char*);
 void Server_handleNotFound(AsyncWebServerRequest *);
-String Server_GetJsonData();
+char *Server_GetJsonData();
 bool Server_CheckBasicAuth(AsyncWebServerRequest *);
 void Server_RestartDelayed();
 void Server_RestartTimerCallback(void *);

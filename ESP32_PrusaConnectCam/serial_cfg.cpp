@@ -117,7 +117,7 @@ String lastTwoChars = command.substring(command.length() - 2);
   } else if (command.startsWith("resolution:") && command.endsWith(";")) {
     uint8_t resolution = command.substring(11, command.length() -1).toInt();
     log->AddEvent(LogLevel_Info, F("--> Console set photo resolution: "), String(resolution));
-    if ((resolution >= 0) && (resolution <= 6)) {
+    if (resolution <= 6) {
       cam->SetFrameSize(resolution);
     } else {
       log->AddEvent(LogLevel_Warning, F("--> Bad resolution size!"));

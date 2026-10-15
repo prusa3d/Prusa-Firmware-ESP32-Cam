@@ -67,6 +67,7 @@ private:
   /* OV2640 camera module pinout and cfg*/
   camera_config_t CameraConfig;             ///< camera configuration
   camera_fb_t *FrameBuffer;                 ///< frame buffer
+  bool FrameBufferHeld;                     ///< FrameBuffer is taken from the camera driver (esp_camera_fb_get) and not returned yet
   camera_fb_t *FrameBufferDuplicate;        ///< frame buffer duplicate
   camera_fb_t *FrameBufferExif;             ///< frame buffer with exif data
   sensor_t* sensor;                         ///< sensor
@@ -85,6 +86,7 @@ private:
   Logs *log;                                ///< pointer to Logs object
 
   void InitCameraModule();
+  void ReturnFrameBufferToDriver();
 
 public:
   Camera(Configuration*, Logs*, int8_t);

@@ -102,7 +102,14 @@ void Server_InitWebServer_JsonData() {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: get json_input"));
     if (Server_CheckBasicAuth(request) == false)
       return;
-    request->send(200, F("text/plain"), Server_GetJsonData().c_str());
+    /* json is in the PSRAM, the response makes its own copy */
+    char *json = Server_GetJsonData();
+    if (NULL == json) {
+      request->send(503, "text/plain", "Not enough memory, try again");
+      return;
+    }
+    request->send(200, F("text/plain"), json);
+    heap_caps_free(json);
   });
 
   /* route for json with wifi networks */
@@ -1232,14 +1239,13 @@ void Server_handleNotFound(AsyncWebServerRequest* request) {
 }
 
 /**
-   @brief make json data for WEB page on the ESP32
+   @brief make json data for WEB page on the ESP32. JsonDocument and json are in the PSRAM
    @param none
-   @return String - json data
+   @return char * - json data, release with heap_caps_free(). NULL = not enough memory
 */
-String Server_GetJsonData() {
+char *Server_GetJsonData() {
   String uptime = "";
-  String string_json = "";
-  JsonDocument doc_json;
+  JsonDocument doc_json(&SystemJsonAllocator);
   Server_GetModuleUptime(uptime);
 
   doc_json["token"] = Connect.GetToken();
@@ -1311,15 +1317,22 @@ String Server_GetJsonData() {
   doc_json["ext_hum"] = ExternalTemperatureSensor.GetHumidityString();
   doc_json["exttemp_unit"] = ExternalTemperatureSensor.GetTemperatureUnit();
 
-  serializeJson(doc_json, string_json);
+  /* json to the PSRAM with exact size, without String in the internal RAM */
+  size_t json_len = measureJson(doc_json);
+  char *json = (char *)heap_caps_malloc_prefer(json_len + 1, 2, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+  if (NULL == json) {
+    SystemLog.AddEvent(LogLevel_Error, F("WEB server: not enough memory for json"));
+    return NULL;
+  }
+  serializeJson(doc_json, json, json_len + 1);
 
   /* the token is masked in the log, the copy of the json is created only when the message is printed */
   if ((SystemLog.GetLogLevel() >= LogLevel_Verbose) || (true == CONSOLE_VERBOSE_DEBUG)) {
-    String log_json = string_json;
+    String log_json = json;
     log_json.replace(Connect.GetToken(), SystemLog.MaskSensitiveData(Connect.GetToken()));
     SystemLog.AddEvent(LogLevel_Verbose, log_json);
   }
-  return string_json;
+  return json;
 }
 
 /**

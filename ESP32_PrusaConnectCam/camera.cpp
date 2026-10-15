@@ -28,6 +28,7 @@ Camera::Camera(Configuration* i_conf, Logs* i_log, int8_t i_FlashPin) {
 
   CameraFlashPin = i_FlashPin;
   StreamOnOff = false;
+  FrameBufferHeld = false;
   frameBufferSemaphore = xSemaphoreCreateMutex();
 
   /* Allocate memory for the frame buffer */
@@ -335,6 +336,8 @@ void Camera::ReinitCameraModule() {
   if (err != ESP_OK) {
     log->AddEvent(LogLevel_Warning, F("Camera error deinit camera module. Error: "), String(err, HEX));
   }
+  /* deinit released the frame buffers of the driver */
+  FrameBufferHeld = false;
   delay(100);
   InitCameraModule();
   ApplyCameraCfg();
@@ -395,14 +398,14 @@ void Camera::CapturePhoto() {
       delay(CameraFlashTime);
     }
 
-    if (FrameBuffer) {
-      esp_camera_fb_return(FrameBuffer);
-    }
+    /* return the photo from the previous cycle, only when it is still held */
+    ReturnFrameBufferToDriver();
 
     /* Capturing a training photo. Without this sequence, the camera will not obtain the current photo but photo from the previous cycle. */
     FrameBuffer = esp_camera_fb_get();
+    FrameBufferHeld = (NULL != FrameBuffer);
     if (FrameBuffer) {
-      esp_camera_fb_return(FrameBuffer);
+      ReturnFrameBufferToDriver();
       log->AddEvent(LogLevel_Verbose, F("Camera capture training photo"));
     } else {
       esp_camera_fb_return(FrameBuffer);
@@ -416,13 +419,14 @@ void Camera::CapturePhoto() {
     do {
       /* return invalid frame buffer from the previous attempt to the camera driver. Camera has only one frame buffer */
       if ((attempts > 0) && (FrameBuffer != NULL)) {
-        esp_camera_fb_return(FrameBuffer);
+        ReturnFrameBufferToDriver();
         FrameBuffer = NULL;
       }
 
       log->AddEvent(LogLevel_Info, F("Taking photo..."));
 
       FrameBuffer = esp_camera_fb_get();
+      FrameBufferHeld = (NULL != FrameBuffer);
       if (!FrameBuffer) {
         CameraCaptureFailedCounter++;
         log->AddEvent(LogLevel_Error, F("Camera capture failed! photo. Attempt: "), String(CameraCaptureFailedCounter));
@@ -492,11 +496,29 @@ void Camera::CapturePhoto() {
 */
 bool Camera::CaptureStream(camera_fb_t* i_buf) {
   if (xSemaphoreTake(frameBufferSemaphore, portMAX_DELAY)) {
+    int attempts = 0;
+    const int maxAttempts = 5;
     do {
+      /* return invalid frame buffer from the previous attempt to the camera driver. Camera has only one frame buffer */
+      if ((attempts > 0) && (FrameBuffer != NULL)) {
+        ReturnFrameBufferToDriver();
+        FrameBuffer = NULL;
+      }
+
       /* capture final photo */
       FrameBuffer = esp_camera_fb_get();
+      FrameBufferHeld = (NULL != FrameBuffer);
       if (!FrameBuffer) {
         log->AddEvent(LogLevel_Error, F("Camera capture failed! stream"));
+        xSemaphoreGive(frameBufferSemaphore);  // Release semaphore before returning
+        return false;
+      }
+
+      attempts++;
+      if ((FrameBuffer->len <= 100) && (attempts >= maxAttempts)) {
+        log->AddEvent(LogLevel_Error, F("Failed to capture a valid stream frame after max attempts"));
+        ReturnFrameBufferToDriver();
+        FrameBuffer = NULL;
         xSemaphoreGive(frameBufferSemaphore);  // Release semaphore before returning
         return false;
       }
@@ -624,7 +646,24 @@ bool Camera::CaptureStream(camera_fb_t* i_buf) {
    @return none
 */
 void Camera::CaptureReturnFrameBuffer() {
-  esp_camera_fb_return(FrameBuffer);
+  xSemaphoreTake(frameBufferSemaphore, portMAX_DELAY);
+  ReturnFrameBufferToDriver();
+  xSemaphoreGive(frameBufferSemaphore);
+}
+
+/**
+   @brief Return the frame buffer to the camera driver, only when it is held (taken by esp_camera_fb_get() and not returned yet).
+          The driver marks a returned buffer as free and writes the next frame into it. When a buffer, which is not held, is returned
+          again, the driver overwrites the frame waiting in its queue, and the next esp_camera_fb_get() gets a corrupted frame
+          (camera has only one frame buffer). Call with frameBufferSemaphore taken.
+   @param none
+   @return none
+*/
+void Camera::ReturnFrameBufferToDriver() {
+  if ((true == FrameBufferHeld) && (NULL != FrameBuffer)) {
+    esp_camera_fb_return(FrameBuffer);
+  }
+  FrameBufferHeld = false;
 }
 
 /**
@@ -633,10 +672,10 @@ void Camera::CaptureReturnFrameBuffer() {
    @return none
 */
 void Camera::SetStreamStatus(bool i_status) {
+  xSemaphoreTake(frameBufferSemaphore, portMAX_DELAY);
   StreamOnOff = i_status;
-  if (FrameBuffer) {
-    esp_camera_fb_return(FrameBuffer);
-  }
+  ReturnFrameBufferToDriver();
+  xSemaphoreGive(frameBufferSemaphore);
   log->AddEvent(LogLevel_Info, F("Camera video stream: "), String(StreamOnOff));
 }
 
@@ -773,7 +812,8 @@ bool Camera::CopyPhoto(uint8_t **o_buf, size_t *o_len, uint32_t i_timeout) {
     return false;
   }
 
-  if ((true == CameraCaptureSuccess) && (NULL != FrameBuffer) && (NULL != FrameBuffer->buf) && (FrameBuffer->len > 0)) {
+  /* only a held frame buffer, a returned one is overwritten by the camera driver */
+  if ((true == CameraCaptureSuccess) && (true == FrameBufferHeld) && (NULL != FrameBuffer) && (NULL != FrameBuffer->buf) && (FrameBuffer->len > 0)) {
     /* EXIF header replaces the beginning of the JPEG data (up to offset) */
     bool exif = ((NULL != PhotoExifData.header) && (PhotoExifData.offset <= FrameBuffer->len));
     size_t exif_len = (true == exif) ? PhotoExifData.len : 0;

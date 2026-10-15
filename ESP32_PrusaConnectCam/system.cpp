@@ -121,6 +121,36 @@ void System_MbedtlsFree(void *i_ptr) {
   heap_caps_free(i_ptr);
 }
 
+JsonPsramAllocator SystemJsonAllocator;
+
+/**
+   @brief Allocate memory for JsonDocument. PSRAM, when the PSRAM is full, internal RAM
+   @param size_t - size
+   @return void* - pointer to allocated memory
+*/
+void *JsonPsramAllocator::allocate(size_t i_size) {
+  return heap_caps_malloc_prefer(i_size, 2, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+}
+
+/**
+   @brief Free memory of JsonDocument
+   @param void* - pointer to allocated memory
+   @return none
+*/
+void JsonPsramAllocator::deallocate(void *i_ptr) {
+  heap_caps_free(i_ptr);
+}
+
+/**
+   @brief Reallocate memory for JsonDocument. PSRAM, when the PSRAM is full, internal RAM
+   @param void* - pointer to allocated memory
+   @param size_t - new size
+   @return void* - pointer to reallocated memory
+*/
+void *JsonPsramAllocator::reallocate(void *i_ptr, size_t i_size) {
+  return heap_caps_realloc_prefer(i_ptr, i_size, 2, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+}
+
 /**
    @brief Function for init update functions from file
    @param none
@@ -209,7 +239,7 @@ void System_CheckNewVersion() {
       client.stop();
 
       /* json analyzed */
-      JsonDocument jsonDoc;
+      JsonDocument jsonDoc(&SystemJsonAllocator);
       DeserializationError error = deserializeJson(jsonDoc, Data);
 
       if (error) {
