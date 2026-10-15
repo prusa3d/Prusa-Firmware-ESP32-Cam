@@ -159,6 +159,9 @@ The second problem is that the camera module is not usually attached to the micr
 <a name="service_ap"></a>
 ## Service AP
 
+> [!NOTE]
+> If you're facing any issues with the **AP mode** and/or are familiar with a serial console like screen/minicom/..., try the serial interface.
+
 After powering on and booting up the camera, it enters **AP mode**, which serves as a configuration mode for the camera. Essentially, it starts its own Wi-Fi network. The network name (SSID) is **ESP32_camera_UID**, where **UID** is the first three numbers from the **MCU ID**, serving as a unique identifier for the camera. The password for connecting to the AP is **12345678**. The camera's IP address is **192.168.0.1**. To configure the camera via **AP mode**, you need to connect to this IP address using a web browser: **http://192.168.0.1**. Alternatively, you can also use the **http://prusa-esp32cam.local** hostname (**mDNS**) instead of the IP address.
 
 After establishing a successful connection, your computer might display a "**No Internet**" warning for the given network. **This is normal**.
