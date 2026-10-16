@@ -7,6 +7,8 @@
    Contact: miroslav.pivovarsky@gmail.com
 
    @bug: no know bug
+
+   @update: Network availability check removed before WiFi connection to support hidden SSID connections
 */
 
 #include "wifi_mngt.h"
@@ -100,23 +102,19 @@ void WiFiMngt::Init() {
   //WiFi.setTxPower(WIFI_POWER_18_5dBm);
 
   if (config->CheckActifeWifiCfgFlag() == true) {
-    if (true == CheckAvailableWifiNetwork(WifiSsid)) {
-      WiFiStaConnect();
-      log->AddEvent(LogLevel_Warning, "Connecting to WiFi: " + WifiSsid);
+    WiFiStaConnect();
+    log->AddEvent(LogLevel_Warning, "Connecting to WiFi: " + WifiSsid);
 
 #if (WIFI_CLIENT_WAIT_CON == true)
-      while (WiFi.status() != WL_CONNECTED) {
-        delay(1000);
-        log->AddEvent(LogLevel_Verbose, ".");
-      }
-      WifiCfg.FirstConnected = true;
-
-      /* Print ESP32 Local IP Address */
-      log->AddEvent(LogLevel_Info, "WiFi network IP Address: http://" + WiFi.localIP().toString());
-#endif
-    } else {
-      log->AddEvent(LogLevel_Warning, "Wifi unavailable. Skip connecting to WiFi: " + WifiSsid);
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(1000);
+      log->AddEvent(LogLevel_Verbose, ".");
     }
+    WifiCfg.FirstConnected = true;
+
+    /* Print ESP32 Local IP Address */
+    log->AddEvent(LogLevel_Info, "WiFi network IP Address: http://" + WiFi.localIP().toString());
+#endif
   } else {
     ScanWiFiNetwork();
   }
@@ -1070,5 +1068,6 @@ void WiFiMngt_WiFiEventApStaIpAssigned(WiFiEvent_t event, WiFiEventInfo_t info) 
 void WiFiMngt_WiFiEventApStaProbeReqRecved(WiFiEvent_t event, WiFiEventInfo_t info) {
   SystemLog.AddEvent(LogLevel_Info, F("WiFi AP STA receive probe request packet in soft-AP interface"));
 }
+
 
 /* EOF */
