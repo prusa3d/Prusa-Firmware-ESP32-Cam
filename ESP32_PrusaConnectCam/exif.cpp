@@ -28,6 +28,7 @@
 
 #include <time.h>
 #include <sys/time.h>
+#include <string.h>
 
 #include "exif.h"
 #include "exif_defines.h"
@@ -141,8 +142,8 @@ struct JpegExifHdr {
     } ifd0;
     struct {
       TiffRational XYResolution;
-      char make[sizeof(CAMERA_MAKE)];
-      char model[sizeof(CAMERA_MODEL)];
+      char make[CAMERA_NAME_MAX_LEN];
+      char model[CAMERA_NAME_MAX_LEN];
       char software[sizeof(CAMERA_SOFTWARE)];
       char datetime[20];
     } ifd0_data;
@@ -178,13 +179,15 @@ struct JpegExifHdr {
     .ifd0 = {
       .cnt = IFD0_ENTRY_CNT,
       .entries = {
+#define TAG_IFD0_MAKE_IDX 0
         { TagTiffMake,
           TiffTypeAscii,
-          sizeof(exif_hdr.tiff_data.ifd0_data.make),
+          sizeof(CAMERA_MAKE),
           IFD_SET_OFFSET(JpegExifHdr::TiffData, ifd0_data.make) },
+#define TAG_IFD0_MODEL_IDX 1
         { TagTiffModel,
           TiffTypeAscii,
-          sizeof(exif_hdr.tiff_data.ifd0_data.model),
+          sizeof(CAMERA_MODEL),
           IFD_SET_OFFSET(JpegExifHdr::TiffData, ifd0_data.model) },
 #define TAG_IFD0_ORIENTATION_IDX 2
         { TagTiffOrientation,
@@ -326,6 +329,20 @@ struct JpegExifHdr {
 bool update_exif_from_cfg(const uint8_t c)
 {
   exif_hdr.tiff_data.ifd0.entries[TAG_IFD0_ORIENTATION_IDX].value = IFD_SET_SHORT(c);
+
+  return true;
+}
+
+// Set the camera make and model from the detected sensor. Longer strings are truncated to CAMERA_NAME_MAX_LEN - 1 chars
+bool update_exif_camera(const char *make, const char *model)
+{
+  memset(exif_hdr.tiff_data.ifd0_data.make, 0, sizeof(exif_hdr.tiff_data.ifd0_data.make));
+  strncpy(exif_hdr.tiff_data.ifd0_data.make, make, sizeof(exif_hdr.tiff_data.ifd0_data.make) - 1);
+  exif_hdr.tiff_data.ifd0.entries[TAG_IFD0_MAKE_IDX].length = strlen(exif_hdr.tiff_data.ifd0_data.make) + 1;
+
+  memset(exif_hdr.tiff_data.ifd0_data.model, 0, sizeof(exif_hdr.tiff_data.ifd0_data.model));
+  strncpy(exif_hdr.tiff_data.ifd0_data.model, model, sizeof(exif_hdr.tiff_data.ifd0_data.model) - 1);
+  exif_hdr.tiff_data.ifd0.entries[TAG_IFD0_MODEL_IDX].length = strlen(exif_hdr.tiff_data.ifd0_data.model) + 1;
 
   return true;
 }

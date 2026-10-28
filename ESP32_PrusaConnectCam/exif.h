@@ -49,6 +49,7 @@
  * @returns	True on success, else false
  */
 bool update_exif_from_cfg(const uint8_t);
+bool update_exif_camera(const char *, const char *);
 
 #ifdef WITH_GNSS
 /**

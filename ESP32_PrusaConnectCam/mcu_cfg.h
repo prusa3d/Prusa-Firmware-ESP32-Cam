@@ -118,6 +118,7 @@ static_assert((LOGS_MSG_MAX_LEN + 16) <= (LOGS_QUEUE_SIZE / 2), "LOGS_MSG_MAX_LE
 /* ------------------ EXIF CFG ------------------*/
 #define CAMERA_MAKE                 "OmniVision"            ///< Camera make string
 #define CAMERA_MODEL                "OV2640"                ///< Camera model string
+#define CAMERA_NAME_MAX_LEN         16                      ///< max length of the camera make and model string in EXIF incl. NUL. Set from the detected sensor
 #define CAMERA_SOFTWARE             "Prusa ESP32-cam"       ///< Camera software string
 #define CAMERA_EXIF_ROTATION_STREAM false                   ///< enable camera exif rotation for stream
 

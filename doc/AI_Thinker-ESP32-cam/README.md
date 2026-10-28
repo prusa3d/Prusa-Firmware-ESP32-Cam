@@ -54,9 +54,10 @@ These are currently known or tested camera modules:
 | OV2640      | 200° |    2MP     |   No   |  N/A  |                                          |
 | OV2640      | 222° |    2MP     |   No   |  N/A  |                                          |
 | OV2640IR    | 160° |    2MP     |   Yes  |  Yes  |                                          |
-| OV8225N     | 66°  |    2MP     |   Yes  |  Yes  |                                          |
-| OV3360      | 66°  |    3MP     |   Yes  |  Yes  |                                          |
+| OV8225N     | 66°  |    2MP     |   Yes  |  Yes  | Detected as OV2640                       |
+| OV3660      | 66°  |    3MP     |   Yes  |  Yes  | e.g. JQ V360 module                      |
 | OV5640-AF   | 72°  |    5MP     |   Yes  |  Yes  | Overheating, slow photo loading          |
+| OV5640      | -    |    5MP     |   Yes  |  Yes  | FD5640 module                            |
 
 <a name="different_mcu"></a>
 ## Different MCU version

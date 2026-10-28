@@ -446,6 +446,16 @@ void Camera::GetCameraModel() {
 
   CameraType = (camera_pid_t) sensor->id.PID;
   CameraName = info->name;
+
+  /* EXIF make and model from the detected sensor. Make is known only for OmniVision (OV) and GalaxyCore (GC) sensors */
+  const char *make = "";
+  if (0 == strncmp(info->name, "OV", 2)) {
+    make = "OmniVision";
+  } else if (0 == strncmp(info->name, "GC", 2)) {
+    make = "GalaxyCore";
+  }
+  update_exif_camera(make, info->name);
+
   log->AddEvent(LogLevel_Info, F("Camera type: "), String(CameraType));
   log->AddEvent(LogLevel_Info, F("Camera name: "), String(CameraName));
   log->AddEvent(LogLevel_Info, F("Camera model: "), String(info->model));
