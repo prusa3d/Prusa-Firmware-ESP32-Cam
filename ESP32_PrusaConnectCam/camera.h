@@ -68,6 +68,7 @@ private:
   camera_config_t CameraConfig;             ///< camera configuration
   camera_fb_t *FrameBuffer;                 ///< frame buffer
   bool FrameBufferHeld;                     ///< FrameBuffer is taken from the camera driver (esp_camera_fb_get) and not returned yet
+  bool MegaCcmSensor;                       ///< sensor MEGA_CCM (PY260, M5Stack Unit CamS3 5MP), detected at the first init of the camera
   camera_fb_t *FrameBufferDuplicate;        ///< frame buffer duplicate
   camera_fb_t *FrameBufferExif;             ///< frame buffer with exif data
   sensor_t* sensor;                         ///< sensor
@@ -87,6 +88,7 @@ private:
 
   void InitCameraModule();
   void ReturnFrameBufferToDriver();
+  void MegaCcmSetup();
 
 public:
   Camera(Configuration*, Logs*, int8_t);

@@ -13,6 +13,9 @@
 */
 #include "camera.h"
 
+/* SCCB_Write16() from the esp32-camera driver (private sccb.h). The driver of the MEGA_CCM sensor has no set_reg() */
+extern "C" int SCCB_Write16(uint8_t slv_addr, uint16_t reg, uint8_t data);
+
 Camera SystemCamera(&SystemConfig, &SystemLog, FLASH_GPIO_NUM);
 
 /**
@@ -29,6 +32,7 @@ Camera::Camera(Configuration* i_conf, Logs* i_log, int8_t i_FlashPin) {
   CameraFlashPin = i_FlashPin;
   StreamOnOff = false;
   FrameBufferHeld = false;
+  MegaCcmSensor = false;
   frameBufferSemaphore = xSemaphoreCreateMutex();
 
   /* Allocate memory for the frame buffer */
@@ -142,14 +146,78 @@ void Camera::InitCameraModule() {
     log->AddEvent(LogLevel_Verbose, F("Camera frame buffer location: Unknown"));
   }
 
+  /* MEGA_CCM sends bigger JPEG frames than the driver buffer for the frame size (width * height / 5) and the photo is lost (cam_hal: FB-OVF).
+     The driver is initialized with 5MP (1 MB buffer) and the resolution is set in the sensor. The M5Stack demo uses buffer 2592 * 1944 */
+  if (true == MegaCcmSensor) {
+    CameraConfig.frame_size = FRAMESIZE_5MP;
+  }
+
   /* Camera init */
   err = esp_camera_init(&CameraConfig);
+
+  /* the sensor does not support the frame size from the configuration (MEGA_CCM supports only some of them). Use the factory frame size, otherwise the MCU restarts after every start */
+  if ((err == ESP_ERR_CAMERA_FAILED_TO_SET_FRAME_SIZE) && (FrameSize != FACTORY_CFG_FRAME_SIZE)) {
+    log->AddEvent(LogLevel_Warning, F("Camera does not support frame size: "), String(FrameSize));
+    FrameSize = FACTORY_CFG_FRAME_SIZE;
+    TFrameSize = TransformFrameSizeDataType(FrameSize);
+    config->SaveFrameSize(FrameSize);
+    CameraConfig.frame_size = TFrameSize;
+    err = esp_camera_init(&CameraConfig);
+  }
+
+  /* first init with the MEGA_CCM sensor: init again with the 5MP frame buffer */
+  if ((err == ESP_OK) && (false == MegaCcmSensor) && (MEGA_CCM_PID == esp_camera_sensor_get()->id.PID)) {
+    log->AddEvent(LogLevel_Info, F("Camera MEGA_CCM: init with 5MP frame buffer"));
+    MegaCcmSensor = true;
+    esp_camera_deinit();
+    CameraConfig.frame_size = FRAMESIZE_5MP;
+    err = esp_camera_init(&CameraConfig);
+  }
+
   if (err != ESP_OK) {
     log->AddEvent(LogLevel_Warning, F("Camera init failed. Error: "), String(err, HEX));
     log->AddEvent(LogLevel_Warning, F("Reset ESP32-cam!"));
     log->LoggerFlush(LOGS_RESTART_FLUSH_TIMEOUT);
     ESP.restart();
   } 
+
+  if (true == MegaCcmSensor) {
+    MegaCcmSetup();
+  }
+}
+
+/**
+   @brief Setup of the MEGA_CCM sensor (PY260, M5Stack Unit CamS3 5MP) after the driver init, same as the M5Stack demo for the sensor.
+          Software reset with the delay, without the delay the old hardware version of the sensor does not send frames.
+          The resolution is set in the sensor, the driver is initialized with 5MP for the bigger frame buffer.
+          The sensor supports only 320x240, 640x480 and 1600x1200 from the web.
+   @param none
+   @return none
+*/
+void Camera::MegaCcmSetup() {
+  uint8_t slv_addr = esp_camera_sensor_get()->slv_addr;
+  uint8_t resolution_reg = 0x01;  /* RESOLUTION_REG: 0x01 - 320x240, 0x02 - 640x480, 0x04 - 1600x1200 */
+
+  if (FRAMESIZE_VGA == TFrameSize) {
+    resolution_reg = 0x02;
+  } else if (FRAMESIZE_UXGA == TFrameSize) {
+    resolution_reg = 0x04;
+  } else if (FRAMESIZE_QVGA != TFrameSize) {
+    /* factory frame size is 320x240 */
+    log->AddEvent(LogLevel_Warning, F("Camera does not support frame size: "), String(FrameSize));
+    FrameSize = FACTORY_CFG_FRAME_SIZE;
+    TFrameSize = TransformFrameSizeDataType(FrameSize);
+    config->SaveFrameSize(FrameSize);
+  }
+
+  /* CAMERA_RST_REG 0x0102: 0, 100 ms, 1, 1 s for the sensor init. The reset sets the default values */
+  int ret = SCCB_Write16(slv_addr, 0x0102, 0x00);
+  delay(100);
+  ret += SCCB_Write16(slv_addr, 0x0102, 0x01);
+  delay(1000);
+  ret += SCCB_Write16(slv_addr, 0x0120, 0x01);            /* PIXEL_FMT_REG: JPEG */
+  ret += SCCB_Write16(slv_addr, 0x0121, resolution_reg);  /* RESOLUTION_REG */
+  log->AddEvent(LogLevel_Info, F("Camera MEGA_CCM setup. Ret: "), String(ret));
 }
 
 /**
@@ -302,6 +370,21 @@ void Camera::ApplyCameraCfg() {
 
   /* sensor configuration */
   sensor = esp_camera_sensor_get();
+
+  /* MEGA_CCM: levels are 0-based with the neutral value in the middle (brightness 4, contrast 3, saturation 3), JPEG quality only 0 - high, 1 - default, 2 - low.
+     Exposure and gain are automatic in the sensor, the manual settings of the driver (aec_value, agc_gain) are not used. Other settings are not supported by the sensor */
+  if (true == MegaCcmSensor) {
+    sensor->set_brightness(sensor, brightness + 4);
+    sensor->set_contrast(sensor, contrast + 3);
+    sensor->set_saturation(sensor, saturation + 3);
+    sensor->set_special_effect(sensor, 0);
+    sensor->set_wb_mode(sensor, wb_mode);
+    sensor->set_hmirror(sensor, hmirror);
+    sensor->set_vflip(sensor, vflip);
+    sensor->set_quality(sensor, (PhotoQuality <= 20) ? 0 : ((PhotoQuality <= 40) ? 1 : 2));
+    return;
+  }
+
   sensor->set_brightness(sensor, brightness);         // -2 to 2
   sensor->set_contrast(sensor, contrast);             // -2 to 2
   sensor->set_saturation(sensor, saturation);         // -2 to 2
@@ -432,6 +515,12 @@ void Camera::CapturePhoto() {
         log->AddEvent(LogLevel_Error, F("Camera capture failed! photo. Attempt: "), String(CameraCaptureFailedCounter));
         /* without return: below is disabled flash, released semaphore and checked counter for reinit camera module */
         break;
+      }
+
+      /* MEGA_CCM: the driver is initialized with 5MP, the photo has the resolution set in the sensor */
+      if (true == MegaCcmSensor) {
+        FrameBuffer->width = resolution[TFrameSize].width;
+        FrameBuffer->height = resolution[TFrameSize].height;
       }
 
       char buf[150] = { '\0' };
