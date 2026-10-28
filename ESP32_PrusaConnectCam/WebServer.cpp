@@ -73,7 +73,6 @@ void Server_InitWebServer() {
         }
         return len;
       });
-      response->addHeader("Content-Length", String(total_len));
       request->send(response);
 
     } else {
@@ -1363,3 +1362,4 @@ String Server_TranslateBoolToString(bool i_data) {
 }
 
 /* EOF */
+

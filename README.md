@@ -40,8 +40,9 @@ What we need for functionality:
 | ESP32-S3-DEV-CAM          | in Progress |        |          | External  |           |             | [ here ](doc/ESP32-S3-DEV-CAM/README.md)          |
 | Seeed Studio XIAO ESP32S3 | Full        | Yes    | Yes      | External  | Yes       | Yes         | [ here ](doc/XIAO_ESP32S3/README.md)              |
 | ESP32-S3-CAM              | Full        | Yes    | Yes      | Board/Ext | Yes       | Yes         | [ here ](doc/ESP32-S3-CAM/README.md)              |
+| M5Stack Unit CamS3        | in Progress | Yes    | Untested | No        | Manual    | No          | [ here ](doc/M5-Unit-CamS3/README.md)             |
 
-The compiled firmware for each supported board is published with every release.
+The compiled firmware for boards included in `fw_build.sh` is published with every release. For the M5Stack Unit CamS3, [build and upload from source](doc/M5-Unit-CamS3/README.md); it is not yet included in the release build script.
 
 <a name="flash_fw"></a>
 ## How to flash binary files to ESP32-cam board from Linux/MAC/Windows
@@ -156,6 +157,9 @@ The second problem is that the camera module is not usually attached to the micr
 
 <a name="service_ap"></a>
 ## Service AP
+
+> [!NOTE]
+> If you're facing any issues with the **AP mode** and/or are familiar with a serial console like screen/minicom/..., try the serial interface.
 
 After powering on and booting up the camera, it enters **AP mode**, which serves as a configuration mode for the camera. Essentially, it starts its own Wi-Fi network. The network name (SSID) is **ESP32_camera_UID**, where **UID** is the first three numbers from the **MCU ID**, serving as a unique identifier for the camera. The password for connecting to the AP is **12345678**. The camera's IP address is **192.168.0.1**. To configure the camera via **AP mode**, you need to connect to this IP address using a web browser: **http://192.168.0.1**. Alternatively, you can also use the **http://prusa-esp32cam.local** hostname (**mDNS**) instead of the IP address.
 
