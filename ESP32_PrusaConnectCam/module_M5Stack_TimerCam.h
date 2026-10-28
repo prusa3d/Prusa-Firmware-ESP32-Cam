@@ -3,17 +3,18 @@
 
    @brief Definition of the M5Stack TimerCamera module
 
-   @author Miroslav Pivovarsky
-   Contact: miroslav.pivovarsky@gmail.com
+   @author Tim van der Heide
+   Contact: hello@timvanderheide.com
 
    https://docs.m5stack.com/en/unit/timercam
 
    Board configuration in the arduino IDE 2.3.2
-   Tools -> Board -> ESP32 Arduino -> ESP32 Dev Module
+   Tools -> Board -> ESP32 Arduino -> M5TimerCAM 
    Tools -> CPU Frequency -> 240MHz (WiFi/BT)
    Tools -> Core debug level -> None
    Tools -> Flash frequency -> 80MHz
    Tools -> Flash Mode -> DIO
+   Tools -> PSRAM -> Enabled
    Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)
 
    @bug: no know bug
@@ -50,8 +51,8 @@
 #define ENABLE_PSRAM                true  ///< Enable PSRAM
 
 /* --------------- OTA UPDATE CFG  --------------*/
-#define OTA_UPDATE_FW_FILE          PSTR("ESP32_PrusaConnectCam.ino.bin") ///< OTA update firmware file name
-#define FW_STATUS_LED_PIN           4      ///< GPIO pin for status FW update LED
+#define OTA_UPDATE_FW_FILE          PSTR("M5STACK_TIMERCAM.bin") ///< OTA update firmware file name
+#define FW_STATUS_LED_PIN           2      ///< GPIO pin for status FW update LED
 #define FW_STATUS_LED_LEVEL_ON      HIGH   ///< GPIO pin level for status LED ON
 
 /* --------------- FLASH LED CFG  ---------------*/
@@ -69,18 +70,18 @@
 
 /* --------------- SD CARD CFG  ---------------*/
 #define ENABLE_SD_CARD              false    ///< Enable SD card function
-#define SD_PIN_CLK                  14      ///< GPIO pin for SD card clock
-#define SD_PIN_CMD                  15      ///< GPIO pin for SD card command
-#define SD_PIN_DATA0                2       ///< GPIO pin for SD card data 0
+#define SD_PIN_CLK                  -1      ///< GPIO pin for SD card clock
+#define SD_PIN_CMD                  -1      ///< GPIO pin for SD card command
+#define SD_PIN_DATA0                -1       ///< GPIO pin for SD card data 0
 
 /* ---------- RESET CFG CONFIGURATION  ----------*/
-#define CFG_RESET_PIN               37      ///< GPIO 12 is for reset CFG to default
-#define CFG_RESET_LED_PIN           4       ///< GPIO for indication of reset CFG
+#define CFG_RESET_PIN               4      ///< GPIO 12 is for reset CFG to default
+#define CFG_RESET_LED_PIN           2       ///< GPIO for indication of reset CFG
 #define CFG_RESET_LED_LEVEL_ON      HIGH    ///< GPIO pin level for status LED ON
 
 /* -------------- STATUS LED CFG ----------------*/
 #define STATUS_LED_ENABLE           true    ///< enable/disable status LED
-#define STATUS_LED_GPIO_NUM         33      ///< GPIO pin for status LED
+#define STATUS_LED_GPIO_NUM         2       ///< GPIO pin for status LED
 #define STATUS_LED_OFF_PIN_LEVEL    LOW     ///< GPIO pin level for status LED ON
 
 /* -------------- DHT SENSOR CFG ----------------*/
