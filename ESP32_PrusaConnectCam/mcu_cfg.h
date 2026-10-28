@@ -38,6 +38,7 @@
 #define REFRESH_INTERVAL_MIN        10                      ///< minimum refresh interval for sending photo to prusa connect [s]
 #define REFRESH_INTERVAL_MAX        240                     ///< maximum refresh interval for sending photo to prusa connect [s]
 #define HOST_RESPONSE_TIMEOUT       10000                   ///< timeout for response from prusa connect [ms]
+#define TLS_HANDSHAKE_TIMEOUT       20                      ///< TLS handshake timeout [s]. Default in the core is 120 s, longer than WDG_TIMEOUT. Photo capture + handshake must be shorter than WDG_TIMEOUT
 
 /* -------------- STATUS LED CFG ----------------*/
 #define STATUS_LED_ON_DURATION      100                     ///< time for blink status LED when is module in the ON state [ms]
@@ -71,6 +72,7 @@
 
 /* --------------- OTA UPDATE CFG  --------------*/
 #define OTA_UPDATE_API_SERVER       "api.github.com"        ///< OTA update server URL
+#define OTA_RESPONSE_TIMEOUT        10000                   ///< timeout for response from OTA server [ms]
 #define OTA_UPDATE_API_URL          F("/repos/prusa3d/Prusa-Firmware-ESP32-Cam/releases/latest")  ///< path to file with OTA update
 
 /* ---------- RESET CFG CONFIGURATION  ----------*/

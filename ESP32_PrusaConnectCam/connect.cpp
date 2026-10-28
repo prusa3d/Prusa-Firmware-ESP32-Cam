@@ -31,6 +31,8 @@ PrusaConnect::PrusaConnect(Configuration *i_conf, Logs *i_log, Camera *i_camera,
   wifi = i_wifi;
   BackendAvailability = WaitForFirstConnection;
   SendDeviceInformationToBackend = true;
+  TimelapsLastFileName = "";
+  TimelapsFileIndex = 0;
 }
 
 /**
@@ -99,6 +101,7 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
     client.setCACert(root_CAs);
     //client.setInsecure();
     client.setTimeout(1000);
+    client.setHandshakeTimeout(TLS_HANDSHAKE_TIMEOUT);
     client.setNoDelay(true);
 
     log->AddEvent(LogLevel_Verbose, F("Connecting to server..."));
@@ -531,10 +534,29 @@ void PrusaConnect::SavePhotoToSdCard() {
       log->CreateDir(SD_MMC, TIMELAPS_PHOTO_FOLDER);
     }
 
-    /* create file name */
-    String FileName = String(TIMELAPS_PHOTO_FOLDER) + "/" + String(TIMELAPS_PHOTO_PREFIX) + "_";
-    FileName += log->GetSystemTime();
-    FileName += TIMELAPS_PHOTO_SUFFIX;
+    /* one folder per day: FAT has a limited number of entries in one folder (with the long names ~16 thousand photos, ~5 days with 30 s interval) */
+    String SystemTime = log->GetSystemTime();
+    String DirName = String(TIMELAPS_PHOTO_FOLDER) + "/" + SystemTime.substring(0, 10);
+    if (false == log->CheckDir(SD_MMC, DirName)) {
+      log->AddEvent(LogLevel_Info, F("Create folder for TimeLaps photos: "), DirName);
+      log->CreateDir(SD_MMC, DirName);
+    }
+
+    /* create file name. When the file already exists (time before the NTP sync, two photos in one second), the name gets _INDEX.
+       The index continues from the last one, the files with the lower index exist */
+    String FileNameBase = DirName + "/" + String(TIMELAPS_PHOTO_PREFIX) + "_" + SystemTime;
+    String FileName = FileNameBase + TIMELAPS_PHOTO_SUFFIX;
+    if (true == log->CheckDir(SD_MMC, FileName)) {
+      if (FileNameBase != TimelapsLastFileName) {
+        TimelapsLastFileName = FileNameBase;
+        TimelapsFileIndex = 0;
+      }
+
+      do {
+        TimelapsFileIndex++;
+        FileName = FileNameBase + "_" + String(TimelapsFileIndex) + TIMELAPS_PHOTO_SUFFIX;
+      } while (true == log->CheckDir(SD_MMC, FileName));
+    }
     log->AddEvent(LogLevel_Verbose, F("Saving file: "), FileName);
 
     /* save photo to SD card */

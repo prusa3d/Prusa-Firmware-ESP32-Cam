@@ -768,26 +768,23 @@ bool MicroSd::isCardCorrupted() {
     //Serial.println(F("Checking card..."));
 #endif
 
-    /* check card size */
+    /* check card size. Empty card has 0 B used, only size 0 means no card */
     uint64_t use = SD_MMC.usedBytes();
-    uint64_t size = 0;
-    if (use != 0) {
-      size = SD_MMC.cardSize();
-    }
+    uint64_t size = SD_MMC.cardSize();
 
 #if (true == CONSOLE_VERBOSE_DEBUG)   
     Serial.printf("Card size: %llu, Used: %llu\n", size, use);
 #endif
 
     /* check space on the card */
-    if (size == use) {
+    if ((size != 0) && (size == use)) {
       Serial.println(F("No space left on device!"));
       CardDetected = false;
       ret = false;
     }
 
     /* check another error */
-    if ((size <= 0 ) || (size == 0) || (use <= 0) || (use == 0)) {
+    if (size == 0) {
       Serial.println(F("No card detected!"));
       CardDetected = false;
       ret = false;

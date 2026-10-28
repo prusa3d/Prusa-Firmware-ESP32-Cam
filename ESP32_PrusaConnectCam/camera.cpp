@@ -371,6 +371,12 @@ void Camera::ApplyCameraCfg() {
   /* sensor configuration */
   sensor = esp_camera_sensor_get();
 
+  /* NULL without the initialized camera driver, e.g. a setting from the web during ReinitCameraModule() in the photo task */
+  if (NULL == sensor) {
+    log->AddEvent(LogLevel_Error, F("Camera sensor is NULL. Skip camera CFG"));
+    return;
+  }
+
   /* MEGA_CCM: levels are 0-based with the neutral value in the middle (brightness 4, contrast 3, saturation 3), JPEG quality only 0 - high, 1 - default, 2 - low.
      Exposure and gain are automatic in the sensor, the manual settings of the driver (aec_value, agc_gain) are not used. Other settings are not supported by the sensor */
   if (true == MegaCcmSensor) {
@@ -410,11 +416,14 @@ void Camera::ApplyCameraCfg() {
 }
 
 /**
-   @brief Function for reinit camera module
+   @brief Function for reinit camera module. Under frameBufferSemaphore: deinit frees the queues and frame buffers of the driver,
+          esp_camera_fb_get() in another task (photo, stream, web) would use them (assert in xQueueReceive).
+          The caller must not hold frameBufferSemaphore, it is not recursive.
    @param none
    @return none
 */
 void Camera::ReinitCameraModule() {
+  xSemaphoreTake(frameBufferSemaphore, portMAX_DELAY);
   esp_err_t err = esp_camera_deinit();
   if (err != ESP_OK) {
     log->AddEvent(LogLevel_Warning, F("Camera error deinit camera module. Error: "), String(err, HEX));
@@ -424,6 +433,7 @@ void Camera::ReinitCameraModule() {
   delay(100);
   InitCameraModule();
   ApplyCameraCfg();
+  xSemaphoreGive(frameBufferSemaphore);
 }
 
 /**

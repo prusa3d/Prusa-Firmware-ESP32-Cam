@@ -248,6 +248,14 @@ void WiFiMngt::SetWifiEvents() {
 void WiFiMngt::WiFiStaConnect() {
   if (config->CheckActifeWifiCfgFlag() == true) {
     system_led.setTimer(STATUS_LED_STA_CONNECTING);
+
+    /* STA, which is still connecting (the core repeats the connection after 201 NO_AP_FOUND), does not accept a new config:
+       "sta is connecting, cannot set config". A new SSID and password from the web were used only after the MCU restart. Stop the connecting first */
+    if (false == WiFi.STA.connected()) {
+      WiFi.disconnect();
+      delay(100);
+    }
+
     if (true == WifiEapEnable) {
       /* WiFi Enterprise (WPA2/WPA3-Enterprise), PEAP without CA certificate. Empty identity = username */
       String identity = (WifiEapIdentity.length() > 0) ? WifiEapIdentity : WifiEapUsername;

@@ -200,6 +200,7 @@ void System_CheckNewVersion() {
     WiFiClientSecure client;
     client.setCACert(root_CAs_ota);
     //client.setInsecure();
+    client.setHandshakeTimeout(TLS_HANDSHAKE_TIMEOUT);
     FirmwareUpdate.CheckNewVersionFwStatus = F("N/A");
     FirmwareUpdate.NewVersionFw = F("Unknown");
     FirmwareUpdate.OtaUpdateFwUrl = "";
@@ -218,7 +219,13 @@ void System_CheckNewVersion() {
       client.println("Connection: close");
       client.println();
 
+      /* connected() can stay true while the server sends nothing: limit the reading of the headers and the data */
+      unsigned long ResponseStartTime = millis();
       while (client.connected()) {
+        if ((millis() - ResponseStartTime) > OTA_RESPONSE_TIMEOUT) {
+          SystemLog.AddEvent(LogLevel_Warning, F("Timeout for response headers from OTA server!"));
+          break;
+        }
         String line = client.readStringUntil('\n');
         if (line == "\r") {
           SystemLog.AddEvent(LogLevel_Verbose, "headers received: " + line);
@@ -230,9 +237,18 @@ void System_CheckNewVersion() {
       delay(350);
       String Data = "";
       while (client.connected()) {
+        if ((millis() - ResponseStartTime) > OTA_RESPONSE_TIMEOUT) {
+          SystemLog.AddEvent(LogLevel_Warning, F("Timeout for response data from OTA server!"));
+          break;
+        }
         while (client.available()) {
           Data += (char)client.read();
         }
+        delay(1);
+      }
+      /* data received before the server closed the connection */
+      while (client.available()) {
+        Data += (char)client.read();
       }
 
       SystemLog.AddEvent(LogLevel_Verbose, Data);
@@ -324,6 +340,7 @@ bool System_OtaUpdateStart() {
   client.setCACert(root_CAs_ota);
   // client.setInsecure();
   client.setTimeout(12000);  /* timeout argument is defined in milliseconds for setTimeout */
+  client.setHandshakeTimeout(TLS_HANDSHAKE_TIMEOUT);
   httpUpdate.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS); /* HTTPC_FORCE_FOLLOW_REDIRECTS */
 
   /* set callback function */

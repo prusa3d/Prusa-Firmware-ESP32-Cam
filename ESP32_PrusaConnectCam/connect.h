@@ -38,6 +38,8 @@ private:
   bool SendDeviceInformationToBackend;            ///< flag for sending device information to backend
   uint8_t SendingIntervalCounter;                 ///< counter for sending interval, represents seconds
   bool EnableTimelapsPhotoSave;                   ///< flag for saving photo to SD card
+  String TimelapsLastFileName;                    ///< last timelaps photo name without the index and suffix
+  uint16_t TimelapsFileIndex;                     ///< last index of the timelaps photo with the same name
 
   String Token;                                   ///< token for backend communication
   String Fingerprint;                             ///< fingerprint for backend communication 
