@@ -115,7 +115,9 @@ void WiFiMngt::Init() {
       log->AddEvent(LogLevel_Info, "WiFi network IP Address: http://" + WiFi.localIP().toString());
 #endif
     } else {
-      log->AddEvent(LogLevel_Warning, "Wifi unavailable. Skip connecting to WiFi: " + WifiSsid);
+      /* SSID not found, connect anyway and retry in WiFiReconnect() */
+      log->AddEvent(LogLevel_Warning, "Wifi unavailable at boot: " + WifiSsid + ". Will keep retrying in background");
+      WiFiStaConnect();
     }
   } else {
     ScanWiFiNetwork();
@@ -185,6 +187,10 @@ void WiFiMngt::WiFiReconnect() {
     log->AddEvent(LogLevel_Warning, F("Disconnect from WiFi"));
     WiFi.reconnect();
     log->AddEvent(LogLevel_Warning, F("Reconnecting to WiFi. STA"));
+  } else if ((WiFi.status() != WL_CONNECTED) && (FirstConnected == false) && (true == config->CheckActifeWifiCfgFlag())) {
+    /* not connected since boot, retry connection to STA */
+    log->AddEvent(LogLevel_Warning, "Not connected to WiFi since boot. Retrying connection to: " + WifiSsid);
+    WiFiStaConnect();
   } else if (WiFi.status() == WL_CONNECTED) {
     char cstr[150];
     sprintf(cstr, "Wifi connected. SSID: %s, BSSID: %s, RSSI: %d dBm, IP: %s, TX power: %s", WiFi.SSID().c_str(), WiFi.BSSIDstr().c_str(), WiFi.RSSI(), WiFi.localIP().toString().c_str(), TranslateTxPower(WiFi.getTxPower()).c_str());  //print 3 digits
@@ -425,12 +431,7 @@ void WiFiMngt::WiFiWatchdog() {
     log->AddEvent(LogLevel_Verbose, "Time: " + String(currentMillis - TaskWdg_previousMillis) + "/" + String(WIFI_STA_WDG_TIMEOUT));
     
     if (false == StartStaWdg) {
-      if (ScanWifiNetwork(WifiSsid) >= 1) {
-        log->AddEvent(LogLevel_Warning, F("WiFi STA connection lost. Start watchdog timer!"));
-      } else {
-        log->AddEvent(LogLevel_Warning, F("WiFi STA connection lost. No available network!"));
-      }
-      
+      log->AddEvent(LogLevel_Warning, F("WiFi STA connection lost. Start watchdog timer!"));
       StartStaWdg = true;
       TaskWdg_previousMillis = currentMillis;
     }
