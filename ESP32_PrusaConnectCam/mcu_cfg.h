@@ -20,6 +20,7 @@
 #define CAMERA_MODEL_XIAO_ESP32_S3_CAM  false
 #define CAMERA_MODEL_ESP32_S3_CAM       false
 #define ESP32_S3_WROOM_FREENOVE         false
+#define ESP32_M5_UNIT_CAMS3             false
 #define M5STACK_TIMERCAMERA             false
 
 /* ---------------- BASIC MCU CFG  --------------*/
