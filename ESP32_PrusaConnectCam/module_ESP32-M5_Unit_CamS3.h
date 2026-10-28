@@ -3,8 +3,8 @@
 
    @brief Definition of the ESP32 M5 Unit CamS3 board
 
-   @author Miroslav Pivovarsky
-   Contact: miroslav.pivovarsky@gmail.com
+   @author Pawel Chojnacki
+   Contact: pawel.chcki@gmail.com
 
    Board configuration in the arduino IDE 2.3.2
    Tools -> Board -> ESP32 Arduino -> ESP32S3 Dev Module
