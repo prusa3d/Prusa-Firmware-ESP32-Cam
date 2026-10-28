@@ -186,14 +186,20 @@ void WiFiMngt::WifiManagement() {
 */
 void WiFiMngt::WiFiReconnect() {
   if ((WiFi.status() != WL_CONNECTED) && (FirstConnected == true)) {
-    log->AddEvent(LogLevel_Warning, F("Reconnecting to WiFi. STA"));
-    /* in arduino-esp32 3.3.x disconnect() also aborts the running connection attempt. Disconnect only when STA is connected (behavior of arduino-esp32 3.1.x) */
+    /* in arduino-esp32 3.3.x disconnect() also aborts the running connection attempt.
+       STA connected to the AP waits for IP address (DHCP): without disconnect. When it gets no IP address, the WiFi watchdog restarts MCU */
     if (true == WiFi.STA.connected()) {
-      WiFi.disconnect();
-      log->AddEvent(LogLevel_Warning, F("Disconnect from WiFi"));
+      log->AddEvent(LogLevel_Warning, F("WiFi STA connected to AP, waiting for IP address"));
+    } else {
+      log->AddEvent(LogLevel_Warning, F("Reconnecting to WiFi. STA"));
+      WiFi.reconnect();
+      log->AddEvent(LogLevel_Warning, F("Reconnecting to WiFi. STA"));
     }
-    WiFi.reconnect();
-    log->AddEvent(LogLevel_Warning, F("Reconnecting to WiFi. STA"));
+  } else if ((WiFi.status() != WL_CONNECTED) && (FirstConnected == false) && (true == config->CheckActifeWifiCfgFlag()) && (false == WiFi.STA.connected())) {
+    /* not connected since boot (network unavailable at boot, or hidden SSID), retry connection to STA.
+       Not when STA is associated and waits for IP address: WiFi.begin() would disconnect it */
+    log->AddEvent(LogLevel_Warning, "Not connected to WiFi since boot. Retrying connection to: " + WifiSsid);
+    WiFiStaConnect();
   } else if (WiFi.status() == WL_CONNECTED) {
     char cstr[150];
     sprintf(cstr, "Wifi connected. SSID: %s, BSSID: %s, RSSI: %d dBm, IP: %s, TX power: %s", WiFi.SSID().c_str(), WiFi.BSSIDstr().c_str(), WiFi.RSSI(), WiFi.localIP().toString().c_str(), TranslateTxPower(WiFi.getTxPower()).c_str());  //print 3 digits
@@ -479,12 +485,8 @@ void WiFiMngt::WiFiWatchdog() {
     log->AddEvent(LogLevel_Verbose, "Time: " + String(currentMillis - TaskWdg_previousMillis) + "/" + String(WIFI_STA_WDG_TIMEOUT));
     
     if (false == StartStaWdg) {
-      if (ScanWifiNetwork(WifiSsid) >= 1) {
-        log->AddEvent(LogLevel_Warning, F("WiFi STA connection lost. Start watchdog timer!"));
-      } else {
-        log->AddEvent(LogLevel_Warning, F("WiFi STA connection lost. No available network!"));
-      }
-      
+      /* without WiFi scan: the scan was only for the log message, and it did not fit in the stack of the WiFiWatchdog task (upstream PR #146) */
+      log->AddEvent(LogLevel_Warning, F("WiFi STA connection lost. Start watchdog timer!"));
       StartStaWdg = true;
       TaskWdg_previousMillis = currentMillis;
     }
