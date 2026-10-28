@@ -2,7 +2,7 @@
 
 What we need for functionality
 - Freenove ESP32-S3 WROOM board with OV2640 camera module [ here ](#esp32)
-- Supported camera modules [here](cam_modules)
+- Supported camera modules [here](#cam_modules)
 - How to flash binary files to board from Linux/MAC/Windows [ here ](#flash_fw)
 - How to compile software in the Arduino IDE [ here ](#arduino_cfg)
 - How to reset the configuration to factory settings [here](#factory_cfg)
@@ -71,7 +71,7 @@ You must use the console to upload the firmware on the MAC or Linux platform. Fi
 And command for FLASH FW is here, where **/dev/ttya0** is your serial interface for communication with the ESP32-cam board. This is the command for the first flash FW to MCU.
 
 ```
-./esptool --chip esp32s3 -p /dev/ttya0 -b 921600 --before default_reset --after hard_reset  write_flash --erase-all --flash_mode qio --flash_size 8MB --flash_freq 80m 0x0 ESP32_PrusaConnectCam.ino.bootloader.bin 0x8000 ESP32_PrusaConnectCam.ino.partitions.bin 0x10000 ESP32_PrusaConnectCam.ino.bin
+./esptool --chip esp32s3 -p /dev/ttya0 -b 921600 --before default_reset --after hard_reset  write_flash --erase-all --flash_mode dio --flash_size 8MB --flash_freq 80m 0x0 ESP32_PrusaConnectCam.ino.bootloader.bin 0x8000 ESP32_PrusaConnectCam.ino.partitions.bin 0x10000 ESP32_PrusaConnectCam.ino.bin
 ```
 
 This command contains the parameter **--erase-all**, which erases the entire flash in the MCU. So, for just updating the firmware, it is necessary to remove the parameter **--erase-all**; otherwise, the MCU configuration will also be deleted. The basic command list can be found [here](https://docs.espressif.com/projects/esptool/en/latest/esp32s3/esptool/basic-commands.html)
@@ -79,7 +79,7 @@ This command contains the parameter **--erase-all**, which erases the entire fla
 Here is the command for updating the firmware in the MCU without erasing the MCU configuration
 
 ```
-./esptool --chip esp32s3 -p /dev/ttya0 -b 921600 --before default_reset --after hard_reset  write_flash --flash_mode qio --flash_size 8MB --flash_freq 80m 0x0 ESP32_PrusaConnectCam.ino.bootloader.bin 0x8000 ESP32_PrusaConnectCam.ino.partitions.bin 0x10000 ESP32_PrusaConnectCam.ino.bin
+./esptool --chip esp32s3 -p /dev/ttya0 -b 921600 --before default_reset --after hard_reset  write_flash --flash_mode dio --flash_size 8MB --flash_freq 80m 0x0 ESP32_PrusaConnectCam.ino.bootloader.bin 0x8000 ESP32_PrusaConnectCam.ino.partitions.bin 0x10000 ESP32_PrusaConnectCam.ino.bin
 ```
 
 Launching the esptool application may be different in different operating systems
