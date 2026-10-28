@@ -14,7 +14,7 @@
 
 #include "mcu_cfg.h"
 
-#if ((AI_THINKER_ESP32_CAM + ESP32_WROVER_DEV + CAMERA_MODEL_ESP32_S3_DEV_CAM + CAMERA_MODEL_ESP32_S3_EYE_2_2 + CAMERA_MODEL_XIAO_ESP32_S3_CAM + CAMERA_MODEL_ESP32_S3_CAM + ESP32_S3_WROOM_FREENOVE) != 1)
+#if ((AI_THINKER_ESP32_CAM + ESP32_WROVER_DEV + CAMERA_MODEL_ESP32_S3_DEV_CAM + CAMERA_MODEL_ESP32_S3_EYE_2_2 + CAMERA_MODEL_XIAO_ESP32_S3_CAM + CAMERA_MODEL_ESP32_S3_CAM + ESP32_S3_WROOM_FREENOVE + M5STACK_TIMERCAMERA) != 1)
 #error "Exactly one camera model must be defined as true."
 #endif
 
@@ -38,6 +38,9 @@
 
 #elif (true == ESP32_S3_WROOM_FREENOVE)
 #include "module_ESP32-S3_Wroom_Freenove.h"
+
+#elif (true == M5STACK_TIMERCAMERA)
+#include "module_M5Stack_TimerCam.h"
 
 #else
 #error "No module selected"
