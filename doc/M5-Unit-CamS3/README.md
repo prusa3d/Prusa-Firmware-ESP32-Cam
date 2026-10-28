@@ -43,7 +43,7 @@ The hardware images below are saved locally. Their original M5Stack URLs and ret
 Limitations of the Unit CamS3-5MP (PY260):
 
 - Supported resolutions are **320x240**, **640x480** and **1600x1200**. Other resolutions are switched to 320x240.
-- The camera has only 3 JPEG quality levels. Quality 10-20 is high, 21-40 is default, 41-63 is low.
+- The camera has only 3 JPEG quality levels. The image quality slider has 3 steps: the left third is low, the middle is default and the right third is high.
 - Brightness, contrast, saturation, white balance mode, horizontal mirror and vertical flip are supported. Other camera settings have no effect, exposure and gain are automatic.
 - The photos are bigger than with the OV2640 (640x480 about 200 KB, 1600x1200 about 0.8-1 MB). The upload to Prusa Connect and the stream are slower: about 3.4 FPS at 640x480 and 0.8 FPS at 1600x1200.
 - At 1600x1200 some photos are larger than the frame buffer (1 MB) and the camera drops them.
