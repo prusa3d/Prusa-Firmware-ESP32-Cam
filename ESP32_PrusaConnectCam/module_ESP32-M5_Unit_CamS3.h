@@ -8,7 +8,7 @@
 
    Board configuration in the arduino IDE 2.3.2
    Tools -> Board -> ESP32 Arduino -> ESP32S3 Dev Module
-   Tools -> USB CDC on BOOT -> Disabled
+   Tools -> USB CDC on BOOT -> Enabled
    Tools -> CPU Frequency -> 240MHz (WiFi/BT)
    Tools -> Core debug level -> None
    Tools -> USB DFU on BOOT -> Disable
@@ -41,7 +41,7 @@
 
 /* --------------- CAMERA CFG -------------------*/
 #define PWDN_GPIO_NUM               -1      ///< Power down control pin
-#define RESET_GPIO_NUM              -1      ///< Reset control pin
+#define RESET_GPIO_NUM              21      ///< Reset control pin
 #define SIOD_GPIO_NUM               17      ///< SCCB: SI/O data pin
 #define SIOC_GPIO_NUM               41      ///< SCCB: SI/O control pin
 #define Y2_GPIO_NUM                 6       ///< SCCB: Y2 pin
@@ -71,7 +71,7 @@
 #define ENABLE_CAMERA_FLASH         false   ///< Enable camera flash function
 #define CAMERA_FLASH_DIGITAL_CTRL   true    ///< Enable camera flash digital control
 #define CAMERA_FLASH_PWM_CTRL       false   ///< Enable camera flash PWM control
-#define CAMERA_FLASH_NEOPIXEL       true    ///< Enable camera flash NeoPixel control
+#define CAMERA_FLASH_NEOPIXEL       false   ///< Enable camera flash NeoPixel control
 #define FLASH_GPIO_NUM              14      ///< Flash control pin
 #define FLASH_NEOPIXEL_LED_PIN      48      ///< External flash control pin. RGB LED NeoPixel
 #define FLASH_OFF_STATUS            0       ///< PWM intensity LED for OFF. 0-2^FLASH_PWM_RESOLUTION = 0-255
@@ -87,9 +87,9 @@
 #define SD_PIN_DATA0                40      ///< GPIO pin for SD card data 0
 
 /* ---------- RESET CFG CONFIGURATION  ----------*/
-#define CFG_RESET_PIN               0       ///< GPIO 0 is for reset CFG to default
+#define CFG_RESET_PIN               8       ///< GPIO 8 is for reset CFG to default
 #define CFG_RESET_LED_PIN           14      ///< GPIO for indication of reset CFG
-#define CFG_RESET_LED_LEVEL_ON      HIGH    ///< GPIO pin level for status LED ON
+#define CFG_RESET_LED_LEVEL_ON      LOW    ///< GPIO pin level for status LED ON
 
 /* -------------- STATUS LED CFG ----------------*/
 #define STATUS_LED_ENABLE           true    ///< enable/disable status LED
