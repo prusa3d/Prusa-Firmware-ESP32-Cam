@@ -107,6 +107,8 @@ if [ -d "build" ]; then
 fi
 
 cd ESP32_PrusaConnectCam
+# var.cpp has the build date and time (SW_BUILD_TIME): compile it in every build
+touch var.cpp
 if [ ! -f ../arduino-cli ]; then
    echo "arduino-cli not found. Please download arduino-cli and place it in the same folder as this script."
    exit 1

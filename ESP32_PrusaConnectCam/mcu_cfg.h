@@ -25,7 +25,10 @@
 
 /* ---------------- BASIC MCU CFG  --------------*/
 #define SW_VERSION                  "1.1.3-rc3"             ///< SW version
-#define SW_BUILD                    __DATE__ " " __TIME__   ///< build number
+#define SW_BUILD_TIME               __DATE__ " " __TIME__   ///< build date and time. Expanded only in var.cpp, the build scripts compile var.cpp in every build
+#define SW_BUILD_MAX_LEN            48                      ///< max length of SW_BUILD incl. NUL
+#define SW_BUILD                    SwBuild                 ///< build: date, time and ELF SHA256, the same in all files. var.cpp, completed in setup()
+extern char SwBuild[SW_BUILD_MAX_LEN];                      ///< build string, var.cpp
 #define CONSOLE_VERBOSE_DEBUG       false                   ///< enable/disable verbose debug log level for console
 #define CERT_DIAGNOSTIC             false                   ///< enable/disable one-time diagnostic of the TLS certificate chain
 #define DEVICE_HOSTNAME             "Prusa-ESP32cam"        ///< device hostname

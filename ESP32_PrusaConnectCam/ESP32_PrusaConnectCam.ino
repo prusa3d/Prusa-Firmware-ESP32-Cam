@@ -32,6 +32,7 @@
 /* includes */
 #include "Arduino.h"
 #include <esp_task_wdt.h>
+#include <esp_app_desc.h>
 #include <ESPmDNS.h>
 #include "esp32-hal-cpu.h"
 
@@ -53,6 +54,11 @@ void setup() {
   /* console over USB CDC. When the PC does not read data, Serial.write waits 20x TX timeout and slows down the logger task */
   Serial.setTxTimeoutMs(SERIAL_USB_CDC_TX_TIMEOUT);
 #endif
+  /* build: date and time of var.cpp and ELF SHA256 (the same as in the panic output). The date and time are old,
+     when var.cpp was not compiled again (Arduino IDE), the ELF SHA256 is different for every build */
+  strlcat(SwBuild, ", ELF ", sizeof(SwBuild));
+  strlcat(SwBuild, esp_app_get_elf_sha256_str(), sizeof(SwBuild));
+
   Serial.println(F("----------------------------------------------------------------"));
   Serial.println(F("Start MCU!"));
   Serial.println(F("Prusa ESP32-cam https://prusa3d.cz"));
