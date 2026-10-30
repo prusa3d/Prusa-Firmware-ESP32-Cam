@@ -241,8 +241,10 @@ const char page_config_html[] PROGMEM = R"rawliteral(
 					<option value="2">640x480</option>
 					<option value="3">800x600</option>
 					<option value="4">1024x768</option>
+					<option value="7">1280x720</option>
 					<option value="5">1280x1024</option>
 					<option value="6">1600x1200</option>
+					<option value="8">1920x1080</option>
 				</select> <span class="pc1">pixels</span>
 			</td>
 		</tr>
@@ -277,8 +279,8 @@ const char page_config_html[] PROGMEM = R"rawliteral(
 		<center><table id="data">
 			<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
 			<tr><td class="ps3">Advanced settings</td><td></td></tr>
-			<tr><td class="pc1" title="Automatic white balance. Adjusts colours to the lighting conditions.">Automatic white balancing</td><td class="pc2"><label class="switch"><input type="checkbox" name="awb" id=awbid  onchange="changeValue(this.checked, 'set_bool?awb=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_awb"></span></td></tr>
-			<tr><td class="pc1" title="Enable/disable automatic gain adjustment for white balance.">Automatic white balancing gain</td><td class="pc2"><label class="switch"><input type="checkbox" name="awb_gain" id=awb_gainid  onchange="changeValue(this.checked, 'set_bool?awb_gain=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_awb_gain"></span></td></tr>
+			<tr class="cam_full_cfg"><td class="pc1" title="Automatic white balance. Adjusts colours to the lighting conditions.">Automatic white balancing</td><td class="pc2"><label class="switch"><input type="checkbox" name="awb" id=awbid  onchange="changeValue(this.checked, 'set_bool?awb=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_awb"></span></td></tr>
+			<tr class="cam_full_cfg"><td class="pc1" title="Enable/disable automatic gain adjustment for white balance.">Automatic white balancing gain</td><td class="pc2"><label class="switch"><input type="checkbox" name="awb_gain" id=awb_gainid  onchange="changeValue(this.checked, 'set_bool?awb_gain=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_awb_gain"></span></td></tr>
 			<tr>
 				<td class="pc1" title="White balance mode.">Automatic white balancing mode</td><td><label for="wb_mode"></label>
 					<select class="select" id="wb_modeid" name="wb_mode" onchange="changeValue(this.value, 'set_int?wb_mode=', 'config')">
@@ -289,21 +291,21 @@ const char page_config_html[] PROGMEM = R"rawliteral(
 					</select>
 				</td>
 			</tr>
-			<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
-			<tr><td class="pc1" title="Automatic Exposure Control: Camera automatically adjusts exposure time based on scene brightness.">Automatic Exposure Control</td><td class="pc2"><label class="switch"><input type="checkbox" name="exposure_ctrl" id=exposure_ctrlid onchange="changeValue(this.checked, 'set_bool?exposure_ctrl=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_exposure_ctrl"></span></td></tr>
-			<tr><td class="pc1" title="Automatic exposure calculated in the image processor (DSP).">Second-stage Exposure Control (AEC2)</td><td class="pc2"><label class="switch"><input type="checkbox" name="aec2" id=aec2id onchange="changeValue(this.checked, 'set_bool?aec2=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_aec2"></span></td></tr>
-			<tr><td class="pc1" title="Exposure compensation of the automatic exposure. Only active when Automatic Exposure Control is enabled.">Automatic exposure level</td><td class="pc2">Dark <input type="range" class="slider" name="ae_level" id=ae_levelid min="-2" max="2" step="1" onchange="changeValue(this.value, 'set_int?ae_level=', 'config')"> Bright</td></tr>
-			<tr><td class="pc1" title="Manual exposure value of the sensor (0-1200). Only active when Automatic Exposure Control is disabled.">Manual exposure time</td><td class="pc2">Short <input type="range" class="slider" name="aec_value" id=aec_valueid min="0" max="1200" step="10" onchange="changeValue(this.value, 'set_int?aec_value=', 'config')">Long</td></tr>
-			<tr><td class="pc1" title="Current manual exposure value.">Manual exposure time</td><td class="pc2"><span id="aec_value_value"></span></td></tr>
-			<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
-			<tr><td class="pc1" title="Automatic Gain Control: Camera adjusts sensor gain (light amplification) automatically.">Automatic gain control</td><td class="pc2"><label class="switch"><input type="checkbox" name="gain_ctrl" id=gain_ctrlid onchange="changeValue(this.checked, 'set_bool?gain_ctrl=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_gain_ctrl"></span></td></tr>
-			<tr><td class="pc1" title="Manual sensor gain. Only active when Automatic Gain Control is DISABLED. Higher values = more amplification = more noise.">Manual gain control level</td><td class="pc2">Low <input type="range" class="slider" name="agc_gain" id=agc_gainid min="0" max="30" step="1" onchange="changeValue(this.value, 'set_int?agc_gain=', 'config')">High</td></tr>
-			<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
-			<tr><td class="pc1" title="Bad Pixel Correction: Removes dead/stuck pixels from sensor. Usually enabled.">Bad pixel correction</td><td class="pc2"><label class="switch"><input type="checkbox" name="bpc" id=bpcid onchange="changeValue(this.checked, 'set_bool?bpc=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_bpc"></span></td></tr>
-			<tr><td class="pc1" title="White Pixel Correction: Corrects white pixel defects (always-on pixels). Usually enabled.">White pixel correction</td><td class="pc2"><label class="switch"><input type="checkbox" name="wpc" id=wpcid onchange="changeValue(this.checked, 'set_bool?wpc=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_wpc"></span></td></tr>
-			<tr><td class="pc1" title="Raw Gamma Correction: Applies gamma correction to raw sensor data before processing. Affects contrast in shadows/highlights.">Raw gamma correction</td><td class="pc2"><label class="switch"><input type="checkbox" name="raw_gama" id=raw_gamaid onchange="changeValue(this.checked, 'set_bool?raw_gama=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_raw_gama"></span></td></tr>
-			<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
-			<tr><td class="pc1" title="Lens shading correction. Brightens the darker corners of the image (vignetting).">Lens correction</td><td class="pc2"><label class="switch"><input type="checkbox" name="lenc" id=lencid onchange="changeValue(this.checked, 'set_bool?lenc=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_lensc"></span></td></tr>
+			<tr class="cam_full_cfg"><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
+			<tr class="cam_full_cfg"><td class="pc1" title="Automatic Exposure Control: Camera automatically adjusts exposure time based on scene brightness.">Automatic Exposure Control</td><td class="pc2"><label class="switch"><input type="checkbox" name="exposure_ctrl" id=exposure_ctrlid onchange="changeValue(this.checked, 'set_bool?exposure_ctrl=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_exposure_ctrl"></span></td></tr>
+			<tr class="cam_full_cfg"><td class="pc1" title="Automatic exposure calculated in the image processor (DSP).">Second-stage Exposure Control (AEC2)</td><td class="pc2"><label class="switch"><input type="checkbox" name="aec2" id=aec2id onchange="changeValue(this.checked, 'set_bool?aec2=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_aec2"></span></td></tr>
+			<tr class="cam_full_cfg"><td class="pc1" title="Exposure compensation of the automatic exposure. Only active when Automatic Exposure Control is enabled.">Automatic exposure level</td><td class="pc2">Dark <input type="range" class="slider" name="ae_level" id=ae_levelid min="-2" max="2" step="1" onchange="changeValue(this.value, 'set_int?ae_level=', 'config')"> Bright</td></tr>
+			<tr class="cam_full_cfg"><td class="pc1" title="Manual exposure value of the sensor (0-1200). Only active when Automatic Exposure Control is disabled.">Manual exposure time</td><td class="pc2">Short <input type="range" class="slider" name="aec_value" id=aec_valueid min="0" max="1200" step="10" onchange="changeValue(this.value, 'set_int?aec_value=', 'config')">Long</td></tr>
+			<tr class="cam_full_cfg"><td class="pc1" title="Current manual exposure value.">Manual exposure time</td><td class="pc2"><span id="aec_value_value"></span></td></tr>
+			<tr class="cam_full_cfg"><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
+			<tr class="cam_full_cfg"><td class="pc1" title="Automatic Gain Control: Camera adjusts sensor gain (light amplification) automatically.">Automatic gain control</td><td class="pc2"><label class="switch"><input type="checkbox" name="gain_ctrl" id=gain_ctrlid onchange="changeValue(this.checked, 'set_bool?gain_ctrl=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_gain_ctrl"></span></td></tr>
+			<tr class="cam_full_cfg"><td class="pc1" title="Manual sensor gain. Only active when Automatic Gain Control is DISABLED. Higher values = more amplification = more noise.">Manual gain control level</td><td class="pc2">Low <input type="range" class="slider" name="agc_gain" id=agc_gainid min="0" max="30" step="1" onchange="changeValue(this.value, 'set_int?agc_gain=', 'config')">High</td></tr>
+			<tr class="cam_full_cfg"><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
+			<tr class="cam_full_cfg"><td class="pc1" title="Bad Pixel Correction: Removes dead/stuck pixels from sensor. Usually enabled.">Bad pixel correction</td><td class="pc2"><label class="switch"><input type="checkbox" name="bpc" id=bpcid onchange="changeValue(this.checked, 'set_bool?bpc=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_bpc"></span></td></tr>
+			<tr class="cam_full_cfg"><td class="pc1" title="White Pixel Correction: Corrects white pixel defects (always-on pixels). Usually enabled.">White pixel correction</td><td class="pc2"><label class="switch"><input type="checkbox" name="wpc" id=wpcid onchange="changeValue(this.checked, 'set_bool?wpc=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_wpc"></span></td></tr>
+			<tr class="cam_full_cfg"><td class="pc1" title="Raw Gamma Correction: Applies gamma correction to raw sensor data before processing. Affects contrast in shadows/highlights.">Raw gamma correction</td><td class="pc2"><label class="switch"><input type="checkbox" name="raw_gama" id=raw_gamaid onchange="changeValue(this.checked, 'set_bool?raw_gama=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_raw_gama"></span></td></tr>
+			<tr class="cam_full_cfg"><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
+			<tr class="cam_full_cfg"><td class="pc1" title="Lens shading correction. Brightens the darker corners of the image (vignetting).">Lens correction</td><td class="pc2"><label class="switch"><input type="checkbox" name="lenc" id=lencid onchange="changeValue(this.checked, 'set_bool?lenc=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_lensc"></span></td></tr>
 		</table></center>
 	</div>
 </body>
@@ -941,6 +943,7 @@ function get_data(val) {
 				document.getElementById('refreshid').value = obj.refreshInterval;
 				document.getElementById('photo_qualityid').value = obj.photoquality;
 				document.getElementById('framesizeid').value = obj.framesize;
+				$('#framesizeid option').each(function() { this.hidden = this.disabled = !(obj.framesizes & (1 << this.value)); });
 				document.getElementById('brightnessid').value = obj.brightness;
 				document.getElementById('contrastid').value = obj.contrast;
 				document.getElementById('saturationid').value = obj.saturation;
@@ -980,6 +983,7 @@ function get_data(val) {
 				$("#status_aec2").text((obj.aec2 == "true") ? "On" : "Off");
 				$("#status_gain_ctrl").text((obj.gain_ctrl == "true") ? "On" : "Off");
 				$("#status_timelaps").text((obj.timelaps == "true") ? "On" : "Off");
+				$('.cam_full_cfg').toggle(obj.cam_full_cfg == "true");
 				sliderCheck();
 			}
 

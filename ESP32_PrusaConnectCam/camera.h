@@ -69,6 +69,7 @@ private:
   camera_fb_t *FrameBuffer;                 ///< frame buffer
   bool FrameBufferHeld;                     ///< FrameBuffer is taken from the camera driver (esp_camera_fb_get) and not returned yet
   bool MegaCcmSensor;                       ///< sensor MEGA_CCM (PY260, M5Stack Unit CamS3 5MP), detected at the first init of the camera
+  uint16_t FrameSizeSupported;              ///< frame sizes supported by the sensor, bit = frame size value from the web (0 - 320x240, ..., 8 - 1920x1080)
   camera_fb_t *FrameBufferDuplicate;        ///< frame buffer duplicate
   camera_fb_t *FrameBufferExif;             ///< frame buffer with exif data
   sensor_t* sensor;                         ///< sensor
@@ -154,6 +155,8 @@ public:
 
   uint8_t GetPhotoQuality();
   uint8_t GetFrameSize();
+  uint16_t GetFrameSizeSupported();
+  bool GetFullCfgSupported();
   uint16_t GetFrameSizeWidth();
   uint16_t GetFrameSizeHeight();
   int8_t GetBrightness();

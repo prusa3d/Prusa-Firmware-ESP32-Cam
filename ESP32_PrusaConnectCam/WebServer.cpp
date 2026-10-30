@@ -1253,6 +1253,8 @@ char *Server_GetJsonData() {
   doc_json["refreshInterval"] = String(Connect.GetRefreshInterval());
   doc_json["photoquality"] = String(73 - SystemCamera.GetPhotoQuality());
   doc_json["framesize"] = String(SystemCamera.GetFrameSize());
+  doc_json["framesizes"] = SystemCamera.GetFrameSizeSupported();
+  doc_json["cam_full_cfg"] = Server_TranslateBoolToString(SystemCamera.GetFullCfgSupported());
   doc_json["brightness"] = String(SystemCamera.GetBrightness());
   doc_json["contrast"] = String(SystemCamera.GetContrast());
   doc_json["saturation"] = String(SystemCamera.GetSaturation());

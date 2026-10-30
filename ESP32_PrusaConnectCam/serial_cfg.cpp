@@ -117,7 +117,7 @@ String lastTwoChars = command.substring(command.length() - 2);
   } else if (command.startsWith("resolution:") && command.endsWith(";")) {
     uint8_t resolution = command.substring(11, command.length() -1).toInt();
     log->AddEvent(LogLevel_Info, F("--> Console set photo resolution: "), String(resolution));
-    if (resolution <= 6) {
+    if (resolution <= 8) {
       cam->SetFrameSize(resolution);
     } else {
       log->AddEvent(LogLevel_Warning, F("--> Bad resolution size!"));
@@ -192,6 +192,8 @@ void SerialCfg::PrintAvailableCommands() {
   Serial.println(F(" |->   4   - 1024x768"));
   Serial.println(F(" |->   5   - 1280x1024"));
   Serial.println(F(" |->   6   - 1600x1200"));
+  Serial.println(F(" |->   7   - 1280x720"));
+  Serial.println(F(" |->   8   - 1920x1080"));
   Serial.println(F("photoquality:QUALITY;   - set photo quality. 10-63 lower number means higher quality "));
   Serial.println(F("setflash;               - enable/disable LED flash"));
   Serial.println(F("setlight;               - enable/disable LED light"));

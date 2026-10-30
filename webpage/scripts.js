@@ -23,6 +23,7 @@ function get_data(val) {
 				document.getElementById('refreshid').value = obj.refreshInterval;
 				document.getElementById('photo_qualityid').value = obj.photoquality;
 				document.getElementById('framesizeid').value = obj.framesize;
+				$('#framesizeid option').each(function() { this.hidden = this.disabled = !(obj.framesizes & (1 << this.value)); });
 				document.getElementById('brightnessid').value = obj.brightness;
 				document.getElementById('contrastid').value = obj.contrast;
 				document.getElementById('saturationid').value = obj.saturation;
@@ -62,6 +63,7 @@ function get_data(val) {
 				$("#status_aec2").text((obj.aec2 == "true") ? "On" : "Off");
 				$("#status_gain_ctrl").text((obj.gain_ctrl == "true") ? "On" : "Off");
 				$("#status_timelaps").text((obj.timelaps == "true") ? "On" : "Off");
+				$('.cam_full_cfg').toggle(obj.cam_full_cfg == "true");
 				sliderCheck();
 			}
 
