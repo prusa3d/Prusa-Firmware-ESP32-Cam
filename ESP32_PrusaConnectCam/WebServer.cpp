@@ -452,7 +452,8 @@ void Server_InitWebServer_Actions() {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: /action_capture Take photo"));
     if (Server_CheckBasicAuth(request) == false)
       return;
-    SystemCamera.CapturePhoto();
+    /* the photo task captures the photo, the page loads it later (actionButton() in scripts.js) */
+    SystemCamera.SetCaptureRequest();
     request->send(200, "text/plain", "Take Photo");
   });
 

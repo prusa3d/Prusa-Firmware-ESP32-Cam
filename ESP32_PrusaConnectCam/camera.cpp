@@ -55,6 +55,7 @@ Camera::Camera(Configuration* i_conf, Logs* i_log, int8_t i_FlashPin) {
   PhotoExifData.offset = 0;
   PhotoSending = false;
   ReinitRequest = false;
+  CaptureRequest = false;
   CameraCaptureFailedCounter = 0;
 }
 
@@ -468,6 +469,30 @@ void Camera::ProcessReinitRequest() {
     ReinitRequest = false;
     log->AddEvent(LogLevel_Info, F("Reinit camera module, new frame size or photo quality"));
     ReinitCameraModule();
+  }
+}
+
+/**
+   @brief Request the photo from the web (Refresh Snapshot), the photo task captures it (ProcessCaptureRequest()).
+          The capture in the web server (async_tcp) during sending the photo of the photo task cleared CameraCaptureSuccess (the photo was not sent),
+          and the reinit after the failed captures released the frame buffer used by the photo task
+   @param none
+   @return none
+*/
+void Camera::SetCaptureRequest() {
+  CaptureRequest = true;
+}
+
+/**
+   @brief Capture the photo requested from the web. Called by the photo task, not during sending and saving the photo
+   @param none
+   @return none
+*/
+void Camera::ProcessCaptureRequest() {
+  if (true == CaptureRequest) {
+    CaptureRequest = false;
+    log->AddEvent(LogLevel_Verbose, F("Capture photo requested from the web"));
+    CapturePhoto();
   }
 }
 

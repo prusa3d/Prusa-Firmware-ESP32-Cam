@@ -197,7 +197,7 @@ function openImage() {
 	OpenImageclickCount++;
 }
 
-function actionButton(url, reload, msg) {
+function actionButton(url, reload, msg, delay = 200) {
     var xhr = new XMLHttpRequest();
     
 	if (msg != '') {
@@ -207,9 +207,10 @@ function actionButton(url, reload, msg) {
     xhr.onreadystatechange = function() {
         if (xhr.readyState == 4 && xhr.status == 200) {
             if (reload == true) {
+                /* delay [ms] before the reload. Refresh Snapshot: the photo task captures the photo up to ~1 s after the request */
                 setTimeout(function() {
                     location.reload();
-                }, 200);
+                }, delay);
             }
         }
     };

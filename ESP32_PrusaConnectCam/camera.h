@@ -64,6 +64,7 @@ private:
   bool CameraCaptureSuccess; ///< camera capture success
   bool PhotoSending;         ///< photo sending
   bool ReinitRequest;        ///< reinit of the camera module requested (frame size, photo quality), done by the photo task
+  bool CaptureRequest;       ///< photo requested from the web (Refresh Snapshot), captured by the photo task
 
   /* OV2640 camera module pinout and cfg*/
   camera_config_t CameraConfig;             ///< camera configuration
@@ -100,6 +101,8 @@ public:
   void LoadCameraCfgFromEeprom();
   void ReinitCameraModule();
   void ProcessReinitRequest();
+  void SetCaptureRequest();
+  void ProcessCaptureRequest();
   void GetCameraModel();
   void CapturePhoto();
   bool CaptureStream(camera_fb_t *);

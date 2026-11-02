@@ -69,7 +69,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 		<div class="container_right-half">
 			<article>
 				<p class="p1">Trigger interval: <b><span id="refreshInterval"></span><b>s</p><br><br>
-				<button class="btn" onclick="actionButton('/action_capture',true,'')">Refresh Snapshot</button> <br><br>
+				<button class="btn" onclick="actionButton('/action_capture',true,'',1500)">Refresh Snapshot</button> <br><br>
 				<button class="btn" onclick="actionButton('/action_send',false,'Sending snapshot...')">Send snapshot</button><br><br><br>
 				<button class="btn" onclick="window.open('saved-photo.jpg')">Download snapshot</button><br><br>
 				<button class="btn" onclick="window.open('stream.mjpg')">Start stream</button><br><br>
@@ -1117,7 +1117,7 @@ function openImage() {
 	OpenImageclickCount++;
 }
 
-function actionButton(url, reload, msg) {
+function actionButton(url, reload, msg, delay = 200) {
     var xhr = new XMLHttpRequest();
     
 	if (msg != '') {
@@ -1127,9 +1127,10 @@ function actionButton(url, reload, msg) {
     xhr.onreadystatechange = function() {
         if (xhr.readyState == 4 && xhr.status == 200) {
             if (reload == true) {
+                /* delay [ms] before the reload. Refresh Snapshot: the photo task captures the photo up to ~1 s after the request */
                 setTimeout(function() {
                     location.reload();
-                }, 200);
+                }, delay);
             }
         }
     };
