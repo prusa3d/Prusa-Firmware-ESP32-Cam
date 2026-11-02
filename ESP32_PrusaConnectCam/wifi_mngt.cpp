@@ -122,7 +122,8 @@ void WiFiMngt::Init() {
       log->AddEvent(LogLevel_Info, "WiFi network IP Address: http://" + WiFi.localIP().toString());
 #endif
     } else {
-      log->AddEvent(LogLevel_Warning, "Wifi unavailable. Try connect to hidden network: " + WifiSsid);
+      /* SSID not found, connect anyway and retry in WiFiReconnect() */
+      log->AddEvent(LogLevel_Warning, "Wifi unavailable at boot: " + WifiSsid + ". Will keep retrying in background");
       WiFiStaConnect();
     }
   } else {
