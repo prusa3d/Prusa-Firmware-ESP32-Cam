@@ -54,6 +54,7 @@ Camera::Camera(Configuration* i_conf, Logs* i_log, int8_t i_FlashPin) {
   PhotoExifData.len = 0;
   PhotoExifData.offset = 0;
   PhotoSending = false;
+  ReinitRequest = false;
   CameraCaptureFailedCounter = 0;
 }
 
@@ -155,6 +156,14 @@ void Camera::InitCameraModule() {
 
   /* Camera init */
   err = esp_camera_init(&CameraConfig);
+
+  /* OV2640 sometimes does not acknowledge the register write after the register 0x39 in set_framesize() of the driver (SCCB_Write Failed, ret 259).
+     The next init with the same frame size usually works, esp_camera_init() calls esp_camera_deinit() after the error */
+  for (uint8_t i = 1; (err == ESP_ERR_CAMERA_FAILED_TO_SET_FRAME_SIZE) && (i < CAMERA_INIT_ATTEMPTS); i++) {
+    log->AddEvent(LogLevel_Warning, F("Camera failed to set frame size, init again. Attempt: "), String(i + 1));
+    delay(CAMERA_INIT_RETRY_DELAY);
+    err = esp_camera_init(&CameraConfig);
+  }
 
   /* the sensor does not support the frame size from the configuration (MEGA_CCM supports only some of them). Use the factory frame size, otherwise the MCU restarts after every start */
   if ((err == ESP_ERR_CAMERA_FAILED_TO_SET_FRAME_SIZE) && (FrameSize != FACTORY_CFG_FRAME_SIZE)) {
@@ -445,6 +454,21 @@ void Camera::ReinitCameraModule() {
   InitCameraModule();
   ApplyCameraCfg();
   xSemaphoreGive(frameBufferSemaphore);
+}
+
+/**
+   @brief Reinit the camera module after the change of the frame size or the photo quality (web, serial console). Called by the photo task
+          before sending the photo. The photo task sends the photo to Prusa Connect and saves it to the SD card from the frame buffer
+          of the driver without frameBufferSemaphore, the reinit from the web (async_tcp) released the frame buffer during it (crash in SavePhotoToSdCard()).
+   @param none
+   @return none
+*/
+void Camera::ProcessReinitRequest() {
+  if (true == ReinitRequest) {
+    ReinitRequest = false;
+    log->AddEvent(LogLevel_Info, F("Reinit camera module, new frame size or photo quality"));
+    ReinitCameraModule();
+  }
 }
 
 /**
@@ -1015,18 +1039,18 @@ int Camera::GetPhotoSize() {
 }
 
 /**
-   @brief Set Photo Quality
+   @brief Set Photo Quality. The camera module is reinitialized by the photo task (ProcessReinitRequest())
    @param uint8_t - photo quality
    @return none
 */
 void Camera::SetPhotoQuality(uint8_t i_data) {
   config->SavePhotoQuality(i_data);
   PhotoQuality = i_data;
-  ReinitCameraModule();
+  ReinitRequest = true;
 }
 
 /**
-   @brief Set Frame Size
+   @brief Set Frame Size. The camera module is reinitialized by the photo task (ProcessReinitRequest())
    @param uint8_t - frame size
    @return none
 */
@@ -1034,7 +1058,7 @@ void Camera::SetFrameSize(uint8_t i_data) {
   config->SaveFrameSize(i_data);
   FrameSize = i_data;
   TFrameSize = TransformFrameSizeDataType(i_data);
-  ReinitCameraModule();
+  ReinitRequest = true;
 }
 
 /**

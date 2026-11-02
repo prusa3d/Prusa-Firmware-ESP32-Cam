@@ -595,6 +595,9 @@ void System_TaskCaptureAndSendPhoto(void *pvParameters) {
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while (1) {
+    /* reinit camera module after the change of the frame size or the photo quality. Here, not during sending and saving the photo */
+    SystemCamera.ProcessReinitRequest();
+
     if (Connect.CheckSendingIntervalExpired()) {
       Connect.SetSendingIntervalCounter(0);
       /* send network information to backend */

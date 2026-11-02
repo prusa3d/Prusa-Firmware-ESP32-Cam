@@ -33,6 +33,8 @@ extern char SwBuild[SW_BUILD_MAX_LEN];                      ///< build string, v
 #define CERT_DIAGNOSTIC             false                   ///< enable/disable one-time diagnostic of the TLS certificate chain
 #define DEVICE_HOSTNAME             "Prusa-ESP32cam"        ///< device hostname
 #define CAMERA_MAX_FAIL_CAPTURE     5                       ///< maximum count for failed capture
+#define CAMERA_INIT_ATTEMPTS        3                       ///< maximum count of the camera init with the same frame size, when the driver fails to set the frame size
+#define CAMERA_INIT_RETRY_DELAY     100                     ///< delay before the next camera init with the same frame size [ms]
 #define TLS_PSRAM_ALLOC_MIN_SIZE    1024                    ///< mbedTLS allocations from this size (TLS buffers, certificates, handshake) are in PSRAM, smaller allocations in internal RAM [B]
 
 /* ------------ PRUSA BACKEND CFG  --------------*/
