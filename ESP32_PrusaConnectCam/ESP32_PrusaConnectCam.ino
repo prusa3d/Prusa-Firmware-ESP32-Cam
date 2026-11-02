@@ -124,7 +124,8 @@ void setup() {
 
   /* init tasks */
   SystemLog.AddEvent(LogLevel_Info, F("Start tasks"));
-  xTaskCreatePinnedToCore(System_TaskMain, "SystemNtpOtaUpdate", 5600, NULL, 1, &Task_SystemMain, 0); /*function, description, stack size, parameters, priority, task handle, core*/
+  /* SystemNtpOtaUpdate: the OTA download from GitHub (TLS, HTTPUpdate) needs the most stack, with 5600 B only 428 B free */
+  xTaskCreatePinnedToCore(System_TaskMain, "SystemNtpOtaUpdate", 6400, NULL, 1, &Task_SystemMain, 0); /*function, description, stack size, parameters, priority, task handle, core*/
   ESP_ERROR_CHECK(esp_task_wdt_add(Task_SystemMain));
   xTaskCreatePinnedToCore(System_TaskCaptureAndSendPhoto, "CaptureAndSendPhoto", 5200, NULL, 2, &Task_CapturePhotoAndSend, 0); /*function, description, stack size, parameters, priority, task handle, core*/
   ESP_ERROR_CHECK(esp_task_wdt_add(Task_CapturePhotoAndSend));
