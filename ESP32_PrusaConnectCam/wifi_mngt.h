@@ -78,6 +78,7 @@ private:
 
   bool WiFiStaMultipleNetwork;        ///< flag about multiple STA networks
   bool StartStaWdg;                   ///< flag about start STA watchdog
+  uint8_t StaConnectFailCount;        ///< consecutive failed STA connections (network not found, rejected by the AP)
 
   IPAddress Service_LocalIp;          ///< Service IP when si module in the AP mode
   IPAddress Service_Gateway;          ///< Service gateway when si module in the AP mode
@@ -105,6 +106,8 @@ public:
   void Init();
   void WifiManagement();
   void WiFiReconnect();
+  void StaConnectFailed(uint8_t);
+  void StaConnectDone();
   void SetWifiEvents();
   void WiFiStaConnect();
   void WiFiStaConnectDelayed();

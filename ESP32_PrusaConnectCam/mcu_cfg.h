@@ -114,6 +114,7 @@ static_assert((LOGS_MSG_MAX_LEN + 16) <= (LOGS_QUEUE_SIZE / 2), "LOGS_MSG_MAX_LE
 
 /* ----------------- WiFi CFG -------------------*/
 #define WIFI_STA_WDG_TIMEOUT        60000                   ///< STA watchdog timeout [ms]
+#define WIFI_STA_FAST_RETRY_COUNT   3                       ///< failed STA connections (network not found, rejected by the AP) with the immediate retry of the core, then every TASK_WIFI
 #define WIFI_DISABLE_UNENCRYPTED_STA_PASS_CHECK false       ///< enable/disable WEP/WPA/WPA2/... encryption for STA mode . for the wifi network without encryption set to false
 
 /* ----------------- NTP CFG --------------------*/

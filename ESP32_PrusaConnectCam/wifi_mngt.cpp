@@ -32,6 +32,7 @@ WiFiMngt::WiFiMngt(Configuration *i_conf, Logs *i_log, Camera *i_cam) {
 
   NtpFirstSync = false;
   StartStaWdg = false;
+  StaConnectFailCount = 0;
   WifiEapEnable = false;
   StaConnectTimer = NULL;
 }
@@ -218,6 +219,39 @@ void WiFiMngt::WiFiReconnect() {
 }
 
 /**
+   @brief Failed connection to STA, called from the disconnect event. The core repeats the connection immediately after 201 NO_AP_FOUND
+          (scan of all channels every ~3 s) and 203 ASSOC_FAIL (~38 attempts per second). The radio is shared with the service AP,
+          the phone did not find the service AP. After WIFI_STA_FAST_RETRY_COUNT failures the automatic reconnect of the core is disabled,
+          the next connection is done by WiFiReconnect() every TASK_WIFI
+   @param uint8_t - disconnect reason
+   @return none
+*/
+void WiFiMngt::StaConnectFailed(uint8_t i_reason) {
+  if ((WIFI_REASON_NO_AP_FOUND != i_reason) && (WIFI_REASON_ASSOC_FAIL != i_reason)) {
+    return;
+  }
+
+  if (StaConnectFailCount < UINT8_MAX) {
+    StaConnectFailCount++;
+  }
+
+  if ((StaConnectFailCount >= WIFI_STA_FAST_RETRY_COUNT) && (true == WiFi.getAutoReconnect())) {
+    WiFi.setAutoReconnect(false);
+    log->AddEvent(LogLevel_Warning, "WiFi STA connection failed " + String(StaConnectFailCount) + "x. Next attempt every " + String(TASK_WIFI / 1000) + " s");
+  }
+}
+
+/**
+   @brief STA connected, called from the got IP event. Enable the automatic reconnect of the core again
+   @param none
+   @return none
+*/
+void WiFiMngt::StaConnectDone() {
+  StaConnectFailCount = 0;
+  WiFi.setAutoReconnect(true);
+}
+
+/**
    @brief Function for sets WiFi CB calls
    @param none
    @return none
@@ -281,7 +315,8 @@ void WiFiMngt::WiFiStaConnect() {
       log->AddEvent(LogLevel_Info, F("Connecting to STA BSSID"));
     }
     WiFi.setSleep(false);
-    WiFi.setAutoReconnect(true);
+    /* after WIFI_STA_FAST_RETRY_COUNT failed connections the next one is done by WiFiReconnect() every TASK_WIFI (StaConnectFailed()) */
+    WiFi.setAutoReconnect(StaConnectFailCount < WIFI_STA_FAST_RETRY_COUNT);
   }
 }
 
@@ -1097,6 +1132,7 @@ void WiFiMngt_WiFiEventGotIP(WiFiEvent_t event, WiFiEventInfo_t info) {
   SystemLog.AddEvent(LogLevel_Info, "WiFi Got DNS 1: " + WiFi.dnsIP(0).toString());
   SystemLog.AddEvent(LogLevel_Info, "WiFi Got DNS 2: " + WiFi.dnsIP(1).toString());
   SystemWifiMngt.SetFirstConnection(true);
+  SystemWifiMngt.StaConnectDone();
 
   /* update device information */
   Connect.UpdateDeviceInformation();
@@ -1156,6 +1192,7 @@ void WiFiMngt_WiFiEventLostIP(WiFiEvent_t event, WiFiEventInfo_t info) {
 void WiFiMngt_WiFiEventStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
   SystemLog.AddEvent(LogLevel_Warning, String("WiFi disconnected from access point. Reason: ") + String(info.wifi_sta_disconnected.reason));
   system_led.setTimer(STATUS_LED_ERROR);
+  SystemWifiMngt.StaConnectFailed(info.wifi_sta_disconnected.reason);
 }
 
 /**
