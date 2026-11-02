@@ -34,7 +34,7 @@ Manufacturer documentation is available [here](https://docs.m5stack.com/en/unit/
 
 <img src="timercam_02.webp" alt="M5Stack Timer Camera, camera side" width=30%> <img src="timercam_05.webp" alt="M5Stack Timer Camera, back side" width=30%>
 
-**This board is not tested with the firmware version 1.1.3-rc3 yet.** The OV3660 camera module of the Timer Camera was tested on the Ai-Thinker ESP32-cam board.
+**This board is not tested with the firmware version 1.1.3 yet.** The OV3660 camera module of the Timer Camera was tested on the Ai-Thinker ESP32-cam board.
 
 <a name="cam_modules"></a>
 ## Supported camera modules
