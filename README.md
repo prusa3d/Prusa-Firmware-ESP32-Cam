@@ -3,15 +3,17 @@
 This repository includes source code and firmware releases for the **ESP32-cam** module programmed in the **Arduino IDE**. Currently, several versions of boards built on **ESP32/ESP32S3** processors with a camera chip are supported. You can find a list of supported boards below. Additionally, for each supported board, there is a guide on how to upload the firmware, how to compile code for it, some basic information and a list of known issues for this particular board.
 
 This project uses other libraries. It is necessary to install them in the Arduino IDE:
-- App [Arduino IDE 2.3.4](https://www.arduino.cc/en/software)
-- MCU support [arduino-ESP32 3.1.0](https://github.com/espressif/arduino-esp32)
+- App [Arduino IDE 2.3.10](https://www.arduino.cc/en/software)
+- MCU support [arduino-ESP32 3.3.12](https://github.com/espressif/arduino-esp32)
 - ~~Library [ESPAsyncWebSrv 1.2.7](https://github.com/dvarrel/ESPAsyncWebSrv)~~ To version **1.0.3-rc1**
 - ~~Library [AsyncTCP 1.1.4](https://github.com/dvarrel/AsyncTCP)~~ To version **1.0.3-rc1**
-- Library [AsyncTCP 3.3.1](https://github.com/mathieucarbou/AsyncTCP)
-- Library [ESPAsyncWebServer 3.4.5](https://github.com/mathieucarbou/ESPAsyncWebServer) 
-- Library [ArduinoJson 7.3.0](https://github.com/bblanchon/ArduinoJson)
+- ~~Library [AsyncTCP 3.3.1](https://github.com/mathieucarbou/AsyncTCP)~~ To version **1.1.2**
+- ~~Library [ESPAsyncWebServer 3.4.5](https://github.com/mathieucarbou/ESPAsyncWebServer)~~ To version **1.1.2**
+- Library [AsyncTCP 3.5.0](https://github.com/ESP32Async/AsyncTCP)
+- Library [ESPAsyncWebServer 3.12.1](https://github.com/ESP32Async/ESPAsyncWebServer)
+- Library [ArduinoJson 7.4.3](https://github.com/bblanchon/ArduinoJson)
 - Library [UniqueID 1.3.0](https://github.com/ricaun/ArduinoUniqueID)
-- Library [DHTnew 0.5.2](https://github.com/RobTillaart/DHTNew)
+- Library [DHTnew 0.5.5](https://github.com/RobTillaart/DHTNew)
 
 What we need for functionality:
 - Supported versions of boards built on **ESP32/ESP32-S3** processors with a camera [here](#supported_boards)
@@ -43,6 +45,7 @@ What we need for functionality:
 | Seeed Studio XIAO ESP32S3 | Full        | Yes    | Yes      | External  | Yes       | Yes         | [ here ](doc/XIAO_ESP32S3/README.md)              |
 | ESP32-S3-CAM              | Full        | Yes    | Yes      | Board/Ext | Yes       | Yes         | [ here ](doc/ESP32-S3-CAM/README.md)              |
 | M5Stack Unit CamS3        | Full        | Yes    | Yes      | No        | Yes       | No          | [ here ](doc/M5-Unit-CamS3/README.md)             |
+| M5Stack Timer Camera      | Full        | Yes    | No       | No        | Yes       | No          | [ here ](doc/M5Stack-TimerCamera/README.md)       |
 
 The compiled firmware for each supported board is published with every release.
 
@@ -89,12 +92,15 @@ You should now be able to build the firmware and upload it to the board. Each bo
 **For each specific board type, it's necessary** to update the file called **mcu_cfg.h**. Below **line 16** you can find several definitions that specify the version of the board for which the software will be compiled. It is necessary to enable the version of the board that will be used:
 
 ```c
-#define AI_THINKER_ESP32_CAM           false
-#define ESP32_WROVER_DEV               true
-#define CAMERA_MODEL_ESP32_S3_DEV_CAM  false
-#define CAMERA_MODEL_ESP32_S3_EYE_2_2  false
-#define CAMERA_MODEL_XIAO_ESP32_S3_CAM false
-#define CAMERA_MODEL_ESP32_S3_CAM      false
+#define AI_THINKER_ESP32_CAM            false
+#define ESP32_WROVER_DEV                true
+#define CAMERA_MODEL_ESP32_S3_DEV_CAM   false
+#define CAMERA_MODEL_ESP32_S3_EYE_2_2   false
+#define CAMERA_MODEL_XIAO_ESP32_S3_CAM  false
+#define CAMERA_MODEL_ESP32_S3_CAM       false
+#define ESP32_S3_WROOM_FREENOVE         false
+#define M5STACK_TIMERCAMERA             false
+#define ESP32_M5_UNIT_CAMS3             false
 ```
 
 <a name="prusa_connect"></a>
@@ -127,7 +133,7 @@ You should now be able to build the firmware and upload it to the board. Each bo
 <img src="doc/connect_3.jpg" width=50% height=50%>
 
 In this same tab you should also configure a few image settings:
-- Set up the **resolution**. This will improve the image quality significantly, as the resolution is set to the lowest possible by default.
+- Set up the **resolution**. This will improve the image quality significantly, as the resolution is set to the lowest possible by default. The list offers only the resolutions supported by the camera sensor of your board.
 - Set up the **Trigger interval** and click **Save**.
 - Clicking **Refresh snapshot** will refresh the image you see on the page.
 - We should now have completed setting up the camera.
@@ -141,11 +147,12 @@ While we are on the ESP camera's configuration page, let's take a quick look at 
   - Setting the wifi network to which the camera can connect
   - The possibility of turning off the service AP
   - Option to set static IP addresses for WiFi networks to which the camera connects
+  - Wi-Fi Enterprise (WPA2-Enterprise, PEAP-MSCHAPv2, without certificate). **Experimental, not tested yet**
 - On the **Authentication** tab, you can set a password to access the configuration page. Default login is admin:admin.
 - The **System tab** provides several advanced options such as:
   - Setting a Hostname (mDNS record) for easier future access to the configuration page over the local network.
-  - For a manual firmware update, select the firmware file **ESP32_PrusaConnectCam.ino.bin** and click **Upload file & Update**. Afterwards, reboot the camera.
-  - Update from cloud. To check for firmware updates, select **Check Update from cloud**. If a newer version is available, click **Update from cloud**. Note that the camera has to be connected to the Internet, before using these functions.
+  - For a manual firmware update, select the firmware file for your board (for example **ESP32_PrusaConnectCam.ino.bin** for Ai-Thinker ESP32-cam, the file name is in the documentation of each board) and click **Update from File**. Afterwards, reboot the camera.
+  - Update from cloud. To check for firmware updates, select **Check Update from cloud**. If a newer version is available, click **Update from cloud**. Note that the camera has to be connected to the Internet, before using these functions. **The update from the cloud does not work in the versions 1.1.x**, update from these versions manually with the file, see [Troubleshooting](#issue).
   - Setting **log level** and getting logs from the camera. To get the logs, it is necessary to have a micro SD card formatted to **FAT32** inserted in the camera!
   - Check the status of uploading the image to Prusa Connect using the **PrusaConnect Status:** variable.
 
@@ -170,6 +177,8 @@ After establishing a successful connection, your computer might display a "**No 
 If you have set up a Wi-Fi network name (SSID) and password in the camera for it to connect to, then upon powering on, the camera will automatically connect to the configured Wi-Fi network and simultaneously activate AP mode for **5 minutes**. AP mode is always enabled after powering on and booting up the camera for **5 minutes**. The service Wi-Fi AP **automatically deactivates** itself after **5 minutes** following each camera startup if no device is connected to the camera.
 
 Service AP is for the first camera configuration. If the camera is connected to a WiFi network, it is possible to configure it from the local network.
+
+When the camera cannot connect to the configured Wi-Fi network (the network is not available or the password is wrong), the service AP stays enabled. After 3 failed attempts, the camera tries to connect every 28 seconds, so that the service AP is easy to find.
 
 <a name="factory_cfg"></a>
 ## How to reset configuration to factory settings
@@ -201,7 +210,10 @@ The approximate boot time of the device is 15-20 seconds.
 <a name="logs"></a>
 ## Debug logs
 
-It is possible to save debug logs to a microSD card, but the card must be formatted to FAT32. Currently, the maximum tested capacity for a microSD card is 16GB. If a microSD card is inserted into the camera, it is necessary to reboot the camera. When a microSD card is inserted into the camera before boot, logging to the microSD card is automatically enabled. If no microSD card is inserted, logging to the microSD card is automatically disabled. Enabling the saving of debug logs to a microSD card is only possible during camera boot, so it is necessary to restart the camera after inserting the microSD card. Debug logs are saved as plain text in the file `SysLog.log`.
+It is possible to save debug logs to a microSD card, but the card must be formatted to FAT32. Currently, the maximum tested capacity for a microSD card is 32GB. Debug logs are saved as plain text. A new log file is created for each start of the camera: `SysLog_0000.log`, `SysLog_0001.log`, ... Each file has up to 1 MB, the 10 newest files are kept on the card. The log of the current start can be downloaded from the **System** tab (**Get logs**).
+
+- **ESP32-S3 boards:** the microSD card can be inserted and removed while the camera is running. Logging to the card starts automatically when the card is inserted.
+- **ESP32 boards** (Ai-Thinker ESP32-cam, ...): the microSD card is detected only during the start of the camera. Insert the card before powering on the camera, or restart the camera after inserting the card.
 
 <a name="serial_cfg"></a>
 ## Serial console configuration
@@ -229,7 +241,7 @@ Currently, available commands are listed in the table below:
 | getserviceapssid  | Print service AP SSID name                                          |
 | setauthtoken      | Set authentication token for Prusa Connect                          |
 | otaupdate         | Start OTA update process                                            |
-| resolution        | Set photo resolution                                                |
+| resolution        | Set photo resolution, the variable is the index 0-8 (`commandslist;` prints the list of resolutions) |
 | photoquality      | Set photo quality                                                   |
 | setflash          | Enable/disable LED flash                                            |
 | setlight          | Enable/disable LED light                                            |
@@ -308,3 +320,5 @@ Here is a typical schematic for the DHT22 or DHT11 sensor:
 - After the initial firmware upload to a new camera, there may be an issue when connecting to the IP address, where the camera prompts for a username and password to access the web page. Even when entering the username "admin" and the password "admin", the login still doesn't work. In such cases, it's necessary to reset the camera configuration to factory settings. The procedure is outlined in the readme file [here](#factory_cfg).
 - If you are getting a 400 return code from Prusa Connect, then you need to create another camera in Prusa Connect and enter a new token into the ESP32 camera.
 - If you are getting a 404 return code from Prusa Connect, it may indicate that the printer is powered off. The printer must be powered on in order for images to be uploaded.
+- **Update from the versions 1.1.x:** the update from the cloud does not work in these versions (GitHub changed the certificate of the server with the release files, the camera reports `HTTP error: connection refused`). Update the camera manually: download the firmware file for your board from the release, open the **System** tab, select the file and click **Update from File**. If the upload stops or ends with an error, reboot the camera and upload the file again. The configuration is kept and the camera stays paired with Prusa Connect.
+- **ESP32-S3-EYE 2.2 with the version 1.1.2:** with an inserted microSD card, the camera restarts a few seconds after the start. Remove the microSD card before the firmware update, or flash the firmware over USB.
