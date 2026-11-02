@@ -1195,13 +1195,27 @@ void Server_resume() {
 }
 
 /**
- * @brief Handle cache request
+ * @brief Handle cache request. HTML and CSS change with the firmware: the browser checks them every time (no-cache) and gets 304 Not Modified
+ *        for the same build (ETag = ELF SHA256), the new page right after the firmware update. Before, the browser used the old page
+ *        up to WEB_CACHE_INTERVAL after the update. Other files (jQuery, icons) are in the browser cache for WEB_CACHE_INTERVAL
  * 
  * @param AsyncWebServerRequest* - http request
  * @param const char* - content type
  * @param const char* - data
  */
 void Server_handleCacheRequest(AsyncWebServerRequest* request, const char* contentType, const char* data) {
+  bool revalidate = ((0 == strcmp(contentType, "text/html")) || (0 == strcmp(contentType, "text/css")));
+  String etag = "\"" + String(esp_app_get_elf_sha256_str()) + "\"";
+
+  /* the browser has the page from this build */
+  if ((true == revalidate) && (request->header("If-None-Match") == etag)) {
+    AsyncWebServerResponse* response = request->beginResponse(304);
+    response->addHeader("Cache-Control", "no-cache");
+    response->addHeader("ETag", etag);
+    request->send(response);
+    return;
+  }
+
   /*
   AsyncWebServerResponse* response = request->beginResponse(200, contentType, data);
   response->addHeader("Cache-Control", "public, max-age=" + String(WEB_CACHE_INTERVAL));
@@ -1215,7 +1229,12 @@ void Server_handleCacheRequest(AsyncWebServerRequest* request, const char* conte
     memcpy(buffer, dataStart, chunkSize); // copy chunk of data to buffer
     return chunkSize; // return chunk size
   });
-  response->addHeader("Cache-Control", "public, max-age=" + String(WEB_CACHE_INTERVAL));
+  if (true == revalidate) {
+    response->addHeader("Cache-Control", "no-cache");
+    response->addHeader("ETag", etag);
+  } else {
+    response->addHeader("Cache-Control", "public, max-age=" + String(WEB_CACHE_INTERVAL));
+  }
   request->send(response);
 }
 

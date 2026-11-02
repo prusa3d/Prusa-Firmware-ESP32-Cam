@@ -18,6 +18,7 @@
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
+#include <esp_app_desc.h>
 
 #include "micro_sd.h"
 #include "log.h"

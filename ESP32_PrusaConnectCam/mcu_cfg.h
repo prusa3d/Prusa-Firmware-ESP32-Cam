@@ -71,7 +71,7 @@ extern char SwBuild[SW_BUILD_MAX_LEN];                      ///< build string, v
 #define PHOTO_FRAGMENT_SIZE         2048                    ///< photo fragmentation size [bytes]
 #define LOOP_DELAY                  100                     ///< loop delay [ms]
 #define WIFI_CLIENT_WAIT_CON        false                   ///< wait for connecting to WiFi network
-#define WEB_CACHE_INTERVAL          86400                   ///< cache interval for browser [s] 86400s = 24h
+#define WEB_CACHE_INTERVAL          86400                   ///< cache interval for browser [s] 86400s = 24h. Only jQuery and icons, HTML and CSS are checked with ETag every time
 #define WEB_PHOTO_COPY_TIMEOUT      2000                    ///< maximum waiting for the copy of the photo for the web server, during capture of the photo [ms]
 #define WEB_APPLY_CFG_DELAY         500                     ///< apply WiFi cfg or restart MCU after the web response is sent [ms]
 
