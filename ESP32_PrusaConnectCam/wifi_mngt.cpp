@@ -73,6 +73,9 @@ void WiFiMngt::Init() {
   SetWifiEvents();
   CreateApSsid();
 
+  /* hostname before WiFi.mode(). The core sets the STA hostname only in WiFi.mode(), when the STA is enabled */
+  WiFi.setHostname(DEVICE_HOSTNAME);
+
   /* check enable service AP mode */
   if (true == GetEnableServiceAp()) {
     log->AddEvent(LogLevel_Info, F("Service AP mode enabled"));
@@ -102,7 +105,6 @@ void WiFiMngt::Init() {
   log->AddEvent(LogLevel_Info, "WiFi MAC: " + WiFi.macAddress());
 
   esp_wifi_set_ps(WIFI_PS_NONE);
-  WiFi.setHostname(DEVICE_HOSTNAME);
   FirstConnected = false;
   //WiFi.setTxPower(WIFI_POWER_18_5dBm);
 
