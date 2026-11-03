@@ -16,7 +16,7 @@
    Tools -> Flash frequency -> 80MHz
    Tools -> Flash Mode -> DIO
    Tools -> PSRAM -> Enabled
-   Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)
+   Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/128KB SPIFFS)
 
    LED is on GPIO 2. GPIO 33 is BAT_HOLD (battery power hold), it is not used: the camera runs only with USB power.
    The board has no micro SD card slot.

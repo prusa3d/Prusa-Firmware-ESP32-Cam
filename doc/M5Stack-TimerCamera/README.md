@@ -34,14 +34,14 @@ Manufacturer documentation is available [here](https://docs.m5stack.com/en/unit/
 
 <img src="timercam_02.webp" alt="M5Stack Timer Camera, camera side" width=30%> <img src="timercam_05.webp" alt="M5Stack Timer Camera, back side" width=30%>
 
-**This board is not tested with the firmware version 1.1.3 yet.** The OV3660 camera module of the Timer Camera was tested on the Ai-Thinker ESP32-cam board.
+Tested with the firmware version 1.1.3: photo, stream, upload to Prusa Connect, change of the resolution and firmware update from file.
 
 <a name="cam_modules"></a>
 ## Supported camera modules
 
 | Camera chip | FOV | Resolution | Tested | Works | Description |
 |-------------|-----|------------|--------|-------|-------------|
-| OV3660 | 66.5° | 3MP | Yes (on Ai-Thinker) | Yes | Standard camera module of the Timer Camera |
+| OV3660 | 66.5° | 3MP | Yes | Yes | Standard camera module of the Timer Camera |
 
 The web interface offers the resolutions from 320x240 to 1920x1080. The resolution 1600x1200 was tested.
 
@@ -94,7 +94,7 @@ Board configuration in the Arduino IDE, matching the [board configuration header
 - Tools -> Flash frequency -> 80MHz
 - Tools -> Flash Mode -> DIO
 - Tools -> PSRAM -> Enabled
-- Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)
+- Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/128KB SPIFFS)
 
 When flashing the firmware to a new board for the first time, set **Tools -> Erase all Flash Before Sketch Upload -> Enable**. For later updates, set it to **Disable**, otherwise the camera configuration is erased with every upload.
 

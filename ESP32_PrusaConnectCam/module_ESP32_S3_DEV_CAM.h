@@ -9,20 +9,20 @@
    Board configuration in the arduino IDE 2.3.2
    Tools -> Board -> ESP32 Arduino -> ESP32S3 Dev Module
    Tools -> USB CDC on BOOT -> Enabled
-   Tools -> CPU Frequency -> 160MHz (WiFi/BT)
+   Tools -> CPU Frequency -> 160MHz (WiFi)
    Tools -> Core debug level -> None
    Tools -> USB DFU on BOOT -> Disable
    Tools -> Events Run On -> Core 0
    Tools -> Flash Mode -> DIO 80MHz
-   Tools -> Flash Size -> 16MB
+   Tools -> Flash Size -> 16MB (128Mb)
    Tools -> Jtag Adapter -> Disable
    Tools -> Arduino Runs On -> Core 0
    Tools -> USB Firmware MSC On Boot -> Disable
-   Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)
+   Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/128KB SPIFFS)
    Tools -> PSRAM -> OPI PSRAM
    Tools -> Upload Mode -> USB-OTG CDC (TinyUSB)
    Tools -> Upload Speed -> 921600
-   Tools -> USB Mode -> Hardware CDC & JTAG
+   Tools -> USB Mode -> Hardware CDC and JTAG
    Tools -> Zigbee mode -> Disable
 
    Right USB-C connector is for programming and serial monitor

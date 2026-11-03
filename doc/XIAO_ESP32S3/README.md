@@ -108,11 +108,11 @@ Board configuration in the Arduino IDE 2.3.2
 - Tools -> Erase all Flash Before Sketch Upload -> Disable **(first flash, new board = enable. otherwise = disable)**
 - Tools -> Events Run On -> Core 1
 - Tools -> Flash Mode -> QIO 80MHz
-- Tools -> Flash Size -> 8MB
+- Tools -> Flash Size -> 8MB (64Mb)
 - Tools -> Jtag Adapter -> Disable
 - Tools -> Arduino Runs On -> Core 1
 - Tools -> USB Firmware MSC On Boot -> Disable
-- Tools -> Partition scheme -> 3MB APP/1.5MB SPIFFS
+- Tools -> Partition scheme -> Default with spiffs (3MB APP/1.5MB SPIFFS)
 - Tools -> PSRAM -> OPI PSRAM
 - Tools -> Upload Mode -> UART0 / Hardware CDC
 - Tools -> Upload Speed -> 921600

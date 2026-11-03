@@ -142,12 +142,12 @@ It's necessary to erase the FLASH using the **ERASE** button before the first fi
 ## How to compile software in the Arduino IDE
 
 Board configuration in the Arduino IDE 2.3.2
-- Tools -> Board -> ESP32 Arduino -> AI Thinker ESP32
+- Tools -> Board -> ESP32 Arduino -> AI Thinker ESP32-CAM
 - Tools -> Flash frequency -> 80MHz
 - Tools -> Core Debug Level -> None
 - Tools -> Erase all Flash Before Sketch Upload -> Disable **(first flash, new board = enable. otherwise = disable)**
 - Tools -> Flash Mode -> DIO
-- Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)
+- Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/128KB SPIFFS)
 
 When flashing the firmware to a new, empty ESP32-CAM device for the first time, it is necessary to use the 'Erase' function. 
 

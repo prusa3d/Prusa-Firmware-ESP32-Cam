@@ -38,7 +38,7 @@ The hardware images below are saved locally. Their original M5Stack URLs and ret
 | Camera chip | FOV | Resolution | Tested | Works | Description |
 |-------------|-----|------------|--------|-------|-------------|
 | OV2640 | 66.5° | 2MP | Yes | Yes | Standard camera module, Unit CamS3 |
-| PY260 (MEGA_CCM) | - | 5MP | Yes | Yes | Unit CamS3-5MP, see the limitations below |
+| PY260 (MEGA_CCM) | 88° | 5MP | Yes | Yes | Unit CamS3-5MP, see the limitations below |
 
 Limitations of the Unit CamS3-5MP (PY260):
 
@@ -67,6 +67,20 @@ For later updates, set **Erase All Flash Before Sketch Upload -> Disabled** to p
 
 The precompiled firmware for this board is published with the release: `m5stack-unit-cams3.zip`, the file for the firmware update is `ESP32-M5-Unit-CamS3.bin`.
 
+The addresses of the files:
+
+- address **0x0** - **ESP32_PrusaConnectCam.ino.bootloader.bin**
+- address **0x8000** - **ESP32_PrusaConnectCam.ino.partitions.bin**
+- address **0x10000** - **ESP32_PrusaConnectCam.ino.bin**
+
+Command for the first firmware upload with esptool in the download mode (G0 connected to GND, see above), where **/dev/ttyACM0** is the serial port of the camera:
+
+```
+./esptool --chip esp32s3 -p /dev/ttyACM0 -b 921600 --before default_reset --after hard_reset write_flash --erase-all --flash_mode dio --flash_size 8MB --flash_freq 80m 0x0 ESP32_PrusaConnectCam.ino.bootloader.bin 0x8000 ESP32_PrusaConnectCam.ino.partitions.bin 0x10000 ESP32_PrusaConnectCam.ino.bin
+```
+
+The parameter **--erase-all** erases the entire flash including the camera configuration. For a firmware update, remove this parameter, or upload the file `ESP32-M5-Unit-CamS3.bin` through the web interface's **System** tab.
+
 <a name="arduino_cfg"></a>
 ## How to compile software in the Arduino IDE
 
@@ -82,6 +96,7 @@ In [mcu_cfg.h](../../ESP32_PrusaConnectCam/mcu_cfg.h), enable only the M5Stack b
 #define CAMERA_MODEL_XIAO_ESP32_S3_CAM  false
 #define CAMERA_MODEL_ESP32_S3_CAM       false
 #define ESP32_S3_WROOM_FREENOVE         false
+#define M5STACK_TIMERCAMERA             false
 #define ESP32_M5_UNIT_CAMS3             true
 ```
 
@@ -89,17 +104,17 @@ Board configuration in the Arduino IDE, matching the [board configuration header
 
 - Tools -> Board -> ESP32 Arduino -> ESP32S3 Dev Module
 - Tools -> USB CDC on BOOT -> Enabled
-- Tools -> CPU Frequency -> 240MHz (WiFi/BT)
+- Tools -> CPU Frequency -> 240MHz (WiFi)
 - Tools -> Core debug level -> None
 - Tools -> USB DFU on BOOT -> Disable
 - Tools -> Erase all Flash Before Sketch Upload -> Disable (first flash or configuration recovery = enable)
 - Tools -> Events Run On -> Core 0
 - Tools -> Flash Mode -> QIO 80MHz
-- Tools -> Flash Size -> 8MB
+- Tools -> Flash Size -> 8MB (64Mb)
 - Tools -> Jtag Adapter -> Disable
 - Tools -> Arduino Runs On -> Core 0
 - Tools -> USB Firmware MSC On Boot -> Disable
-- Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)
+- Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/128KB SPIFFS)
 - Tools -> PSRAM -> OPI PSRAM
 - Tools -> Upload Mode -> UART0 / Hardware CDC
 - Tools -> Upload Speed -> 921600
@@ -115,7 +130,7 @@ The serial console is available on the USB of the Grove port (USB CDC on BOOT ->
 
 Follow the [main Prusa Connect setup instructions](../../README.md#prusa_connect) to configure WiFi and the camera token.
 
-Find the camera's IP address in the router's client list; it may appear as `esp32s3-...`. Open `http://<camera-ip>/` to access the web interface. Alternatively, use `http://prusa-esp32cam.local` if mDNS is available.
+Find the camera's IP address in the router's client list; it appears as `Prusa-ESP32cam`. Open `http://<camera-ip>/` to access the web interface. Alternatively, use `http://prusa-esp32cam.local` if mDNS is available.
 
 - JPEG snapshot: `http://<camera-ip>/saved-photo.jpg`
 - Video stream: `http://<camera-ip>/stream.mjpg`
@@ -125,7 +140,7 @@ Find the camera's IP address in the router's client list; it may appear as `esp3
 
 To reset the settings to factory defaults, follow these instructions. **G0 (GPIO0)** is not used for the reset, because G0 connected to GND at power-on selects the download mode.
 
-- Connect **G8 (GPIO8)** to **GND** on the exposed pin header.
+- Connect **G8 (GPIO8)** to **GND**. G8 is on the 4-pin header with EN, G0 and GND (pin order G8, EN, G0, GND in the [schematic](schematic.png)), it is not labeled on the case.
 - **Plug in** the power supply.
 - Wait for **10 seconds**.
 - After 10 seconds, the **STATUS LED will start flashing**.

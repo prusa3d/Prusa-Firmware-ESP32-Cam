@@ -10,11 +10,10 @@
 
    Board configuration in the arduino IDE 2.3.2
    Tools -> Board -> ESP32 Arduino -> ESP32 Wrover Module
-   Tools -> CPU Frequency -> 240MHz (WiFi/BT)
    Tools -> Core debug level -> None
    Tools -> Flash frequency -> 80MHz
    Tools -> Flash Mode -> DIO
-   Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)
+   Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/128KB SPIFFS)
 
    @bug: no know bug
 
