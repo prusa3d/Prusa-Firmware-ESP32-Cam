@@ -143,6 +143,8 @@ To reset the settings to factory defaults, follow these instructions:
 - After disconnecting **21** from **ground**, the **STATUS LED** will stop flashing, and the MCU will automatically reboot.
 - Now the MCU is in the factory settings.
 
+The configuration can be reset also from the serial console with the command `resetcfg;`, see the [main instructions](../../README.md#serial_cfg).
+
 <a name="status_led"></a>
 ## Status LED
 

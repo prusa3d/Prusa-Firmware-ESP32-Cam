@@ -193,6 +193,8 @@ The procedure is the same for each board:
 - The LED will stop blinking.
 - The camera configuration will be reset to factory defaults.
 
+The configuration can be reset also from the [serial console](#serial_cfg) with the command `resetcfg;`. The camera restarts and resets the configuration during the start, the same as with the reset pin.
+
 <a name="status_led"></a>
 ## Status LED
 
@@ -234,6 +236,7 @@ Currently, available commands are listed in the table below:
 | setwifipass       | Setting WiFi password, where variable PASSWORD is WiFi password     |
 | wificonnect       | Connecting to WiFi network                                          |
 | mcureboot         | Rebooting the MCU                                                   |
+| resetcfg          | Reset the configuration to factory settings and reboot the MCU (the same as the reset pin) |
 | commandslist      | Listing currently supported commands via serial console             |
 | getwifimode       | Print current WiFi mode. STA/AP/AP+STA                              |
 | getwifistastatus  | Print WiFi STA status. Connected/Disconnected/Connecting...         |

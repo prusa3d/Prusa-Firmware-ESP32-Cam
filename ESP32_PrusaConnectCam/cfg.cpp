@@ -13,6 +13,9 @@
 
 Configuration SystemConfig(&SystemLog);
 
+/* reset cfg requested from the serial console. RTC memory is kept during the software restart, after the power-on the value is random */
+RTC_NOINIT_ATTR static uint32_t ResetCfgRequest;
+
 /**
    @info Constructor
    @param Logs* - pointer to log module
@@ -209,6 +212,17 @@ bool Configuration::CheckActifeWifiCfgFlag() {
 */
 void Configuration::CheckResetCfg() {
   Log->AddEvent(LogLevel_Verbose, F("Check reset MCU cfg"));
+
+  /* reset cfg requested from the serial console before the software restart. The same reset as with the reset pin, before the tasks and WiFi */
+  bool ConsoleRequest = (CFG_RESET_REQUEST_MAGIC == ResetCfgRequest) && (ESP_RST_SW == esp_reset_reason());
+  ResetCfgRequest = 0;
+  if (true == ConsoleRequest) {
+    Log->AddEvent(LogLevel_Warning, F("Reset MCU to factory CFG! Requested from the console"));
+    DefaultCfg();
+    Log->LoggerFlush(LOGS_RESTART_FLUSH_TIMEOUT);
+    ESP.restart();
+  }
+
   bool ResetPinStatus = digitalRead(CFG_RESET_PIN);
 
   /* wait 10s to pressed reset pin */
@@ -245,6 +259,15 @@ void Configuration::CheckResetCfg() {
   } else {
     Log->AddEvent(LogLevel_Verbose, F("Reset MCU cfg false"));
   }
+}
+
+/**
+   @info Request of the reset cfg from the serial console. The reset is done by CheckResetCfg() after the software restart
+   @param none
+   @return none
+*/
+void Configuration::SetResetCfgRequest() {
+  ResetCfgRequest = CFG_RESET_REQUEST_MAGIC;
 }
 
 /**

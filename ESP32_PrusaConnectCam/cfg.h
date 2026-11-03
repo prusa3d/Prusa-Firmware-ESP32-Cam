@@ -31,6 +31,7 @@ public:
   void Init();
   bool CheckActifeWifiCfgFlag();
   void CheckResetCfg();
+  void SetResetCfgRequest();
 
   void SaveRefreshInterval(uint8_t);
   void SaveToken(String);

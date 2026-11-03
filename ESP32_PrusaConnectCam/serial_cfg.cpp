@@ -154,6 +154,13 @@ String lastTwoChars = command.substring(command.length() - 2);
     log->LoggerFlush(LOGS_RESTART_FLUSH_TIMEOUT);
     ESP.restart();
 
+  } else if (command.startsWith("resetcfg") && command.endsWith(";")) {
+    /* the reset is done after the restart by CheckResetCfg() in setup(), the same as with the reset pin */
+    log->AddEvent(LogLevel_Warning, F("--> Console reset CFG to factory! Reboot MCU!"));
+    config->SetResetCfgRequest();
+    log->LoggerFlush(LOGS_RESTART_FLUSH_TIMEOUT);
+    ESP.restart();
+
   } else if (command.startsWith("commandslist") && command.endsWith(";")) {
     log->AddEvent(LogLevel_Warning, F("--> Available commands"));
     PrintAvailableCommands();
@@ -199,6 +206,7 @@ void SerialCfg::PrintAvailableCommands() {
   Serial.println(F("setlight;               - enable/disable LED light"));
   Serial.println(F("loglevel:LEVEL;         - set log level. 0=Error, 1=Warning, 2=Info, 3=Verbose"));
   Serial.println(F("mcureboot;              - reboot MCU"));
+  Serial.println(F("resetcfg;               - reset configuration to factory settings and reboot MCU"));
   Serial.println(F("commandslist;           - print available commands"));
   Serial.println(F("-----------------------------------"));
 }

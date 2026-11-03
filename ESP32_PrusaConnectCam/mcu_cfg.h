@@ -83,6 +83,7 @@ extern char SwBuild[SW_BUILD_MAX_LEN];                      ///< build string, v
 /* ---------- RESET CFG CONFIGURATION  ----------*/
 #define CFG_RESET_TIME_WAIT         10000                   ///< wait to 10 000 ms = 10s for reset cfg during grounded CFG_RESET_PIN 
 #define CFG_RESET_LOOP_DELAY        100                     ///< delay in the loop for reset cfg
+#define CFG_RESET_REQUEST_MAGIC     0x52455346              ///< reset cfg requested from the serial console, value in the RTC memory kept during the software restart
 
 /* ---------------- MicroSD Logs ----------------*/
 #define LOGS_FILE_PREFIX            "SysLog_"               ///< syslog file name prefix, file name is prefix + NNNN + suffix
