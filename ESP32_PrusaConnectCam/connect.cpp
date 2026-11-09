@@ -163,9 +163,9 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
           SendWithExif = false;
         }
 
-        /* sending photo */
+        /* sending photo. <= also sends the last fragment, when the photo size is a multiple of PHOTO_FRAGMENT_SIZE */
         for (size_t i = 0; i < fbLen; i += PHOTO_FRAGMENT_SIZE) {
-          if ((i + PHOTO_FRAGMENT_SIZE) < fbLen) {
+          if ((i + PHOTO_FRAGMENT_SIZE) <= fbLen) {
             sendet_data += client.write(fbBuf, PHOTO_FRAGMENT_SIZE);
             fbBuf += PHOTO_FRAGMENT_SIZE;
 
