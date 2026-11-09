@@ -90,7 +90,7 @@ extern char SwBuild[SW_BUILD_MAX_LEN];                      ///< build string, v
 #define LOGS_FILE_SUFFIX            ".log"                  ///< syslog file name suffix
 #define LOGS_FILE_PATH              "/"                     ///< directory for log files
 #define LOGS_FILE_MAX_SIZE          1024                    ///< maximum file size in the [kb]
-#define LOGS_FILE_MAX_COUNT         10                      ///< maximum count of the log files on the micro SD card
+#define LOGS_FILE_MAX_COUNT         100                     ///< maximum count of the log files on the micro SD card
 #define FILE_REMOVE_MAX_COUNT       5                       ///< maximum count for remove files from sd card
 #define LOGS_QUEUE_SIZE             32768                   ///< size of the queue for log messages, in PSRAM [B]
 #define LOGS_MSG_MAX_LEN            4096                    ///< maximum length of the log message, longer message is cut [B]

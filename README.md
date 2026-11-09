@@ -212,7 +212,7 @@ The approximate boot time of the device is 15-20 seconds.
 <a name="logs"></a>
 ## Debug logs
 
-It is possible to save debug logs to a microSD card, but the card must be formatted to FAT32. Currently, the maximum tested capacity for a microSD card is 32GB. Debug logs are saved as plain text. A new log file is created for each start of the camera: `SysLog_0000.log`, `SysLog_0001.log`, ... Each file has up to 1 MB, the 10 newest files are kept on the card. The log of the current start can be downloaded from the **System** tab (**Get logs**).
+It is possible to save debug logs to a microSD card, but the card must be formatted to FAT32. Currently, the maximum tested capacity for a microSD card is 32GB. Debug logs are saved as plain text. A new log file is created for each start of the camera: `SysLog_0000.log`, `SysLog_0001.log`, ... Each file has up to 1 MB, the 100 newest files are kept on the card. The log of the current start can be downloaded from the **System** tab (**Get logs**).
 
 - **ESP32-S3 boards:** the microSD card can be inserted and removed while the camera is running. Logging to the card starts automatically when the card is inserted.
 - **ESP32 boards** (Ai-Thinker ESP32-cam, ...): the microSD card is detected only during the start of the camera. Insert the card before powering on the camera, or restart the camera after inserting the card.
