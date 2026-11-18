@@ -324,11 +324,18 @@ void Camera::ApplyCameraCfg() {
 }
 
 /**
-   @brief Function for reinit camera module
+   @brief Function for reinit camera module.
+          Takes the frame buffer semaphore, so no capture or stream frame can run
+          while the driver is deinitialized. Must not be called with the semaphore held.
    @param none
    @return none
 */
 void Camera::ReinitCameraModule() {
+  if (!xSemaphoreTake(frameBufferSemaphore, pdMS_TO_TICKS(CAMERA_REINIT_LOCK_TIMEOUT_MS))) {
+    log->AddEvent(LogLevel_Error, F("Camera reinit skipped, camera busy"));
+    return;
+  }
+
   esp_err_t err = esp_camera_deinit();
   if (err != ESP_OK) {
     log->AddEvent(LogLevel_Warning, F("Camera error deinit camera module. Error: "), String(err, HEX));
@@ -336,6 +343,8 @@ void Camera::ReinitCameraModule() {
   delay(100);
   InitCameraModule();
   ApplyCameraCfg();
+
+  xSemaphoreGive(frameBufferSemaphore);
 }
 
 /**

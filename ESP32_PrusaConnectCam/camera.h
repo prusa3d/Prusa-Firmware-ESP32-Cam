@@ -12,6 +12,7 @@
 #pragma once
 
 #define CAMERA_WEB_LOCK_TIMEOUT_MS  3000   ///< max wait for the frame buffer lock in web server handlers [ms]
+#define CAMERA_REINIT_LOCK_TIMEOUT_MS  10000  ///< max wait for the frame buffer lock before reinit of the camera module [ms]
 
 #include "esp_camera.h"
 #include "esp_timer.h"
