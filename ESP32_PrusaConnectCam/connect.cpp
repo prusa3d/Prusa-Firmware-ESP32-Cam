@@ -24,6 +24,7 @@ PrusaConnect::PrusaConnect(Configuration *i_conf, Logs *i_log, Camera *i_camera,
   config = i_conf;
   log = i_log;
   camera = i_camera;
+  PhotoToSend = NULL;
   wifi = i_wifi;
   BackendAvailability = WaitForFirstConnection;
   SendDeviceInformationToBackend = true;
@@ -124,29 +125,9 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
       if (SendPhoto == i_data_type) {
         log->AddEvent(LogLevel_Verbose, F("Sendig photo"));
 
-        /* get photo buffer */
-        bool SendWithExif = false;
-        uint8_t *fbBuf = NULL;
-        size_t fbLen = 0;
-        if (camera->GetStreamStatus() == true) {
-          /* get duplicate photo buffer from camera */
-          fbBuf = camera->GetPhotoFbDuplicate()->buf;
-          fbLen = camera->GetPhotoFbDuplicate()->len;
-        } else {
-          /* get original photo buffer from camera */
-          fbBuf = camera->GetPhotoFb()->buf;
-          fbLen = camera->GetPhotoFb()->len;
-        }
-
-        /* sending exif data */
-        if ((camera->GetPhotoExifData()->header != NULL) && (camera->GetStreamStatus() == false)) {
-          SendWithExif = true;
-          sendet_data += client.write(camera->GetPhotoExifData()->header, camera->GetPhotoExifData()->len);
-          fbBuf += camera->GetPhotoExifData()->offset;
-          fbLen -= camera->GetPhotoExifData()->offset;
-        } else {
-          SendWithExif = false;
-        }
+        /* get photo buffer. EXIF data are already part of the buffer */
+        uint8_t *fbBuf = (PhotoToSend != NULL) ? PhotoToSend->buf : NULL;
+        size_t fbLen = (PhotoToSend != NULL) ? PhotoToSend->len : 0;
 
         /* sending photo */
         for (size_t i = 0; i < fbLen; i += PHOTO_FRAGMENT_SIZE) {
@@ -160,13 +141,7 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
           }
         }
         client.println("\r\n");
-
-        /* log message */
-        if (SendWithExif) {
-          SystemLog.AddEvent(LogLevel_Verbose, F("Photo with EXIF data sent"));
-        } else {
-          SystemLog.AddEvent(LogLevel_Warning, F("Photo without EXIF data sent"));
-        }
+        SystemLog.AddEvent(LogLevel_Verbose, F("Photo sent"));
 
         /* sending device information */
       } else if (SendInfo == i_data_type) {
@@ -236,21 +211,12 @@ bool PrusaConnect::SendDataToBackend(String *i_data, int i_data_length, String i
  * @param none
  * @return none
  */
-void PrusaConnect::SendPhotoToBackend() {
+void PrusaConnect::SendPhotoToBackend(camera_fb_t *i_photo) {
   log->AddEvent(LogLevel_Info, F("Start sending photo to prusaconnect"));
-  camera->SetPhotoSending(true);
   String Photo = "";
-  size_t total_len = 0;
-
-  if ((camera->GetPhotoExifData()->header != NULL) && (camera->GetStreamStatus() == false)) {
-    total_len = camera->GetPhotoExifData()->len + camera->GetPhotoFb()->len - camera->GetPhotoExifData()->offset;
-  } else if (camera->GetStreamStatus() == false) {
-    total_len = camera->GetPhotoFb()->len;
-  } else {
-    total_len = camera->GetPhotoFbDuplicate()->len;
-  }
-  SendDataToBackend(&Photo, total_len, F("image/jpg"), F("Photo"), HOST_URL_CAM_PATH, SendPhoto);
-  camera->SetPhotoSending(false);
+  PhotoToSend = i_photo;
+  SendDataToBackend(&Photo, i_photo->len, F("image/jpg"), F("Photo"), HOST_URL_CAM_PATH, SendPhoto);
+  PhotoToSend = NULL;
 }
 
 /**
@@ -301,26 +267,28 @@ void PrusaConnect::SendInfoToBackend() {
 void PrusaConnect::TakePictureAndSendToBackend() {
   camera->CapturePhoto();
 
+  /* the photo stays unchanged until SetPhotoSending(false) and StreamSetSendingPhoto(false) */
+  camera->SetPhotoSending(true);
+  camera_fb_t *photo = camera->GetUploadPhotoFb();
+
   /* check if photo was captured */
-  if (camera->GetCameraCaptureSuccess() == true) {
+  if ((photo != NULL) && (photo->buf != NULL) && (photo->len > 0)) {
 
     /* send photo to backend */
-    SendPhotoToBackend();
+    SendPhotoToBackend(photo);
 
     /* save photo to SD card */
-    if (false == camera->GetStreamStatus()) {
+    if (false == camera->GetUploadFromStream()) {
       SavePhotoToSdCard();
     }
 
   } else {
     log->AddEvent(LogLevel_Error, F("Error capturing photo. Stop sending to backend!"));
   }
-  
-  /* return frame buffer */
-  if (camera->GetStreamStatus() == true) {
-    /* set stream flag for sending photo to false */
-    camera->StreamSetSendingPhoto(false);
-  }
+
+  camera->SetPhotoSending(false);
+  /* release the frozen stream frame */
+  camera->StreamSetSendingPhoto(false);
 }
 
 /**

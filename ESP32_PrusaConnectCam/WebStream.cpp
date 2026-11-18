@@ -78,6 +78,12 @@ size_t AsyncBufferResponse::_fillBuffer(uint8_t *buf, size_t maxLen) {
  * @return size_t 
  */
 size_t AsyncBufferResponse::_content(uint8_t *buffer, size_t maxLen, size_t index) {
+  if ((_buf == nullptr) || (index >= _len)) {
+    return 0;
+  }
+  if (maxLen > (_len - index)) {
+    maxLen = _len - index;
+  }
   memcpy(buffer, _buf + index, maxLen);
   if ((index + maxLen) == _len) {
     free(_buf);
@@ -178,8 +184,9 @@ AsyncJpegStreamResponse::AsyncJpegStreamResponse(Camera *i_cam, Logs *i_log) {
  * 
  */
 AsyncJpegStreamResponse::~AsyncJpegStreamResponse() {
+  Camera::FreeFrame(_frame.fb);
+  _frame.fb = NULL;
   camera->SetStreamStatus(false);
-  camera->CaptureReturnFrameBuffer();
 }
 
 /**
@@ -230,9 +237,11 @@ size_t AsyncJpegStreamResponse::_content(uint8_t *buffer, size_t maxLen, size_t 
       sprintf(buf, "Size: %uKB, FPS: %.1f", _frame.fb->len / 1024, fps);
       Serial.println(buf);
       lastAsyncRequest = end;
-      camera->CaptureReturnFrameBuffer();
-      _frame.fb = NULL;
     }
+
+    /* release the frame that was sent */
+    Camera::FreeFrame(_frame.fb);
+    _frame.fb = NULL;
 
     /* check space for headers */
     if (maxLen < (strlen(STREAM_BOUNDARY) + strlen(STREAM_PART) + strlen(JPG_CONTENT_TYPE) + 8)) {
@@ -242,10 +251,10 @@ size_t AsyncJpegStreamResponse::_content(uint8_t *buffer, size_t maxLen, size_t 
 
     /* get frame */
     _frame.index = 0;
-    camera->CaptureStream(&_dframe);
-    _frame.fb = &_dframe;
+    _frame.fb = camera->CaptureStream();
 
     if (_frame.fb == NULL) {
+      /* end the stream, the client can reconnect */
       log->AddEvent(LogLevel_Error, F("Stream capture frame failed"));
       return 0;
     }

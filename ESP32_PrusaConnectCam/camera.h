@@ -11,6 +11,8 @@
 
 #pragma once
 
+#define CAMERA_WEB_LOCK_TIMEOUT_MS  3000   ///< max wait for the frame buffer lock in web server handlers [ms]
+
 #include "esp_camera.h"
 #include "esp_timer.h"
 #include "img_converters.h"
@@ -66,12 +68,14 @@ private:
 
   /* OV2640 camera module pinout and cfg*/
   camera_config_t CameraConfig;             ///< camera configuration
-  camera_fb_t *FrameBuffer;                 ///< frame buffer
-  camera_fb_t *FrameBufferDuplicate;        ///< frame buffer duplicate
-  camera_fb_t *FrameBufferExif;             ///< frame buffer with exif data
+  camera_fb_t *PhotoFb;                     ///< last captured photo, owned copy (EXIF merged in)
+  camera_fb_t *FrameBufferDuplicate;        ///< last stream frame, owned copy, for sending to Prusa Connect during stream
+  bool UploadFromStream;                    ///< true = next upload uses FrameBufferDuplicate, false = PhotoFb
+  bool UploadPhotoReady;                    ///< photo for upload is available
   sensor_t* sensor;                         ///< sensor
   String Photo;                             ///< photo in string format
   bool StreamOnOff;                         ///< stream on/off
+  uint8_t StreamClients;                    ///< number of active stream clients
   bool StreamSendingPhoto;                  ///< sending photo to Prusa Connect during stream
   SemaphoreHandle_t frameBufferSemaphore;   ///< semaphore for frame buffer
   float StreamAverageFps;                   ///< stream average fps
@@ -85,6 +89,7 @@ private:
   Logs *log;                                ///< pointer to Logs object
 
   void InitCameraModule();
+  camera_fb_t *CloneFrame(const camera_fb_t *, const uint8_t *, size_t, size_t);
 
 public:
   Camera(Configuration*, Logs*, int8_t);
@@ -95,7 +100,8 @@ public:
   void ReinitCameraModule();
   void GetCameraModel();
   void CapturePhoto();
-  void CaptureStream(camera_fb_t *);
+  camera_fb_t *CaptureStream();
+  static void FreeFrame(camera_fb_t *);
   void CaptureReturnFrameBuffer();
   void SetStreamStatus(bool);
   bool GetStreamStatus();
@@ -116,6 +122,9 @@ public:
   String GetPhoto();
   camera_fb_t *GetPhotoFb();
   camera_fb_t* GetPhotoFbDuplicate();
+  camera_fb_t* GetUploadPhotoFb();
+  bool GetUploadFromStream();
+  uint8_t *CopyPhotoBuffer(size_t *);
   PhotoExifData_t * GetPhotoExifData();
   framesize_t TransformFrameSizeDataType(uint8_t);
   void SetPhotoSending(bool);

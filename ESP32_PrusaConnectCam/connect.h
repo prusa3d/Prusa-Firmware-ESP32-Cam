@@ -32,6 +32,7 @@ class Camera;
 
 class PrusaConnect {
 private:
+  camera_fb_t *PhotoToSend;                       ///< photo being sent to backend
   uint8_t RefreshInterval;                        ///< interval for sending photo to backend
   String BackendReceivedStatus;                   ///< status of backend response
   BackendAvailabilitStatus BackendAvailability;   ///< status of backend availability
@@ -58,7 +59,7 @@ public:
   void LoadCfgFromEeprom();
 
   void TakePicture();
-  void SendPhotoToBackend();
+  void SendPhotoToBackend(camera_fb_t *);
   void SendInfoToBackend();
   void TakePictureAndSendToBackend();
   String ProcessHttpResponseCode(int);

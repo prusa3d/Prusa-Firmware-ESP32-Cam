@@ -65,7 +65,6 @@ private:
   uint64_t lastAsyncRequest;  ///< last async request
   Camera *camera;             ///< pointer to camera
   Logs *log;                  ///< pointer to logs
-  camera_fb_t _dframe;        ///< camera frame
 
 public:
   AsyncJpegStreamResponse(Camera *, Logs *);

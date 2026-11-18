@@ -40,39 +40,22 @@ void Server_InitWebServer() {
     if (Server_CheckBasicAuth(request) == false)
       return;
 
-    if (SystemCamera.GetCameraCaptureSuccess() == false) {
+    /* send a private copy of the photo, so a new capture cannot free it while it is being sent */
+    size_t PhotoLen = 0;
+    uint8_t* PhotoCopy = SystemCamera.CopyPhotoBuffer(&PhotoLen);
+    if (PhotoCopy == NULL) {
       request->send(404, "text/plain", "Photo not found!");
       return;
     }
-    SystemCamera.SetPhotoSending(true);
 
-    SystemLog.AddEvent(LogLevel_Verbose, "Photo size: " + String(SystemCamera.GetPhotoFb()->len) + " bytes");
-
-    if (SystemCamera.GetPhotoExifData()->header != NULL) {
-      /* send photo with exif data */
-      SystemLog.AddEvent(LogLevel_Verbose, F("Send photo with EXIF data"));
-      size_t total_len = SystemCamera.GetPhotoExifData()->len + SystemCamera.GetPhotoFb()->len - SystemCamera.GetPhotoExifData()->offset;
-      auto response = request->beginChunkedResponse("image/jpg", [total_len](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
-        size_t len = 0;
-        if (index < SystemCamera.GetPhotoExifData()->len) {
-          len = min(maxLen, SystemCamera.GetPhotoExifData()->len - index);
-          memcpy(buffer, SystemCamera.GetPhotoExifData()->header + index, len);
-        } else {
-          size_t offset = index - SystemCamera.GetPhotoExifData()->len + SystemCamera.GetPhotoExifData()->offset;
-          len = min(maxLen, SystemCamera.GetPhotoFb()->len - offset);
-          memcpy(buffer, SystemCamera.GetPhotoFb()->buf + offset, len);
-        }
-        return len;
-      });
-      request->send(response);
-
-    } else {
-      /* send photo without exif data */
-      SystemLog.AddEvent(LogLevel_Verbose, F("Send photo without EXIF data"));
-      request->send(200, "image/jpg", SystemCamera.GetPhotoFb()->buf, SystemCamera.GetPhotoFb()->len);
+    SystemLog.AddEvent(LogLevel_Verbose, "Photo size: " + String(PhotoLen) + " bytes");
+    AsyncBufferResponse* response = new AsyncBufferResponse(PhotoCopy, PhotoLen, "image/jpg");
+    if (response == NULL) {
+      free(PhotoCopy);
+      request->send(501);
+      return;
     }
-
-    SystemCamera.SetPhotoSending(false);
+    request->send(response);
   });
 
   /* route to jquery */
