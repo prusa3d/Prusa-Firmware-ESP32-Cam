@@ -24,7 +24,7 @@
 #define ESP32_M5_UNIT_CAMS3             false
 
 /* ---------------- BASIC MCU CFG  --------------*/
-#define SW_VERSION                  "1.1.3-rc3"             ///< SW version
+#define SW_VERSION                  "1.1.3"                 ///< SW version
 #define SW_BUILD_TIME               __DATE__ " " __TIME__   ///< build date and time. Expanded only in var.cpp, the build scripts compile var.cpp in every build
 #define SW_BUILD_MAX_LEN            48                      ///< max length of SW_BUILD incl. NUL
 #define SW_BUILD                    SwBuild                 ///< build: date, time and ELF SHA256, the same in all files. var.cpp, completed in setup()
