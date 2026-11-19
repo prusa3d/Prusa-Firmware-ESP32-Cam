@@ -25,7 +25,7 @@
 # The script assumes the following directory structure:
 # ./
 # ├── arduino-cli
-# ├── arduino-cli.yaml
+# ├── arduino-cli.yaml (created by the script at the first run)
 # ├── fw_build.sh
 # ├── ESP32_PrusaConnectCam/
 # │   ├── ESP32_PrusaConnectCam.ino
@@ -48,16 +48,14 @@
 # |   ├── esp32-wrover-dev.zip
 # |   ├── esp32-s3-eye-22.zip
 #
-# The script assumes the following libraries are installed in the folder libraries/
-# (versions are in the header of ESP32_PrusaConnectCam.ino):
-# 1. ArduinoJson
-# 2. ArduinoUniqueID
-# 3. AsyncTCP
-# 4. ESPAsyncWebServer
-# 5. DHTNEW
-#
-# The script assumes the ESP32 core is installed:
-# 1. esp32:esp32
+# The script installs the tested versions of the ESP32 core and the libraries
+# (the same versions as in the header of ESP32_PrusaConnectCam.ino). The libraries are installed in the folder libraries/:
+# 1. esp32:esp32 3.3.12
+# 2. ArduinoJson 7.4.3
+# 3. ArduinoUniqueID 1.3.0
+# 4. AsyncTCP 3.5.0
+# 5. ESPAsyncWebServer 3.12.1
+# 6. DHTNEW 0.5.5
 
 # ---------------------------------------------
 # Setup Instructions:
@@ -70,8 +68,9 @@
 # 3. Install zip, python3 and pyserial:
 #    sudo apt-get install zip python3 python3-serial
 #
-# 4. The local configuration file arduino-cli.yaml from the root folder of the project is used.
-#    Do not run "./arduino-cli config init". The configuration contains:
+# 4. Run the script: ./fw_build.sh
+#    The script uses the local configuration file arduino-cli.yaml from the root folder of the project.
+#    When the file does not exist, the script creates it. Do not run "./arduino-cli config init". The configuration contains:
 #    board_manager:
 #      additional_urls:
 #        - https://espressif.github.io/arduino-esp32/package_esp32_index.json
@@ -79,16 +78,10 @@
 #      enable_unsafe_install: true
 #    directories:
 #      user: the root folder of the project (libraries/ are the same as in the Arduino IDE)
-#      data, downloads: the folder for the core and the toolchain
+#    The core and the toolchain are in the default folder of arduino-cli (~/.arduino15).
+#    The script installs the tested versions of the ESP32 core and the libraries, newer versions are not installed.
 #
-# 5. Check installed libraries:
-#    ./arduino-cli --config-file arduino-cli.yaml lib list
-#
-# 6. Install the ESP32 core:
-#    ./arduino-cli --config-file arduino-cli.yaml core update-index
-#    ./arduino-cli --config-file arduino-cli.yaml core install esp32:esp32@3.3.12
-#
-# 7. for updating the ESP32 core and libraries:
+# 5. for updating the ESP32 core and libraries to the newest versions (manually, not tested with this firmware):
 #    ./arduino-cli --config-file arduino-cli.yaml core list
 #    ./arduino-cli --config-file arduino-cli.yaml core update-index
 #    ./arduino-cli --config-file arduino-cli.yaml core upgrade
@@ -114,27 +107,32 @@ if [ ! -f ../arduino-cli ]; then
    exit 1
 fi
 
+# local configuration file of arduino-cli, created at the first run. An existing file is not changed
 if [ ! -f ../arduino-cli.yaml ]; then
-   echo "arduino-cli.yaml not found. The configuration file must be in the same folder as this script."
-   exit 1
+   echo "arduino-cli.yaml not found, creating it"
+   cat > ../arduino-cli.yaml <<EOF
+board_manager:
+  additional_urls:
+    - https://espressif.github.io/arduino-esp32/package_esp32_index.json
+library:
+  enable_unsafe_install: true
+directories:
+  user: $(cd .. && pwd)
+EOF
 fi
 
 # arduino-cli with the local configuration file
 ARDUINO_CLI="../arduino-cli --config-file ../arduino-cli.yaml"
 
 echo "----------------------------------------------"
-echo "Check updated libraries"
-$ARDUINO_CLI lib list
-$ARDUINO_CLI lib update-index
-$ARDUINO_CLI lib upgrade
-$ARDUINO_CLI lib list
-
-echo "----------------------------------------------"
-echo "Check updated cores"
-$ARDUINO_CLI core list
+echo "Install the tested versions of the ESP32 core and the libraries (header of ESP32_PrusaConnectCam.ino)"
 $ARDUINO_CLI core update-index
-$ARDUINO_CLI core upgrade
+$ARDUINO_CLI core install esp32:esp32@3.3.12
+$ARDUINO_CLI lib update-index
+# --no-deps: the dependencies would install the newest AsyncTCP
+$ARDUINO_CLI lib install --no-deps "ArduinoJson@7.4.3" "ArduinoUniqueID@1.3.0" "Async TCP@3.5.0" "ESP Async WebServer@3.12.1" "DHTNEW@0.5.5"
 $ARDUINO_CLI core list
+$ARDUINO_CLI lib list
 
 mkdir -p ../build/output
 build_start=`date`
