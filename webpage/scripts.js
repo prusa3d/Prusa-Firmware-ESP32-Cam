@@ -23,6 +23,7 @@ function get_data(val) {
 				document.getElementById('refreshid').value = obj.refreshInterval;
 				document.getElementById('photo_qualityid').value = obj.photoquality;
 				document.getElementById('framesizeid').value = obj.framesize;
+				$('#framesizeid option').each(function() { this.hidden = this.disabled = !(obj.framesizes & (1 << this.value)); });
 				document.getElementById('brightnessid').value = obj.brightness;
 				document.getElementById('contrastid').value = obj.contrast;
 				document.getElementById('saturationid').value = obj.saturation;
@@ -62,6 +63,7 @@ function get_data(val) {
 				$("#status_aec2").text((obj.aec2 == "true") ? "On" : "Off");
 				$("#status_gain_ctrl").text((obj.gain_ctrl == "true") ? "On" : "Off");
 				$("#status_timelaps").text((obj.timelaps == "true") ? "On" : "Off");
+				$('.cam_full_cfg').toggle(obj.cam_full_cfg == "true");
 				sliderCheck();
 			}
 
@@ -74,6 +76,10 @@ function get_data(val) {
 			if (val == "wifi") {
 				document.getElementById('serviceapid').checked = obj.serviceap;
 				$("#status_serviceap").text((obj.serviceap == "true") ? "On" : "Off");
+				document.getElementById('wpa2_eapid').checked = (obj.wpa2_eap == "true");
+				$("#status_wpa2_eap").text((obj.wpa2_eap == "true") ? "On" : "Off");
+				document.getElementById('wpa2_eap_identity_id').value = obj.wpa2_eap_identity;
+				document.getElementById('wpa2_eap_user_id').value = obj.wpa2_eap_user;
 				$("#ssid").text(obj.ssid);
 				$("#rssi").text(obj.rssi);
 				$("#rssi_percentage").text(obj.rssi_percentage);
@@ -108,6 +114,7 @@ function get_data(val) {
 				$("#sd_free_p").text(obj.sd_free_p);
 				$("#sd_used_p").text(obj.sd_used_p);
 				$("#mcu_temp").text(obj.mcu_temp);
+				$("#fw_file").text(obj.fw_file);
 
 				var sd_free_prog = document.getElementById("progress_bar_sd_free");
 				sd_free_prog.style.width = obj.sd_free_p + "%";
@@ -190,7 +197,7 @@ function openImage() {
 	OpenImageclickCount++;
 }
 
-function actionButton(url, reload, msg) {
+function actionButton(url, reload, msg, delay = 200) {
     var xhr = new XMLHttpRequest();
     
 	if (msg != '') {
@@ -200,9 +207,10 @@ function actionButton(url, reload, msg) {
     xhr.onreadystatechange = function() {
         if (xhr.readyState == 4 && xhr.status == 200) {
             if (reload == true) {
+                /* delay [ms] before the reload. Refresh Snapshot: the photo task captures the photo up to ~1 s after the request */
                 setTimeout(function() {
                     location.reload();
-                }, 200);
+                }, delay);
             }
         }
     };
@@ -249,6 +257,14 @@ function setWifi(val_ssid, val_pass) {
 function setWifiNet(val_ip, val_mask, val_gw, val_dns) {	
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.open("GET", "wifi_net_cfg?ip=" +  encodeURIComponent(val_ip) + "&mask=" + encodeURIComponent(val_mask) + "&gw=" + encodeURIComponent(val_gw) + "&dns=" + encodeURIComponent(val_dns), false);
+	xmlHttp.send(null);
+	alert(xmlHttp.responseText);
+	get_data("wifi");
+}
+
+function setWPA2EAP(val_identity, val_user, val_pass) {	
+	var xmlHttp = new XMLHttpRequest();
+	xmlHttp.open("GET", "wifi_wpa2_eap?identity=" + encodeURIComponent(val_identity) + "&user=" +  encodeURIComponent(val_user) + "&pass=" + encodeURIComponent(val_pass), false);
 	xmlHttp.send(null);
 	alert(xmlHttp.responseText);
 	get_data("wifi");
@@ -310,7 +326,7 @@ function changeValue(val, url, reload, msg) {
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.open("GET", url + val, false);
 	xmlHttp.send(null);
-	if ((url == "set_int?refresh=") || (url == "set_token?token=") || (url == "set_mdns?mdns=") || (url == "set_int?ipcfg=")) {
+	if ((url == "set_int?refresh=") || (url == "set_token?token=") || (url == "set_mdns?mdns=") || (url == "set_int?ipcfg=") || (url == "set_bool?wpa2_eap_enable=")) {
 		alert(xmlHttp.responseText);
 	}
 	if (url == "set_flash_time?flash_time=") {
@@ -344,6 +360,11 @@ if (typeof FileSize === 'undefined') {
 	var FileSize = 0;
 }
 
+/* request for the update (upload of the file or start of the cloud update) is finished. Before that, the update is not done */
+if (typeof updateRequestDone === 'undefined') {
+	var updateRequestDone = false;
+}
+
 function uploadFile() {
 	alert("Started updating...");
 	const firmwareInput = document.getElementById('firmwareInput');
@@ -356,6 +377,7 @@ function uploadFile() {
 		statusDiv.innerText = 'Updating...';
 		const formData = new FormData();
 		formData.append('firmware', file);
+		updateRequestDone = false;
 		uploadingFirmware = true;
 
 		fetch('/upload', {
@@ -363,6 +385,7 @@ function uploadFile() {
 				body: formData,
 			})
 			.then((response) => {
+				updateRequestDone = true;
 				if (response.ok) {
 					response.text().then((data) => {
 						const jsonData = JSON.parse(data);
@@ -381,6 +404,7 @@ function uploadFile() {
 			})
 			.catch((error) => {
 				console.error('Error:', error);
+				updateRequestDone = true;
 				uploadingFirmware = false;
 			});
 	} else {
@@ -416,8 +440,9 @@ function updateProgress() {
 			progressBar.innerHTML = data.processed_percent + "%";
 
 			statusDiv.innerText = data.message;
-			uploadingFirmware = data.updating;
-			if (data.updating == false  && !updateCompleted) {
+			/* the upload of the file can start later than the first check of the status */
+			uploadingFirmware = (data.updating || !updateRequestDone);
+			if (data.updating == false && updateRequestDone && !updateCompleted) {
 				alert('Operation done. Please reboot MCU.');
 				uploadingFirmware = false;
 				updateCompleted = true;
@@ -446,6 +471,7 @@ function updateWeb() {
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.open("GET", "web_ota_update?update=true", false);
 	xmlHttp.send(null);
+	updateRequestDone = true;
 	uploadingFirmware = true;
 }
 

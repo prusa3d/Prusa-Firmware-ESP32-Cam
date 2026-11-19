@@ -19,6 +19,7 @@
 #define MSG_SAVE_OK           "Save cfg OK"                           ///< WEB app msg save OK
 #define MSG_SAVE_NOTOK        "Save cfg NOT OK!"                      ///< WEB app msg save NOT OK
 #define MSG_SCANNING          "Scanning Wi-Fi networks. Wait 8s..."   ///< WEB app msg Scanning wifi
+#define MSG_WIFI_EAP_NOT_CFG  "Wi-Fi Enterprise not enabled. Save the Wi-Fi network name (SSID), username and password first"
 #define MSG_UPDATE_START      "Start updating"
 
 /* ------------------------------------------------------------------------------------------------------------ */
@@ -68,7 +69,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 		<div class="container_right-half">
 			<article>
 				<p class="p1">Trigger interval: <b><span id="refreshInterval"></span><b>s</p><br><br>
-				<button class="btn" onclick="actionButton('/action_capture',true,'')">Refresh Snapshot</button> <br><br>
+				<button class="btn" onclick="actionButton('/action_capture',true,'',1500)">Refresh Snapshot</button> <br><br>
 				<button class="btn" onclick="actionButton('/action_send',false,'Sending snapshot...')">Send snapshot</button><br><br><br>
 				<button class="btn" onclick="window.open('saved-photo.jpg')">Download snapshot</button><br><br>
 				<button class="btn" onclick="window.open('stream.mjpg')">Start stream</button><br><br>
@@ -79,11 +80,11 @@ const char index_html[] PROGMEM = R"rawliteral(
 	    <div id="cfg">
 			<div id="cfg_bar">
 			<div id="links">
-				<li><a href="page_config.html">Camera</a></li>
-				<li><a href="page_wifi.html">Wi-Fi</a></li>
-				<li><a href="page_auth.html">Authentication</a></li>
-				<li><a href="page_system.html">System</a></li>
-				<li><a href="page_temperature.html">Temperature</a></li>
+				<li><a href="page_config.html?v=1.0.0">Camera</a></li>
+				<li><a href="page_wifi.html?v=1.0.0">Wi-Fi</a></li>
+				<li><a href="page_auth.html?v=1.0.0">Authentication</a></li>
+				<li><a href="page_system.html?v=1.0.0">System</a></li>
+				<li><a href="page_temperature.html?v=1.0.0">Temperature</a></li>
 				</div>
 			</div>
 		</div>
@@ -202,6 +203,13 @@ const char page_wifi_html[] PROGMEM = R"rawliteral(
 			<tr><td class="w2" align="right">Default gateway</td><td><input type="text" name="net_gw" id=net_gw_id></td></tr>
 			<tr><td class="w2" align="right">DNS server</td><td><input type="text" name="net_dns" id=net_dns_id></td></tr>
 			<tr><td></td><td align="center"><button class="btn_save_w" onclick="setWifiNet(document.getElementById('net_ip_id').value, document.getElementById('net_mask_id').value, document.getElementById('net_gw_id').value, document.getElementById('net_dns_id').value)">Save</button></td></tr>
+			<tr><td style="height: 10px;"></td></tr>
+			<tr><td class="w2" align="right">Enable Wi-Fi Enterprise (WPA2/WPA3, PEAP) </td><td><label class="switch"><input type="checkbox" name="wpa2_eap_enable" id="wpa2_eapid" onchange="changeValue(this.checked, 'set_bool?wpa2_eap_enable=', 'wifi')"><span class="checkbox_slider round"></span></label></label> <span class="w1" id="status_wpa2_eap"></span></td></tr>
+			<tr><td class="w2" align="right">Anonymous identity (optional)</td><td><input type="text" name="wpa2_eap_identity" id=wpa2_eap_identity_id></td></tr>
+			<tr><td class="w2" align="right">Username</td><td><input type="text" name="wpa2_eap_user" id=wpa2_eap_user_id></td></tr>
+			<tr><td class="w2" align="right">Password</td><td><input type="password" name="wpa2_eap_pass" id=wpa2_eap_pass_id></td></tr>
+			<tr><td></td><td class="w2">Wi-Fi network name (SSID) is from "Connect to Wi-Fi network". Server certificate is not verified.</td></tr>
+			<tr><td></td><td align="center"><button class="btn_save_w" onclick="setWPA2EAP(document.getElementById('wpa2_eap_identity_id').value, document.getElementById('wpa2_eap_user_id').value, document.getElementById('wpa2_eap_pass_id').value)">Save</button></td></tr>
 		</table>
 	</div>
 </body>
@@ -220,31 +228,33 @@ const char page_config_html[] PROGMEM = R"rawliteral(
 <body>
 	<center><table id="data">
 		<tr><td class="ps3">Basic settings</td><td></td></tr>
-        <tr><td class="pc1">Connect Token</td><td ><input type="text" name="token" id=tokenid >&nbsp;<button class="btn_save" onclick="changeValue(encodeURIComponent(document.getElementById('tokenid').value), 'set_token?token=', 'config')">Save</button></td></tr>
-        <tr><td class="pc1">Fingerprint</td><td class=pc2 id="fingerprint"></td></tr>
-		<tr><td class="pc1">Trigger Interval [s]</td><td ><input type="text" name="refresh" id=refreshid >&nbsp;<button class="btn_save" onclick="changeValue(document.getElementById('refreshid').value, 'set_int?refresh=', 'config')">Save</button></td></tr>
+		<tr><td class="pc1" title="Unique identifier used to authenticate camera connections to PrusaConnect server. Must match token configured in Prusa web interface.">Connect Token</td><td ><input type="text" name="token" id=tokenid >&nbsp;<button class="btn_save" onclick="changeValue(encodeURIComponent(document.getElementById('tokenid').value), 'set_token?token=', 'config')">Save</button></td></tr>
+		<tr><td class="pc1" title="Unique camera identifier for Prusa Connect. Generated automatically from the camera ID and MAC address.">Fingerprint</td><td class=pc2 id="fingerprint"></td></tr>
+		<tr><td class="pc1" title="How often the photo is taken and sent to Prusa Connect. With Save images to microSD enabled, the photo is also saved to the card.">Trigger Interval [s]</td><td ><input type="text" name="refresh" id=refreshid >&nbsp;<button class="btn_save" onclick="changeValue(document.getElementById('refreshid').value, 'set_int?refresh=', 'config')">Save</button></td></tr>
 		<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
-		<tr><td class="pc1">Image quality</td><td class="pc2">Low <input type="range" class="slider" name="photo_quality" id=photo_qualityid min="10" max="63" step="1" onchange="changeValue(this.value, 'set_int?photo_quality=', 'config')"> High</td></tr>
+		<tr><td class="pc1" title="JPEG quality. Higher quality means bigger photos and slower upload.">Image quality</td><td class="pc2">Low <input type="range" class="slider" name="photo_quality" id=photo_qualityid min="10" max="63" step="1" onchange="changeValue(this.value, 'set_int?photo_quality=', 'config')"> High</td></tr>
 		<tr>
-			<td class="pc1">Resolution</td><td><label for="framesize"></label>
+			<td class="pc1" title="Image resolution. Higher resolutions use more memory and bandwidth, which reduces framerate in streaming mode.">Resolution</td><td><label for="framesize"></label>
 				<select class="select" id="framesizeid" name="framesize" onchange="changeValue(this.value, 'set_int?framesize=', 'config')">
 					<option value="0">320x240</option>
 					<option value="1">352x288</option>
 					<option value="2">640x480</option>
 					<option value="3">800x600</option>
 					<option value="4">1024x768</option>
+					<option value="7">1280x720</option>
 					<option value="5">1280x1024</option>
 					<option value="6">1600x1200</option>
+					<option value="8">1920x1080</option>
 				</select> <span class="pc1">pixels</span>
 			</td>
 		</tr>
 		<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
-		<tr><td class="pc1">Brightness</td><td class="pc2">Low <input type="range" class="slider" name="brightness" id=brightnessid min="-2" max="2" step="1" onchange="changeValue(this.value, 'set_int?brightness=', 'config')">High</td></tr>
-		<tr><td class="pc1">Contrast</td><td class="pc2">Low <input type="range" class="slider" name="contrast" id=contrastid min="-2" max="2" step="1" onchange="changeValue(this.value, 'set_int?contrast=', 'config')"> High</td></tr>
-		<tr><td class="pc1">Saturation</td><td class="pc2">Low <input type="range" class="slider" name="saturation" id=saturationid min="-2" max="2" step="1" onchange="changeValue(this.value, 'set_int?saturation=', 'config')"> High</td></tr>
+		<tr><td class="pc1" title="Overall image brightness adjustment.">Brightness</td><td class="pc2">Low <input type="range" class="slider" name="brightness" id=brightnessid min="-2" max="2" step="1" onchange="changeValue(this.value, 'set_int?brightness=', 'config')">High</td></tr>
+		<tr><td class="pc1" title="Difference between light and dark areas.">Contrast</td><td class="pc2">Low <input type="range" class="slider" name="contrast" id=contrastid min="-2" max="2" step="1" onchange="changeValue(this.value, 'set_int?contrast=', 'config')"> High</td></tr>
+		<tr><td class="pc1" title="Colour saturation">Saturation</td><td class="pc2">Low <input type="range" class="slider" name="saturation" id=saturationid min="-2" max="2" step="1" onchange="changeValue(this.value, 'set_int?saturation=', 'config')"> High</td></tr>
 		<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
 		<tr>
-			<td class="pc1">Image Rotation</td><td><label for="image_rotation"></label>
+			<td class="pc1" title="Rotate image to match camera orientation.">Image Rotation</td><td><label for="image_rotation"></label>
 				<select class="select" id="image_rotationid" name="image_rotation" onchange="changeValue(this.value, 'set_int?image_rotation=', 'config')">
 					<option value="1">0°</option>
 					<option value="6">90°</option>
@@ -253,15 +263,15 @@ const char page_config_html[] PROGMEM = R"rawliteral(
 				</select>
 			</td>
 		</tr>
-		<tr><td class="pc1">Horizontal mirror</td><td class="pc2"><label class="switch"><input type="checkbox" name="hmirror" id=hmirrorid  onchange="changeValue(this.checked, 'set_bool?hmirror=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_hmirror"></span></td></tr>
-		<tr><td class="pc1">Vertical flip</td><td class="pc2"><label class="switch"><input type="checkbox" name="vflip" id=vflipid onchange="changeValue(this.checked, 'set_bool?vflip=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_vflip"></span></td></tr>
+		<tr><td class="pc1" title="Mirror image left-to-right.">Horizontal mirror</td><td class="pc2"><label class="switch"><input type="checkbox" name="hmirror" id=hmirrorid  onchange="changeValue(this.checked, 'set_bool?hmirror=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_hmirror"></span></td></tr>
+		<tr><td class="pc1" title="Flip image vertically (upside-down).">Vertical flip</td><td class="pc2"><label class="switch"><input type="checkbox" name="vflip" id=vflipid onchange="changeValue(this.checked, 'set_bool?vflip=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_vflip"></span></td></tr>
 		<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
-		<tr><td class="pc1">LED light</td><td class="pc2"><label class="switch"><input type="checkbox" name="led" id=ledid onchange="changeValue(this.checked, 'action_led?/led=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_led"></span></td></tr>
-		<tr><td class="pc1">LED flash</td><td class="pc2"><label class="switch"><input type="checkbox" name="flash" id=flashid onchange="changeValue(this.checked, 'set_bool?flash=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_flash"></span></td></tr>
-		<tr><td class="pc1">Flash duration</td><td class="pc2">Low <input type="range" class="slider" name="flash_time" id=flash_timeid min="50" max="1500" step="50" onchange="changeValue(this.value, 'set_int?flash_time=', 'config')">High</td></tr>
-		<tr><td class="pc1">Flash duration</td><td class="pc2"><span id="flash_time_value"></span> ms</td></tr>
+		<tr><td class="pc1" title="Turn the LED on or off.">LED light</td><td class="pc2"><label class="switch"><input type="checkbox" name="led" id=ledid onchange="changeValue(this.checked, 'action_led?/led=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_led"></span></td></tr>
+		<tr><td class="pc1" title="Flash LED when taking image">LED flash</td><td class="pc2"><label class="switch"><input type="checkbox" name="flash" id=flashid onchange="changeValue(this.checked, 'set_bool?flash=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_flash"></span></td></tr>
+		<tr><td class="pc1" title="How long the flash LED is on before the photo is taken.">Flash duration</td><td class="pc2">Short <input type="range" class="slider" name="flash_time" id=flash_timeid min="50" max="1500" step="50" onchange="changeValue(this.value, 'set_int?flash_time=', 'config')">Long</td></tr>
+		<tr><td class="pc1" title="Current flash duration setting in milliseconds.">Flash duration</td><td class="pc2"><span id="flash_time_value"></span> ms</td></tr>
 		<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
-		<tr><td class="pc1">Save images to micro SD</td><td class="pc2"><label class="switch"><input type="checkbox" name="timelaps" id=timelapsid onchange="changeValue(this.checked, 'set_bool?timelaps_enable=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_timelaps"></span></td></tr>
+		<tr><td class="pc1" title="Save each photo also to the microSD card (timelapse). Photos are not saved while the stream is running.">Save images to microSD</td><td class="pc2"><label class="switch"><input type="checkbox" name="timelaps" id=timelapsid onchange="changeValue(this.checked, 'set_bool?timelaps_enable=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_timelaps"></span></td></tr>
 		<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
 	</table></center>
 	<center><button class="btn_collapsible">Advanced settings</button></center>
@@ -269,10 +279,10 @@ const char page_config_html[] PROGMEM = R"rawliteral(
 		<center><table id="data">
 			<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
 			<tr><td class="ps3">Advanced settings</td><td></td></tr>
-			<tr><td class="pc1">Automatic white balancing</td><td class="pc2"><label class="switch"><input type="checkbox" name="awb" id=awbid  onchange="changeValue(this.checked, 'set_bool?awb=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_awb"></span></td></tr>
-			<tr><td class="pc1">Automatic white balancing gain</td><td class="pc2"><label class="switch"><input type="checkbox" name="awb_gain" id=awb_gainid  onchange="changeValue(this.checked, 'set_bool?awb_gain=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_awb_gain"></span></td></tr>
+			<tr class="cam_full_cfg"><td class="pc1" title="Automatic white balance. Adjusts colours to the lighting conditions.">Automatic white balancing</td><td class="pc2"><label class="switch"><input type="checkbox" name="awb" id=awbid  onchange="changeValue(this.checked, 'set_bool?awb=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_awb"></span></td></tr>
+			<tr class="cam_full_cfg"><td class="pc1" title="Enable/disable automatic gain adjustment for white balance.">Automatic white balancing gain</td><td class="pc2"><label class="switch"><input type="checkbox" name="awb_gain" id=awb_gainid  onchange="changeValue(this.checked, 'set_bool?awb_gain=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_awb_gain"></span></td></tr>
 			<tr>
-				<td class="pc1">Automatic white balancing mode</td><td><label for="wb_mode"></label>
+				<td class="pc1" title="White balance mode.">Automatic white balancing mode</td><td><label for="wb_mode"></label>
 					<select class="select" id="wb_modeid" name="wb_mode" onchange="changeValue(this.value, 'set_int?wb_mode=', 'config')">
 						<option value="0">Auto</option>
 						<option value="1">Sunny</option>
@@ -281,21 +291,21 @@ const char page_config_html[] PROGMEM = R"rawliteral(
 					</select>
 				</td>
 			</tr>
-			<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
-			<tr><td class="pc1">Automatic Exposure Control</td><td class="pc2"><label class="switch"><input type="checkbox" name="exposure_ctrl" id=exposure_ctrlid onchange="changeValue(this.checked, 'set_bool?exposure_ctrl=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_exposure_ctrl"></span></td></tr>
-			<tr><td class="pc1">Second Level Automatic Exposure Control</td><td class="pc2"><label class="switch"><input type="checkbox" name="aec2" id=aec2id onchange="changeValue(this.checked, 'set_bool?aec2=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_aec2"></span></td></tr>
-			<tr><td class="pc1">Automatic exposure level</td><td class="pc2">Low <input type="range" class="slider" name="ae_level" id=ae_levelid min="-2" max="2" step="1" onchange="changeValue(this.value, 'set_int?ae_level=', 'config')"> High</td></tr>
-			<tr><td class="pc1">Automatic exposure time</td><td class="pc2">Low <input type="range" class="slider" name="aec_value" id=aec_valueid min="0" max="1200" step="10" onchange="changeValue(this.value, 'set_int?aec_value=', 'config')">High</td></tr>
-			<tr><td class="pc1">Automatic exposure time</td><td class="pc2"><span id="aec_value_value"></span> ms</td></tr>
-			<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
-			<tr><td class="pc1">Automatic gain control</td><td class="pc2"><label class="switch"><input type="checkbox" name="gain_ctrl" id=gain_ctrlid onchange="changeValue(this.checked, 'set_bool?gain_ctrl=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_gain_ctrl"></span></td></tr>
-			<tr><td class="pc1">Automatic gain control level</td><td class="pc2">Low <input type="range" class="slider" name="agc_gain" id=agc_gainid min="0" max="30" step="1" onchange="changeValue(this.value, 'set_int?agc_gain=', 'config')">High</td></tr>
-			<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
-			<tr><td class="pc1">Bad pixel correction</td><td class="pc2"><label class="switch"><input type="checkbox" name="bpc" id=bpcid onchange="changeValue(this.checked, 'set_bool?bpc=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_bpc"></span></td></tr>
-			<tr><td class="pc1">White pixel correction</td><td class="pc2"><label class="switch"><input type="checkbox" name="wpc" id=wpcid onchange="changeValue(this.checked, 'set_bool?wpc=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_wpc"></span></td></tr>
-			<tr><td class="pc1">Raw gamma correction</td><td class="pc2"><label class="switch"><input type="checkbox" name="raw_gama" id=raw_gamaid onchange="changeValue(this.checked, 'set_bool?raw_gama=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_raw_gama"></span></td></tr>
-			<tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
-			<tr><td class="pc1">Lens correction</td><td class="pc2"><label class="switch"><input type="checkbox" name="lenc" id=lencid onchange="changeValue(this.checked, 'set_bool?lenc=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_lensc"></span></td></tr>
+			<tr class="cam_full_cfg"><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
+			<tr class="cam_full_cfg"><td class="pc1" title="Automatic Exposure Control: Camera automatically adjusts exposure time based on scene brightness.">Automatic Exposure Control</td><td class="pc2"><label class="switch"><input type="checkbox" name="exposure_ctrl" id=exposure_ctrlid onchange="changeValue(this.checked, 'set_bool?exposure_ctrl=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_exposure_ctrl"></span></td></tr>
+			<tr class="cam_full_cfg"><td class="pc1" title="Automatic exposure calculated in the image processor (DSP).">Second-stage Exposure Control (AEC2)</td><td class="pc2"><label class="switch"><input type="checkbox" name="aec2" id=aec2id onchange="changeValue(this.checked, 'set_bool?aec2=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_aec2"></span></td></tr>
+			<tr class="cam_full_cfg"><td class="pc1" title="Exposure compensation of the automatic exposure. Only active when Automatic Exposure Control is enabled.">Automatic exposure level</td><td class="pc2">Dark <input type="range" class="slider" name="ae_level" id=ae_levelid min="-2" max="2" step="1" onchange="changeValue(this.value, 'set_int?ae_level=', 'config')"> Bright</td></tr>
+			<tr class="cam_full_cfg"><td class="pc1" title="Manual exposure value of the sensor (0-1200). Only active when Automatic Exposure Control is disabled.">Manual exposure time</td><td class="pc2">Short <input type="range" class="slider" name="aec_value" id=aec_valueid min="0" max="1200" step="10" onchange="changeValue(this.value, 'set_int?aec_value=', 'config')">Long</td></tr>
+			<tr class="cam_full_cfg"><td class="pc1" title="Current manual exposure value.">Manual exposure time</td><td class="pc2"><span id="aec_value_value"></span></td></tr>
+			<tr class="cam_full_cfg"><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
+			<tr class="cam_full_cfg"><td class="pc1" title="Automatic Gain Control: Camera adjusts sensor gain (light amplification) automatically.">Automatic gain control</td><td class="pc2"><label class="switch"><input type="checkbox" name="gain_ctrl" id=gain_ctrlid onchange="changeValue(this.checked, 'set_bool?gain_ctrl=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_gain_ctrl"></span></td></tr>
+			<tr class="cam_full_cfg"><td class="pc1" title="Manual sensor gain. Only active when Automatic Gain Control is DISABLED. Higher values = more amplification = more noise.">Manual gain control level</td><td class="pc2">Low <input type="range" class="slider" name="agc_gain" id=agc_gainid min="0" max="30" step="1" onchange="changeValue(this.value, 'set_int?agc_gain=', 'config')">High</td></tr>
+			<tr class="cam_full_cfg"><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
+			<tr class="cam_full_cfg"><td class="pc1" title="Bad Pixel Correction: Removes dead/stuck pixels from sensor. Usually enabled.">Bad pixel correction</td><td class="pc2"><label class="switch"><input type="checkbox" name="bpc" id=bpcid onchange="changeValue(this.checked, 'set_bool?bpc=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_bpc"></span></td></tr>
+			<tr class="cam_full_cfg"><td class="pc1" title="White Pixel Correction: Corrects white pixel defects (always-on pixels). Usually enabled.">White pixel correction</td><td class="pc2"><label class="switch"><input type="checkbox" name="wpc" id=wpcid onchange="changeValue(this.checked, 'set_bool?wpc=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_wpc"></span></td></tr>
+			<tr class="cam_full_cfg"><td class="pc1" title="Raw Gamma Correction: Applies gamma correction to raw sensor data before processing. Affects contrast in shadows/highlights.">Raw gamma correction</td><td class="pc2"><label class="switch"><input type="checkbox" name="raw_gama" id=raw_gamaid onchange="changeValue(this.checked, 'set_bool?raw_gama=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_raw_gama"></span></td></tr>
+			<tr class="cam_full_cfg"><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
+			<tr class="cam_full_cfg"><td class="pc1" title="Lens shading correction. Brightens the darker corners of the image (vignetting).">Lens correction</td><td class="pc2"><label class="switch"><input type="checkbox" name="lenc" id=lencid onchange="changeValue(this.checked, 'set_bool?lenc=', 'config')"><span class="checkbox_slider round"></span></label> <span id="status_lensc"></span></td></tr>
 		</table></center>
 	</div>
 </body>
@@ -323,6 +333,8 @@ const char page_system_html[] PROGMEM = R"rawliteral(
 			<tr><td class="ps3">Firmware</td><td></td></tr>
             <tr><td class="ps1">Version</td><td class="ps2" id="sw_ver"></td></tr>
 			<tr><td class="ps1">Build</td><td class="ps2" id="sw_build"></td></tr>
+			<tr><td class="ps1">FW File</td><td class="ps2" id="fw_file"></td></tr>
+
             <tr><td style="height: 1px;"></td><td style="height: 1px;"></td></tr>
 			<tr><td class="ps3">Configuration</td><td></td></tr>
 			<tr><td class="pc1">Camera name & mDNS record</td><td ><input type="text" name="mdns" id=mdnsid ><span class=pc1>.local</span>&nbsp;<button class="btn_save" onclick="changeValue(document.getElementById('mdnsid').value, 'set_mdns?mdns=', 'system')">Save</button></td></tr>
@@ -931,6 +943,7 @@ function get_data(val) {
 				document.getElementById('refreshid').value = obj.refreshInterval;
 				document.getElementById('photo_qualityid').value = obj.photoquality;
 				document.getElementById('framesizeid').value = obj.framesize;
+				$('#framesizeid option').each(function() { this.hidden = this.disabled = !(obj.framesizes & (1 << this.value)); });
 				document.getElementById('brightnessid').value = obj.brightness;
 				document.getElementById('contrastid').value = obj.contrast;
 				document.getElementById('saturationid').value = obj.saturation;
@@ -970,6 +983,7 @@ function get_data(val) {
 				$("#status_aec2").text((obj.aec2 == "true") ? "On" : "Off");
 				$("#status_gain_ctrl").text((obj.gain_ctrl == "true") ? "On" : "Off");
 				$("#status_timelaps").text((obj.timelaps == "true") ? "On" : "Off");
+				$('.cam_full_cfg').toggle(obj.cam_full_cfg == "true");
 				sliderCheck();
 			}
 
@@ -982,6 +996,10 @@ function get_data(val) {
 			if (val == "wifi") {
 				document.getElementById('serviceapid').checked = obj.serviceap;
 				$("#status_serviceap").text((obj.serviceap == "true") ? "On" : "Off");
+				document.getElementById('wpa2_eapid').checked = (obj.wpa2_eap == "true");
+				$("#status_wpa2_eap").text((obj.wpa2_eap == "true") ? "On" : "Off");
+				document.getElementById('wpa2_eap_identity_id').value = obj.wpa2_eap_identity;
+				document.getElementById('wpa2_eap_user_id').value = obj.wpa2_eap_user;
 				$("#ssid").text(obj.ssid);
 				$("#rssi").text(obj.rssi);
 				$("#rssi_percentage").text(obj.rssi_percentage);
@@ -1016,6 +1034,7 @@ function get_data(val) {
 				$("#sd_free_p").text(obj.sd_free_p);
 				$("#sd_used_p").text(obj.sd_used_p);
 				$("#mcu_temp").text(obj.mcu_temp);
+				$("#fw_file").text(obj.fw_file);
 
 				var sd_free_prog = document.getElementById("progress_bar_sd_free");
 				sd_free_prog.style.width = obj.sd_free_p + "%";
@@ -1098,7 +1117,7 @@ function openImage() {
 	OpenImageclickCount++;
 }
 
-function actionButton(url, reload, msg) {
+function actionButton(url, reload, msg, delay = 200) {
     var xhr = new XMLHttpRequest();
     
 	if (msg != '') {
@@ -1108,9 +1127,10 @@ function actionButton(url, reload, msg) {
     xhr.onreadystatechange = function() {
         if (xhr.readyState == 4 && xhr.status == 200) {
             if (reload == true) {
+                /* delay [ms] before the reload. Refresh Snapshot: the photo task captures the photo up to ~1 s after the request */
                 setTimeout(function() {
                     location.reload();
-                }, 200);
+                }, delay);
             }
         }
     };
@@ -1157,6 +1177,14 @@ function setWifi(val_ssid, val_pass) {
 function setWifiNet(val_ip, val_mask, val_gw, val_dns) {	
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.open("GET", "wifi_net_cfg?ip=" +  encodeURIComponent(val_ip) + "&mask=" + encodeURIComponent(val_mask) + "&gw=" + encodeURIComponent(val_gw) + "&dns=" + encodeURIComponent(val_dns), false);
+	xmlHttp.send(null);
+	alert(xmlHttp.responseText);
+	get_data("wifi");
+}
+
+function setWPA2EAP(val_identity, val_user, val_pass) {	
+	var xmlHttp = new XMLHttpRequest();
+	xmlHttp.open("GET", "wifi_wpa2_eap?identity=" + encodeURIComponent(val_identity) + "&user=" +  encodeURIComponent(val_user) + "&pass=" + encodeURIComponent(val_pass), false);
 	xmlHttp.send(null);
 	alert(xmlHttp.responseText);
 	get_data("wifi");
@@ -1218,7 +1246,7 @@ function changeValue(val, url, reload, msg) {
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.open("GET", url + val, false);
 	xmlHttp.send(null);
-	if ((url == "set_int?refresh=") || (url == "set_token?token=") || (url == "set_mdns?mdns=") || (url == "set_int?ipcfg=")) {
+	if ((url == "set_int?refresh=") || (url == "set_token?token=") || (url == "set_mdns?mdns=") || (url == "set_int?ipcfg=") || (url == "set_bool?wpa2_eap_enable=")) {
 		alert(xmlHttp.responseText);
 	}
 	if (url == "set_flash_time?flash_time=") {
@@ -1252,6 +1280,11 @@ if (typeof FileSize === 'undefined') {
 	var FileSize = 0;
 }
 
+/* request for the update (upload of the file or start of the cloud update) is finished. Before that, the update is not done */
+if (typeof updateRequestDone === 'undefined') {
+	var updateRequestDone = false;
+}
+
 function uploadFile() {
 	alert("Started updating...");
 	const firmwareInput = document.getElementById('firmwareInput');
@@ -1264,6 +1297,7 @@ function uploadFile() {
 		statusDiv.innerText = 'Updating...';
 		const formData = new FormData();
 		formData.append('firmware', file);
+		updateRequestDone = false;
 		uploadingFirmware = true;
 
 		fetch('/upload', {
@@ -1271,6 +1305,7 @@ function uploadFile() {
 				body: formData,
 			})
 			.then((response) => {
+				updateRequestDone = true;
 				if (response.ok) {
 					response.text().then((data) => {
 						const jsonData = JSON.parse(data);
@@ -1289,6 +1324,7 @@ function uploadFile() {
 			})
 			.catch((error) => {
 				console.error('Error:', error);
+				updateRequestDone = true;
 				uploadingFirmware = false;
 			});
 	} else {
@@ -1324,8 +1360,9 @@ function updateProgress() {
 			progressBar.innerHTML = data.processed_percent + "%";
 
 			statusDiv.innerText = data.message;
-			uploadingFirmware = data.updating;
-			if (data.updating == false  && !updateCompleted) {
+			/* the upload of the file can start later than the first check of the status */
+			uploadingFirmware = (data.updating || !updateRequestDone);
+			if (data.updating == false && updateRequestDone && !updateCompleted) {
 				alert('Operation done. Please reboot MCU.');
 				uploadingFirmware = false;
 				updateCompleted = true;
@@ -1354,6 +1391,7 @@ function updateWeb() {
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.open("GET", "web_ota_update?update=true", false);
 	xmlHttp.send(null);
+	updateRequestDone = true;
 	uploadingFirmware = true;
 }
 

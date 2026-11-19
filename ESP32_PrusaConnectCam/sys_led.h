@@ -12,6 +12,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include <esp_timer.h>
 #include "log.h"
 #include "mcu_cfg.h"
 
@@ -19,10 +20,13 @@ class Logs;
 
 class sys_led {
   private:
-    uint8_t pin;            ///< pin number for system LED
-    uint32_t time;          ///< speed blinking time system LED
-    uint32_t ledOnDuration; ///< duration of LED on
-    Logs *log;              ///< pointer to log class
+    uint8_t pin;                ///< pin number for system LED
+    uint32_t time;              ///< speed blinking time system LED
+    uint32_t ledOnDuration;     ///< duration of LED on
+    Logs *log;                  ///< pointer to log class
+    esp_timer_handle_t timer;   ///< esp_timer for blinking of the system LED
+
+    static void timerCallback(void *);
 
   public:
     sys_led(uint8_t, uint32_t);
@@ -30,6 +34,7 @@ class sys_led {
     ~sys_led(){};
 
     void init();
+    bool start();
     void toggle();
     void set(bool);
     bool get();

@@ -15,6 +15,8 @@
 #include <esp_task_wdt.h>
 #include <ESPmDNS.h>
 #include <esp_wifi.h>
+#include <esp_eap_client.h>
+#include <esp_timer.h>
 #include <esp32-hal-cpu.h>
 
 #include "mcu_cfg.h"
@@ -26,6 +28,7 @@
 
 /* https://github.com/espressif/arduino-esp32/blob/51cb927712e512664a0a0f7b1219fdc18e11b857/libraries/WiFi/src/WiFiGeneric.h#L52 */
 /* https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/api-reference/network/esp_wifi.html#_CPPv429wifi_event_sta_disconnected_t */
+/* https://github.com/espressif/arduino-esp32/blob/9eb7dc6f7bddf98600f6e8de3ccc19cc8ba5281b/libraries/WiFi/examples/WiFiClientEvents/WiFiClientEvents.ino */
 void WiFiMngt_WiFiEventScanDone(WiFiEvent_t, WiFiEventInfo_t);
 void WiFiMngt_WiFiEventStationStart(WiFiEvent_t, WiFiEventInfo_t);
 void WiFiMngt_WiFiEventStationStop(WiFiEvent_t, WiFiEventInfo_t);
@@ -39,6 +42,7 @@ void WiFiMngt_WiFiEventApStaConnected(WiFiEvent_t , WiFiEventInfo_t);
 void WiFiMngt_WiFiEventApStaDisconnected(WiFiEvent_t , WiFiEventInfo_t);
 void WiFiMngt_WiFiEventApStaIpAssigned(WiFiEvent_t , WiFiEventInfo_t);
 void WiFiMngt_WiFiEventApStaProbeReqRecved(WiFiEvent_t , WiFiEventInfo_t);
+void WiFiMngt_WiFiEvent(WiFiEvent_t event);
 
 /**
  * @brief NetworkIpMethod_enum
@@ -53,6 +57,10 @@ class WiFiMngt {
 private:
   String WifiSsid;                    ///< WI-FI SSID
   String WifiPassword;                ///< WI-FI password
+  bool WifiEapEnable;                 ///< WiFi Enterprise (PEAP) is enabled, connect with WifiEapUsername and WifiEapPassword
+  String WifiEapIdentity;             ///< WiFi Enterprise anonymous identity, empty = username
+  String WifiEapUsername;             ///< WiFi Enterprise username
+  String WifiEapPassword;             ///< WiFi Enterprise password
   bool ServiceMode;                   ///< flag for enable service AP mode after MCU start during STA_AP_MODE_TIMEOUT ms
   String WiFiMode;                    ///< Wi-Fi mode (AP, STA, STA_AP)
   String SericeApSsid;                ///< Service AP SSID
@@ -70,6 +78,7 @@ private:
 
   bool WiFiStaMultipleNetwork;        ///< flag about multiple STA networks
   bool StartStaWdg;                   ///< flag about start STA watchdog
+  uint8_t StaConnectFailCount;        ///< consecutive failed STA connections (network not found, rejected by the AP)
 
   IPAddress Service_LocalIp;          ///< Service IP when si module in the AP mode
   IPAddress Service_Gateway;          ///< Service gateway when si module in the AP mode
@@ -78,6 +87,9 @@ private:
 
   unsigned long TaskAp_previousMillis;  ///< previous time for task AP
   unsigned long TaskWdg_previousMillis; ///< previous time for task STA watchdog
+
+  esp_timer_handle_t StaConnectTimer; ///< one-shot timer for connect to STA after the web response is sent
+  static void StaConnectTimerCallback(void *);
 
   String mDNS_record;                 ///< mDNS record
   String WifiScanJson;                ///< global variable with wifi networks
@@ -94,8 +106,11 @@ public:
   void Init();
   void WifiManagement();
   void WiFiReconnect();
+  void StaConnectFailed(uint8_t);
+  void StaConnectDone();
   void SetWifiEvents();
   void WiFiStaConnect();
+  void WiFiStaConnectDelayed();
   void SyncNtpTime();
 
   void ScanWiFiNetwork();
@@ -127,6 +142,10 @@ public:
   String GetNetStaticMask();
   String GetNetStaticGateway();
   String GetNetStaticDns();
+  bool GetStaEapEnable();
+  String GetStaEapIdentity();
+  String GetStaEapUsername();
+
 
   void SetStaCredentials(String, String);
   void SetStaSsid(String);
@@ -137,6 +156,8 @@ public:
   void SetFirstConnection(bool);
   void SetNetworkConfig(String, String, String, String);
   void SetNetIpMethod(uint8_t);
+  void SetStaEapCredentials(String, String, String);
+  bool SetStaEapEnable(bool);
 };
 
 extern WiFiMngt SystemWifiMngt;   ///< global variable for wifi management

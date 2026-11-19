@@ -39,11 +39,11 @@
 #elif (true == ESP32_S3_WROOM_FREENOVE)
 #include "module_ESP32-S3_Wroom_Freenove.h"
 
-#elif (true == ESP32_M5_UNIT_CAMS3)
-#include "module_ESP32-M5_Unit_CamS3.h"
-
 #elif (true == M5STACK_TIMERCAMERA)
 #include "module_M5Stack_TimerCam.h"
+
+#elif (true == ESP32_M5_UNIT_CAMS3)
+#include "module_ESP32-M5_Unit_CamS3.h"
 
 #else
 #error "No module selected"

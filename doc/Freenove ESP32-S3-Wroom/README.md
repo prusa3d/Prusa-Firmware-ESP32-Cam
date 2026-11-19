@@ -104,17 +104,17 @@ It's necessary to erase the FLASH using the **ERASE** button before the first fi
 Board configuration in the Arduino IDE 2.3.2
 - Tools -> Board -> ESP32 Arduino -> ESP32S3 Dev Module
 - Tools -> USB CDC on BOOT -> Disabled
-- Tools -> CPU Frequency -> 240MHz (WiFi/BT)
+- Tools -> CPU Frequency -> 240MHz (WiFi)
 - Tools -> Core debug level -> None
 - Tools -> USB DFU on BOOT -> Disable
 - Tools -> Erase all Flash Before Sketch Upload -> Disable (first flash, new board = enable. otherwise = disable)
 - Tools -> Events Run On -> Core 0
 - Tools -> Flash Mode -> QIO 80MHz
-- Tools -> Flash Size -> 8MB
+- Tools -> Flash Size -> 8MB (64Mb)
 - Tools -> Jtag Adapter -> Disable
 - Tools -> Arduino Runs On -> Core 0
 - Tools -> USB Firmware MSC On Boot -> Disable
-- Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)
+- Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/128KB SPIFFS)
 - Tools -> PSRAM -> OPI PSRAM
 - Tools -> Upload Mode -> UART0 / Hardware CDC
 - Tools -> Upload Speed -> 921600
@@ -142,6 +142,8 @@ To reset the settings to factory defaults, follow these instructions:
 - **Disconnect** PIN **21** from **ground** (but don't disconnect the power supply).
 - After disconnecting **21** from **ground**, the **STATUS LED** will stop flashing, and the MCU will automatically reboot.
 - Now the MCU is in the factory settings.
+
+The configuration can be reset also from the serial console with the command `resetcfg;`, see the [main instructions](../../README.md#serial_cfg).
 
 <a name="status_led"></a>
 ## Status LED

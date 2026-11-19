@@ -20,6 +20,8 @@
 #include <ArduinoJson.h>
 #include <esp_wifi.h>
 #include <esp_task_wdt.h>
+#include <esp_heap_caps.h>
+#include "mbedtls/platform.h"
 
 #if defined(CONFIG_IDF_TARGET_ESP32)
     #include "esp32/rom/rtc.h"
@@ -45,9 +47,25 @@
 #define SYSTEM_MSG_UPDATE_PROCESS F("FW update in progress")
 #define SYSTEM_MSG_UPDATE_NO_FW   F("No new FW version available!")
 
+/**
+ * @brief Allocator for ArduinoJson. JsonDocument in the PSRAM, when the PSRAM is full, in the internal RAM.
+ *        Default allocator (malloc) uses the PSRAM only from CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL (4096 B)
+ */
+class JsonPsramAllocator : public ArduinoJson::Allocator {
+public:
+  void *allocate(size_t) override;
+  void deallocate(void *) override;
+  void *reallocate(void *, size_t) override;
+};
+
+extern JsonPsramAllocator SystemJsonAllocator;  ///< allocator for JsonDocument in the PSRAM
+
 void System_Init();
 void System_LoadCfg();
 bool System_CheckIfPsramIsUsed();
+void System_SetMbedtlsMemoryAlloc();
+void *System_MbedtlsCalloc(size_t, size_t);
+void System_MbedtlsFree(void *);
 void System_Main();
 void System_UpdateInit();
 
@@ -65,10 +83,11 @@ String System_printMcuResetReasonSimple();
 void System_TaskWifiManagement(void *);
 void System_TaskMain(void *);
 void System_TaskCaptureAndSendPhoto(void *);
+void System_PrintTasksStackFreeSize();
+void System_TaskLogger(void *);
 void System_TaskSdCardCheck(void *);
 void System_TaskSerialCfg(void *);
 void System_TaskSystemTelemetry(void *);
-void System_TaskSysLed(void *);
 void System_TaskWiFiWatchdog(void *);
 void System_TaskSdCardRemove(void *);
 

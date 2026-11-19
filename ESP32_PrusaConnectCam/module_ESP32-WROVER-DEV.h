@@ -10,11 +10,10 @@
 
    Board configuration in the arduino IDE 2.3.2
    Tools -> Board -> ESP32 Arduino -> ESP32 Wrover Module
-   Tools -> CPU Frequency -> 240MHz (WiFi/BT)
    Tools -> Core debug level -> None
    Tools -> Flash frequency -> 80MHz
    Tools -> Flash Mode -> DIO
-   Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)
+   Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/128KB SPIFFS)
 
    @bug: no know bug
 
@@ -69,6 +68,7 @@
 
 /* --------------- SD CARD CFG  ---------------*/
 #define ENABLE_SD_CARD              false   ///< Enable SD card function
+#define ENABLE_SD_CARD_HOTPLUG      false   ///< SD card hotplug. ESP32: false, SD card init during runtime breaks the camera
 #define SD_PIN_CLK                  -1      ///< GPIO pin for SD card clock
 #define SD_PIN_CMD                  -1      ///< GPIO pin for SD card command
 #define SD_PIN_DATA0                -1      ///< GPIO pin for SD card data 0

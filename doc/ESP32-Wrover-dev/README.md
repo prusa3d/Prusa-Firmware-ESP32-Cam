@@ -115,12 +115,11 @@ It's necessary to erase the FLASH using the **ERASE** button before the first fi
 
 Board configuration in the Arduino IDE 2.3.2
 - Tools -> Board -> ESP32 Arduino -> ESP32 Wrover Module
-- Tools -> CPU Frequency -> 240MHz (WiFi/BT)
 - Tools -> Core debug level -> None
 - Tools -> Erase all Flash Before Sketch Upload -> Disable **(first flash, new board = enable. otherwise = disable)**
 - Tools -> Flash frequency -> 80MHz
 - Tools -> Flash Mode -> DIO
-- Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)
+- Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/128KB SPIFFS)
   
 When flashing the firmware to a new, empty ESP32-Wrover-dev device for the first time, it is necessary to use the 'Erase' function. 
 
@@ -143,6 +142,8 @@ To reset the settings to factory defaults, follow these instructions:
 - **Disconnect** PIN **IO12** from **ground** (but don't disconnect the power supply).
 - After disconnecting **IO12** from **ground**, the **STATUS LED** will **stop flashing**, and the MCU will **automatically reboot**.
 - Now the MCU is in the factory settings.
+
+The configuration can be reset also from the serial console with the command `resetcfg;`, see the [main instructions](../../README.md#serial_cfg).
 
 <a name="status_led"></a>
 ## Status LED

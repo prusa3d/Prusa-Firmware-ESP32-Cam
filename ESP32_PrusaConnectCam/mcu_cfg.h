@@ -20,21 +20,30 @@
 #define CAMERA_MODEL_XIAO_ESP32_S3_CAM  false
 #define CAMERA_MODEL_ESP32_S3_CAM       false
 #define ESP32_S3_WROOM_FREENOVE         false
-#define ESP32_M5_UNIT_CAMS3             false
 #define M5STACK_TIMERCAMERA             false
+#define ESP32_M5_UNIT_CAMS3             false
 
 /* ---------------- BASIC MCU CFG  --------------*/
-#define SW_VERSION                  "1.1.2"                 ///< SW version
-#define SW_BUILD                    __DATE__ " " __TIME__   ///< build number
+#define SW_VERSION                  "1.1.3"                 ///< SW version
+#define SW_BUILD_TIME               __DATE__ " " __TIME__   ///< build date and time. Expanded only in var.cpp, the build scripts compile var.cpp in every build
+#define SW_BUILD_MAX_LEN            48                      ///< max length of SW_BUILD incl. NUL
+#define SW_BUILD                    SwBuild                 ///< build: date, time and ELF SHA256, the same in all files. var.cpp, completed in setup()
+extern char SwBuild[SW_BUILD_MAX_LEN];                      ///< build string, var.cpp
 #define CONSOLE_VERBOSE_DEBUG       false                   ///< enable/disable verbose debug log level for console
+#define CERT_DIAGNOSTIC             false                   ///< enable/disable one-time diagnostic of the TLS certificate chain
 #define DEVICE_HOSTNAME             "Prusa-ESP32cam"        ///< device hostname
-#define CAMERA_MAX_FAIL_CAPTURE     10                      ///< maximum count for failed capture
+#define CAMERA_MAX_FAIL_CAPTURE     5                       ///< maximum count for failed capture
+#define CAMERA_INIT_ATTEMPTS        3                       ///< maximum count of the camera init with the same frame size, when the driver fails to set the frame size
+#define CAMERA_INIT_RETRY_DELAY     100                     ///< delay before the next camera init with the same frame size [ms]
+#define TLS_PSRAM_ALLOC_MIN_SIZE    1024                    ///< mbedTLS allocations from this size (TLS buffers, certificates, handshake) are in PSRAM, smaller allocations in internal RAM [B]
 
 /* ------------ PRUSA BACKEND CFG  --------------*/
 #define HOST_URL_CAM_PATH           "/c/snapshot"           ///< path for sending photo to prusa connect
 #define HOST_URL_INFO_PATH          "/c/info"               ///< path for sending info to prusa connect
 #define REFRESH_INTERVAL_MIN        10                      ///< minimum refresh interval for sending photo to prusa connect [s]
 #define REFRESH_INTERVAL_MAX        240                     ///< maximum refresh interval for sending photo to prusa connect [s]
+#define HOST_RESPONSE_TIMEOUT       10000                   ///< timeout for response from prusa connect [ms]
+#define TLS_HANDSHAKE_TIMEOUT       20                      ///< TLS handshake timeout [s]. Default in the core is 120 s, longer than WDG_TIMEOUT. Photo capture + handshake must be shorter than WDG_TIMEOUT
 
 /* -------------- STATUS LED CFG ----------------*/
 #define STATUS_LED_ON_DURATION      100                     ///< time for blink status LED when is module in the ON state [ms]
@@ -52,29 +61,43 @@
 #define TASK_WIFI_WATCHDOG          20000                   ///< wifi watchdog task interval [ms]
 #define TASK_PHOTO_SEND             1000                    ///< photo send task interval [ms]
 #define TASK_SDCARD_FILE_REMOVE     30000                   ///< sd card file remove task interval [ms]
+#define TASK_LOGGER                 25000                   ///< logger task interval for print stack free size [ms]
 
 /* --------------- WEB SERVER CFG  --------------*/
 #define WEB_SERVER_PORT             80                      ///< WEB server port 
 #define SERIAL_PORT_SPEED           115200                  ///< baud rate 
+#define SERIAL_USB_CDC_TX_TIMEOUT   5                       ///< console over USB CDC (ESP32-S3): TX timeout [ms], when the PC does not read data. Core default is 100 ms
 #define WDG_TIMEOUT                 40000                   ///< wdg timeout [second]
 #define PHOTO_FRAGMENT_SIZE         2048                    ///< photo fragmentation size [bytes]
 #define LOOP_DELAY                  100                     ///< loop delay [ms]
 #define WIFI_CLIENT_WAIT_CON        false                   ///< wait for connecting to WiFi network
-#define WEB_CACHE_INTERVAL          86400                   ///< cache interval for browser [s] 86400s = 24h
+#define WEB_CACHE_INTERVAL          86400                   ///< cache interval for browser [s] 86400s = 24h. Only jQuery and icons, HTML and CSS are checked with ETag every time
+#define WEB_PHOTO_COPY_TIMEOUT      2000                    ///< maximum waiting for the copy of the photo for the web server, during capture of the photo [ms]
+#define WEB_APPLY_CFG_DELAY         500                     ///< apply WiFi cfg or restart MCU after the web response is sent [ms]
 
 /* --------------- OTA UPDATE CFG  --------------*/
 #define OTA_UPDATE_API_SERVER       "api.github.com"        ///< OTA update server URL
+#define OTA_RESPONSE_TIMEOUT        10000                   ///< timeout for response from OTA server [ms]
 #define OTA_UPDATE_API_URL          F("/repos/prusa3d/Prusa-Firmware-ESP32-Cam/releases/latest")  ///< path to file with OTA update
 
 /* ---------- RESET CFG CONFIGURATION  ----------*/
 #define CFG_RESET_TIME_WAIT         10000                   ///< wait to 10 000 ms = 10s for reset cfg during grounded CFG_RESET_PIN 
 #define CFG_RESET_LOOP_DELAY        100                     ///< delay in the loop for reset cfg
+#define CFG_RESET_REQUEST_MAGIC     0x52455346              ///< reset cfg requested from the serial console, value in the RTC memory kept during the software restart
 
 /* ---------------- MicroSD Logs ----------------*/
-#define LOGS_FILE_NAME              "SysLog.log"            ///< syslog file name
+#define LOGS_FILE_PREFIX            "SysLog_"               ///< syslog file name prefix, file name is prefix + NNNN + suffix
+#define LOGS_FILE_SUFFIX            ".log"                  ///< syslog file name suffix
 #define LOGS_FILE_PATH              "/"                     ///< directory for log files
 #define LOGS_FILE_MAX_SIZE          1024                    ///< maximum file size in the [kb]
+#define LOGS_FILE_MAX_COUNT         100                     ///< maximum count of the log files on the micro SD card
 #define FILE_REMOVE_MAX_COUNT       5                       ///< maximum count for remove files from sd card
+#define LOGS_QUEUE_SIZE             32768                   ///< size of the queue for log messages, in PSRAM [B]
+#define LOGS_MSG_MAX_LEN            4096                    ///< maximum length of the log message, longer message is cut [B]
+#define LOGS_FLUSH_TIMEOUT          500                     ///< maximum waiting for log message and fsync interval [ms]
+#define LOGS_CARD_RETRY             10000                   ///< interval for mount the micro SD card again, when the card was removed [ms]
+#define LOGS_RESTART_FLUSH_TIMEOUT  2000                    ///< maximum waiting for write the log messages before MCU restart [ms]
+static_assert((LOGS_MSG_MAX_LEN + 16) <= (LOGS_QUEUE_SIZE / 2), "LOGS_MSG_MAX_LEN is too big for LOGS_QUEUE_SIZE");
 
 /* ---------------- AP MODE CFG  ----------------*/
 #define STA_AP_MODE_TIMEOUT         300000                  ///< how long is AP enable after start, when is module in the STA mode [ms]
@@ -92,6 +115,7 @@
 
 /* ----------------- WiFi CFG -------------------*/
 #define WIFI_STA_WDG_TIMEOUT        60000                   ///< STA watchdog timeout [ms]
+#define WIFI_STA_FAST_RETRY_COUNT   3                       ///< failed STA connections (network not found, rejected by the AP) with the immediate retry of the core, then every TASK_WIFI
 #define WIFI_DISABLE_UNENCRYPTED_STA_PASS_CHECK false       ///< enable/disable WEP/WPA/WPA2/... encryption for STA mode . for the wifi network without encryption set to false
 
 /* ----------------- NTP CFG --------------------*/
@@ -103,6 +127,7 @@
 /* ------------------ EXIF CFG ------------------*/
 #define CAMERA_MAKE                 "OmniVision"            ///< Camera make string
 #define CAMERA_MODEL                "OV2640"                ///< Camera model string
+#define CAMERA_NAME_MAX_LEN         16                      ///< max length of the camera make and model string in EXIF incl. NUL. Set from the detected sensor
 #define CAMERA_SOFTWARE             "Prusa ESP32-cam"       ///< Camera software string
 #define CAMERA_EXIF_ROTATION_STREAM false                   ///< enable camera exif rotation for stream
 
@@ -150,6 +175,10 @@
 #define FACTORY_CFG_TIMELAPS_ENABLE           0                 ///< enable timelaps functionality
 #define FACTORY_CFG_ENABLE_EXT_SENSOR         0                 ///< enable DHT22 sensor
 #define FACTORY_CFG_EXT_SENSOR_UNIT           0                 ///< 0 = celsius, 1 = fahrenheit
+#define FACTORY_CFG_WIFI_EAP_ENABLE           0                 ///< enable WiFi Enterprise (PEAP), 1 = enabled
+#define FACTORY_CFG_WIFI_EAP_IDENTITY         F("")             ///< WiFi Enterprise anonymous identity
+#define FACTORY_CFG_WIFI_EAP_USERNAME         F("")             ///< WiFi Enterprise username
+#define FACTORY_CFG_WIFI_EAP_PASSWORD         F("")             ///< WiFi Enterprise password
 
 /* ---------------- CFG FLAGS  ------------------*/
 #define CFG_WIFI_SETTINGS_SAVED               0x0A              ///< flag saved config
@@ -294,6 +323,18 @@
 #define EEPROM_ADDR_EXT_SENS_UNIT_START           (EEPROM_ADDR_EXT_SENS_ENABLE_START + EEPROM_ADDR_EXT_SENS_ENABLE_LENGTH)
 #define EEPROM_ADDR_EXT_SENS_UNIT_LENGTH          1
 
+#define EEPROM_ADDR_WIFI_EAP_ENABLE_START         (EEPROM_ADDR_EXT_SENS_UNIT_START + EEPROM_ADDR_EXT_SENS_UNIT_LENGTH)
+#define EEPROM_ADDR_WIFI_EAP_ENABLE_LENGTH        1
+
+#define EEPROM_ADDR_WIFI_EAP_IDENTITY_START       (EEPROM_ADDR_WIFI_EAP_ENABLE_START + EEPROM_ADDR_WIFI_EAP_ENABLE_LENGTH)
+#define EEPROM_ADDR_WIFI_EAP_IDENTITY_LENGTH      65
+
+#define EEPROM_ADDR_WIFI_EAP_USERNAME_START       (EEPROM_ADDR_WIFI_EAP_IDENTITY_START + EEPROM_ADDR_WIFI_EAP_IDENTITY_LENGTH)
+#define EEPROM_ADDR_WIFI_EAP_USERNAME_LENGTH      65
+
+#define EEPROM_ADDR_WIFI_EAP_PASSWORD_START       (EEPROM_ADDR_WIFI_EAP_USERNAME_START + EEPROM_ADDR_WIFI_EAP_USERNAME_LENGTH)
+#define EEPROM_ADDR_WIFI_EAP_PASSWORD_LENGTH      65
+
 #define EEPROM_SIZE (EEPROM_ADDR_REFRESH_INTERVAL_LENGTH + EEPROM_ADDR_FINGERPRINT_LENGTH + EEPROM_ADDR_TOKEN_LENGTH + \
                      EEPROM_ADDR_FRAMESIZE_LENGTH + EEPROM_ADDR_BRIGHTNESS_LENGTH + EEPROM_ADDR_CONTRAST_LENGTH + \
                      EEPROM_ADDR_SATURATION_LENGTH + EEPROM_ADDR_HMIRROR_LENGTH + EEPROM_ADDR_VFLIP_LENGTH + \
@@ -309,7 +350,8 @@
                      EEPROM_ADDR_HOSTNAME_LENGTH + EEPROM_ADDR_SERVICE_AP_ENABLE_LENGTH + EEPROM_ADDR_NETWORK_IP_METHOD_LENGTH +\
                      EEPROM_ADDR_NETWORK_STATIC_IP_LENGTH + EEPROM_ADDR_NETWORK_STATIC_MASK_LENGTH + EEPROM_ADDR_NETWORK_STATIC_GATEWAY_LENGTH + \
                      EEPROM_ADDR_NETWORK_STATIC_DNS_LENGTH + EEPROM_ADDR_IMAGE_ROTATION_LENGTH + EEPROM_ADDR_TIMELAPS_ENABLE_LENGTH + \
-                     EEPROM_ADDR_EXT_SENS_ENABLE_LENGTH + EEPROM_ADDR_EXT_SENS_UNIT_LENGTH)    ///< how many bits do we need for eeprom memory
+                     EEPROM_ADDR_EXT_SENS_ENABLE_LENGTH + EEPROM_ADDR_EXT_SENS_UNIT_LENGTH + EEPROM_ADDR_WIFI_EAP_ENABLE_LENGTH + \
+                     EEPROM_ADDR_WIFI_EAP_IDENTITY_LENGTH + EEPROM_ADDR_WIFI_EAP_USERNAME_LENGTH + EEPROM_ADDR_WIFI_EAP_PASSWORD_LENGTH)    ///< how many bits do we need for eeprom memory
 
 #endif
 

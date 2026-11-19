@@ -2,7 +2,7 @@
 
 What we need for functionality
 
-- M5Stack Unit CamS3 board with OV2640 camera module [here](#esp32)
+- M5Stack Unit CamS3 board with OV2640 camera module, or Unit CamS3-5MP with PY260 camera module [here](#esp32)
 - Supported camera modules [here](#cam_modules)
 - How to upload firmware to the board [here](#flash_fw)
 - How to compile software in the Arduino IDE [here](#arduino_cfg)
@@ -20,13 +20,13 @@ Basic information:
 
 - ESP32-S3-WROOM-1-N16R8 processor module
 - 16MB FLASH and 8MB PSRAM
-- OV2640 2MP camera
+- OV2640 2MP camera (Unit CamS3) or PY260 5MP camera (Unit CamS3-5MP)
 - Internal WiFi antenna
 - Micro SD card slot and PDM microphone
 - Programmable status LED on GPIO14
 - USB programming through the Grove2USB-C adapter
 
-This guide covers the **Unit CamS3 (U174)** with the OV2640 camera. Manufacturer documentation is available [here](https://docs.m5stack.com/en/unit/Unit_CamS3).
+This guide covers the **Unit CamS3 (U174)** with the OV2640 camera and the **Unit CamS3-5MP** with the PY260 camera. Both use the same firmware, the camera is detected automatically. Manufacturer documentation is available [here](https://docs.m5stack.com/en/unit/Unit_CamS3) and [here](https://docs.m5stack.com/en/unit/Unit-CAMS3%205MP).
 
 <img src="board.webp" alt="M5Stack Unit CamS3 board and hardware features" width=50%>
 
@@ -37,9 +37,16 @@ The hardware images below are saved locally. Their original M5Stack URLs and ret
 
 | Camera chip | FOV | Resolution | Tested | Works | Description |
 |-------------|-----|------------|--------|-------|-------------|
-| OV2640 | 66.5° | 2MP | Yes | Yes | Standard camera module |
+| OV2640 | 66.5° | 2MP | Yes | Yes | Standard camera module, Unit CamS3 |
+| PY260 (MEGA_CCM) | 88° | 5MP | Yes | Yes | Unit CamS3-5MP, see the limitations below |
 
-The CamS3-5MP is a different camera variant and is not covered by this configuration.
+Limitations of the Unit CamS3-5MP (PY260):
+
+- Supported resolutions are **320x240**, **640x480**, **1280x720**, **1600x1200** and **1920x1080**. The web interface offers only these resolutions, other resolutions are switched to 320x240.
+- The camera has only 3 JPEG quality levels. The image quality slider has 3 steps: the left third is low, the middle is default and the right third is high.
+- Brightness, contrast, saturation, white balance mode, horizontal mirror and vertical flip are supported. Other camera settings are hidden in the web interface, exposure and gain are automatic.
+- The photos are bigger than with the OV2640 (640x480 about 200 KB, 1600x1200 about 0.6-1.5 MB). The upload to Prusa Connect and the stream are slower: about 3.4 FPS at 640x480, less at higher resolutions.
+- Tested with the old hardware version of the Unit CamS3-5MP.
 
 <a name="flash_fw"></a>
 ## How to upload firmware to the board
@@ -58,7 +65,21 @@ Use the **Grove2USB-C adapter**, a Grove cable, a USB data cable and a jumper wi
 
 For later updates, set **Erase All Flash Before Sketch Upload -> Disabled** to preserve the camera settings. Repeat the download-mode procedure if the uploader cannot connect. If uploading at 921600 fails, try 115200.
 
-This board is not yet included in `fw_build.sh`, so a precompiled release archive is not available. Build and upload from source using the instructions below.
+The precompiled firmware for this board is published with the release: `m5stack-unit-cams3.zip`, the file for the firmware update is `ESP32-M5-Unit-CamS3.bin`.
+
+The addresses of the files:
+
+- address **0x0** - **ESP32_PrusaConnectCam.ino.bootloader.bin**
+- address **0x8000** - **ESP32_PrusaConnectCam.ino.partitions.bin**
+- address **0x10000** - **ESP32_PrusaConnectCam.ino.bin**
+
+Command for the first firmware upload with esptool in the download mode (G0 connected to GND, see above), where **/dev/ttyACM0** is the serial port of the camera:
+
+```
+./esptool --chip esp32s3 -p /dev/ttyACM0 -b 921600 --before default_reset --after hard_reset write_flash --erase-all --flash_mode dio --flash_size 8MB --flash_freq 80m 0x0 ESP32_PrusaConnectCam.ino.bootloader.bin 0x8000 ESP32_PrusaConnectCam.ino.partitions.bin 0x10000 ESP32_PrusaConnectCam.ino.bin
+```
+
+The parameter **--erase-all** erases the entire flash including the camera configuration. For a firmware update, remove this parameter, or upload the file `ESP32-M5-Unit-CamS3.bin` through the web interface's **System** tab.
 
 <a name="arduino_cfg"></a>
 ## How to compile software in the Arduino IDE
@@ -75,24 +96,25 @@ In [mcu_cfg.h](../../ESP32_PrusaConnectCam/mcu_cfg.h), enable only the M5Stack b
 #define CAMERA_MODEL_XIAO_ESP32_S3_CAM  false
 #define CAMERA_MODEL_ESP32_S3_CAM       false
 #define ESP32_S3_WROOM_FREENOVE         false
+#define M5STACK_TIMERCAMERA             false
 #define ESP32_M5_UNIT_CAMS3             true
 ```
 
 Board configuration in the Arduino IDE, matching the [board configuration header](../../ESP32_PrusaConnectCam/module_ESP32-M5_Unit_CamS3.h):
 
 - Tools -> Board -> ESP32 Arduino -> ESP32S3 Dev Module
-- Tools -> USB CDC on BOOT -> Disabled
-- Tools -> CPU Frequency -> 240MHz (WiFi/BT)
+- Tools -> USB CDC on BOOT -> Enabled
+- Tools -> CPU Frequency -> 240MHz (WiFi)
 - Tools -> Core debug level -> None
 - Tools -> USB DFU on BOOT -> Disable
 - Tools -> Erase all Flash Before Sketch Upload -> Disable (first flash or configuration recovery = enable)
 - Tools -> Events Run On -> Core 0
 - Tools -> Flash Mode -> QIO 80MHz
-- Tools -> Flash Size -> 8MB
+- Tools -> Flash Size -> 8MB (64Mb)
 - Tools -> Jtag Adapter -> Disable
 - Tools -> Arduino Runs On -> Core 0
 - Tools -> USB Firmware MSC On Boot -> Disable
-- Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)
+- Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/128KB SPIFFS)
 - Tools -> PSRAM -> OPI PSRAM
 - Tools -> Upload Mode -> UART0 / Hardware CDC
 - Tools -> Upload Speed -> 921600
@@ -101,12 +123,14 @@ Board configuration in the Arduino IDE, matching the [board configuration header
 
 The physical board has **16MB flash**. The **8MB** setting above follows the current board configuration and does not use all of the physical flash.
 
+The serial console is available on the USB of the Grove port (USB CDC on BOOT -> Enabled).
+
 <a name="prusa_connect"></a>
 ## How to connect camera board to Prusa Connect
 
 Follow the [main Prusa Connect setup instructions](../../README.md#prusa_connect) to configure WiFi and the camera token.
 
-Find the camera's IP address in the router's client list; it may appear as `esp32s3-...`. Open `http://<camera-ip>/` to access the web interface. Alternatively, use `http://prusa-esp32cam.local` if mDNS is available.
+Find the camera's IP address in the router's client list; it appears as `Prusa-ESP32cam`. Open `http://<camera-ip>/` to access the web interface. Alternatively, use `http://prusa-esp32cam.local` if mDNS is available.
 
 - JPEG snapshot: `http://<camera-ip>/saved-photo.jpg`
 - Video stream: `http://<camera-ip>/stream.mjpg`
@@ -114,9 +138,17 @@ Find the camera's IP address in the router's client list; it may appear as `esp3
 <a name="factory_cfg"></a>
 ## How to reset configuration to factory settings
 
-The current board configuration uses **GPIO0** for configuration reset. However, grounding this pin before powering on selects download mode, so the generic reset procedure does not clear the camera settings on this board.
+To reset the settings to factory defaults, follow these instructions. **G0 (GPIO0)** is not used for the reset, because G0 connected to GND at power-on selects the download mode.
 
-To reset the settings, repeat the [firmware upload procedure](#flash_fw) with **Erase All Flash Before Sketch Upload -> Enabled**. This removes saved WiFi details, the camera token and other settings. After uploading, disable flash erasing, remove the jumper, restart the camera and configure it again.
+- Connect **G8 (GPIO8)** to **GND**. G8 is on the 4-pin header with EN, G0 and GND (pin order G8, EN, G0, GND in the [schematic](schematic.png)), it is not labeled on the case.
+- **Plug in** the power supply.
+- Wait for **10 seconds**.
+- After 10 seconds, the **STATUS LED will start flashing**.
+- **Disconnect** **G8** from **GND** (but don't disconnect the power supply).
+- The **STATUS LED** will **stop flashing**, and the MCU will **automatically reboot**.
+- Now the MCU is in the factory settings.
+
+The configuration can be reset also from the serial console with the command `resetcfg;`, see the [main instructions](../../README.md#serial_cfg).
 
 <a name="status_led"></a>
 ## Status LED
@@ -144,7 +176,7 @@ Hardware connections from the manufacturer documentation and schematic:
 | Micro SD CS / MOSI / CLK / MISO | 9 / 38 / 39 / 40 |
 | PDM microphone clock / data | 47 / 48 |
 
-These are hardware connections; firmware feature support is described [below](#issue). The current camera configuration leaves `RESET_GPIO_NUM` set to `-1`.
+These are hardware connections; firmware feature support is described [below](#issue). The configuration reset uses **GPIO8** on the pin header.
 
 The dimensions drawing is saved [here](dimensions.jpg).
 
@@ -158,7 +190,6 @@ Supply **5V USB power** through the Grove2USB-C adapter and Grove cable. Leave *
 <a name="issue"></a>
 ## Potential issue with this board
 
-- Micro SD card operation has not been verified on this board.
 - Camera flash and DHT sensor support are disabled in the current configuration. The PDM microphone is not supported by this firmware.
-- Cloud updates require a board-specific release binary, which is not yet produced by `fw_build.sh`. For manual OTA updates, upload the application binary from a matching CamS3 build through the web interface's **System** tab.
+- Cloud updates use the release file `ESP32-M5-Unit-CamS3.bin`. For manual updates, upload the file through the web interface's **System** tab.
 - The manufacturer's factory firmware has different WiFi defaults and features. Follow this project's setup instructions after uploading PrusaConnect firmware.

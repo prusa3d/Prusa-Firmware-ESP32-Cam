@@ -32,6 +32,9 @@ WiFiMngt::WiFiMngt(Configuration *i_conf, Logs *i_log, Camera *i_cam) {
 
   NtpFirstSync = false;
   StartStaWdg = false;
+  StaConnectFailCount = 0;
+  WifiEapEnable = false;
+  StaConnectTimer = NULL;
 }
 
 /**
@@ -42,6 +45,10 @@ WiFiMngt::WiFiMngt(Configuration *i_conf, Logs *i_log, Camera *i_cam) {
 void WiFiMngt::LoadCfgFromEeprom() {
   WifiSsid = config->LoadWifiSsid();
   WifiPassword = config->LoadWifiPassowrd();
+  WifiEapEnable = config->LoadWifiEapEnable();
+  WifiEapIdentity = config->LoadWifiEapIdentity();
+  WifiEapUsername = config->LoadWifiEapUsername();
+  WifiEapPassword = config->LoadWifiEapPassword();
   
   mDNS_record = config->LoadMdnsRecord();
   EnableServiceAp = config->LoadEnableServiceAp();
@@ -65,6 +72,9 @@ void WiFiMngt::Init() {
   /* Set Wi-Fi networks */
   SetWifiEvents();
   CreateApSsid();
+
+  /* hostname before WiFi.mode(). The core sets the STA hostname only in WiFi.mode(), when the STA is enabled */
+  WiFi.setHostname(DEVICE_HOSTNAME);
 
   /* check enable service AP mode */
   if (true == GetEnableServiceAp()) {
@@ -95,7 +105,6 @@ void WiFiMngt::Init() {
   log->AddEvent(LogLevel_Info, "WiFi MAC: " + WiFi.macAddress());
 
   esp_wifi_set_ps(WIFI_PS_NONE);
-  WiFi.setHostname(DEVICE_HOSTNAME);
   FirstConnected = false;
   //WiFi.setTxPower(WIFI_POWER_18_5dBm);
 
@@ -148,9 +157,9 @@ void WiFiMngt::WifiManagement() {
         && (false == FirmwareUpdate.Processing) && (false == cam->GetStreamStatus())) {
       if (WiFi.softAPgetStationNum() == 0) {
         log->AddEvent(LogLevel_Info, F("Disable service AP mode"));
+        /* STA stays connected after the mode change. WiFiStaConnect() (WiFi.begin) and WiFi.softAPdisconnect(true) here disconnected the STA again */
         WiFi.mode(WIFI_STA);
         esp_wifi_set_ps(WIFI_PS_NONE);
-        WiFiStaConnect();
         //WiFi.begin(WifiSsid, WifiPassword);
         WiFiMode = F("Client");
 
@@ -162,7 +171,6 @@ void WiFiMngt::WifiManagement() {
         log->AddEvent(LogLevel_Verbose, "Connected to WiFi");
 #endif
         ServiceMode = false;
-        WiFi.softAPdisconnect(true);
       } else {
         log->AddEvent(LogLevel_Info, "Client [" + String(WiFi.softAPgetStationNum()) + "] still is connected to Wi-Fi AP!");
       }
@@ -182,13 +190,18 @@ void WiFiMngt::WifiManagement() {
 */
 void WiFiMngt::WiFiReconnect() {
   if ((WiFi.status() != WL_CONNECTED) && (FirstConnected == true)) {
-    log->AddEvent(LogLevel_Warning, F("Reconnecting to WiFi. STA"));
-    WiFi.disconnect();
-    log->AddEvent(LogLevel_Warning, F("Disconnect from WiFi"));
-    WiFi.reconnect();
-    log->AddEvent(LogLevel_Warning, F("Reconnecting to WiFi. STA"));
-  } else if ((WiFi.status() != WL_CONNECTED) && (FirstConnected == false) && (true == config->CheckActifeWifiCfgFlag())) {
-    /* not connected since boot, retry connection to STA */
+    /* in arduino-esp32 3.3.x disconnect() also aborts the running connection attempt.
+       STA connected to the AP waits for IP address (DHCP): without disconnect. When it gets no IP address, the WiFi watchdog restarts MCU */
+    if (true == WiFi.STA.connected()) {
+      log->AddEvent(LogLevel_Warning, F("WiFi STA connected to AP, waiting for IP address"));
+    } else {
+      log->AddEvent(LogLevel_Warning, F("Reconnecting to WiFi. STA"));
+      WiFi.reconnect();
+      log->AddEvent(LogLevel_Warning, F("Reconnecting to WiFi. STA"));
+    }
+  } else if ((WiFi.status() != WL_CONNECTED) && (FirstConnected == false) && (true == config->CheckActifeWifiCfgFlag()) && (false == WiFi.STA.connected())) {
+    /* not connected since boot (network unavailable at boot, or hidden SSID), retry connection to STA.
+       Not when STA is associated and waits for IP address: WiFi.begin() would disconnect it */
     log->AddEvent(LogLevel_Warning, "Not connected to WiFi since boot. Retrying connection to: " + WifiSsid);
     WiFiStaConnect();
   } else if (WiFi.status() == WL_CONNECTED) {
@@ -199,10 +212,46 @@ void WiFiMngt::WiFiReconnect() {
 
   if (Connect.GetBackendAvailabilitStatus() == BackendUnavailable) {
     log->AddEvent(LogLevel_Warning, F("Reconnecting to WiFi. STA. Problem with connecting to backend!"));
-    WiFi.disconnect();
+    /* in arduino-esp32 3.3.x disconnect() also aborts the running connection attempt. Disconnect only when STA is connected (behavior of arduino-esp32 3.1.x) */
+    if (true == WiFi.STA.connected()) {
+      WiFi.disconnect();
+    }
     WiFi.reconnect();
     Connect.SetBackendAvailabilitStatus(WaitForFirstConnection);
   }
+}
+
+/**
+   @brief Failed connection to STA, called from the disconnect event. The core repeats the connection immediately after 201 NO_AP_FOUND
+          (scan of all channels every ~3 s) and 203 ASSOC_FAIL (~38 attempts per second). The radio is shared with the service AP,
+          the phone did not find the service AP. After WIFI_STA_FAST_RETRY_COUNT failures the automatic reconnect of the core is disabled,
+          the next connection is done by WiFiReconnect() every TASK_WIFI
+   @param uint8_t - disconnect reason
+   @return none
+*/
+void WiFiMngt::StaConnectFailed(uint8_t i_reason) {
+  if ((WIFI_REASON_NO_AP_FOUND != i_reason) && (WIFI_REASON_ASSOC_FAIL != i_reason)) {
+    return;
+  }
+
+  if (StaConnectFailCount < UINT8_MAX) {
+    StaConnectFailCount++;
+  }
+
+  if ((StaConnectFailCount >= WIFI_STA_FAST_RETRY_COUNT) && (true == WiFi.getAutoReconnect())) {
+    WiFi.setAutoReconnect(false);
+    log->AddEvent(LogLevel_Warning, "WiFi STA connection failed " + String(StaConnectFailCount) + "x. Next attempt every " + String(TASK_WIFI / 1000) + " s");
+  }
+}
+
+/**
+   @brief STA connected, called from the got IP event. Enable the automatic reconnect of the core again
+   @param none
+   @return none
+*/
+void WiFiMngt::StaConnectDone() {
+  StaConnectFailCount = 0;
+  WiFi.setAutoReconnect(true);
 }
 
 /**
@@ -224,6 +273,7 @@ void WiFiMngt::SetWifiEvents() {
   WiFi.onEvent(WiFiMngt_WiFiEventApStaDisconnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_AP_STADISCONNECTED);
   WiFi.onEvent(WiFiMngt_WiFiEventApStaIpAssigned, WiFiEvent_t::ARDUINO_EVENT_WIFI_AP_STAIPASSIGNED);
   WiFi.onEvent(WiFiMngt_WiFiEventApStaProbeReqRecved, WiFiEvent_t::ARDUINO_EVENT_WIFI_AP_PROBEREQRECVED);
+  WiFi.onEvent(WiFiMngt_WiFiEvent);
 }
 
 /**
@@ -235,7 +285,21 @@ void WiFiMngt::SetWifiEvents() {
 void WiFiMngt::WiFiStaConnect() {
   if (config->CheckActifeWifiCfgFlag() == true) {
     system_led.setTimer(STATUS_LED_STA_CONNECTING);
-    if (false == WiFiStaMultipleNetwork) {
+
+    /* STA, which is still connecting (the core repeats the connection after 201 NO_AP_FOUND), does not accept a new config:
+       "sta is connecting, cannot set config". A new SSID and password from the web were used only after the MCU restart. Stop the connecting first */
+    if (false == WiFi.STA.connected()) {
+      WiFi.disconnect();
+      delay(100);
+    }
+
+    if (true == WifiEapEnable) {
+      /* WiFi Enterprise (WPA2/WPA3-Enterprise), PEAP without CA certificate. Empty identity = username */
+      String identity = (WifiEapIdentity.length() > 0) ? WifiEapIdentity : WifiEapUsername;
+      const uint8_t *bssid = (true == WiFiStaMultipleNetwork) ? WiFiStaNetworkBssid : NULL;
+      WiFi.begin(WifiSsid.c_str(), WPA2_AUTH_PEAP, identity.c_str(), WifiEapUsername.c_str(), WifiEapPassword.c_str(), NULL, NULL, NULL, -1, 0, bssid);
+      log->AddEvent(LogLevel_Info, F("Connecting to STA SSID, WiFi Enterprise PEAP"));
+    } else if (false == WiFiStaMultipleNetwork) {
 
 #if (WIFI_DISABLE_UNENCRYPTED_STA_PASS_CHECK == true)      
       if (WifiPassword == "") {
@@ -254,8 +318,44 @@ void WiFiMngt::WiFiStaConnect() {
       log->AddEvent(LogLevel_Info, F("Connecting to STA BSSID"));
     }
     WiFi.setSleep(false);
-    WiFi.setAutoReconnect(true);
+    /* after WIFI_STA_FAST_RETRY_COUNT failed connections the next one is done by WiFiReconnect() every TASK_WIFI (StaConnectFailed()) */
+    WiFi.setAutoReconnect(StaConnectFailCount < WIFI_STA_FAST_RETRY_COUNT);
   }
+}
+
+/**
+   @brief Function for connect to STA after WEB_APPLY_CFG_DELAY. Used from the web server, the web response is sent before the WiFi disconnects
+   @param none
+   @return none
+*/
+void WiFiMngt::WiFiStaConnectDelayed() {
+  if (NULL == StaConnectTimer) {
+    esp_timer_create_args_t timer_args = {};
+    timer_args.callback = &WiFiMngt::StaConnectTimerCallback;
+    timer_args.arg = this;
+    timer_args.dispatch_method = ESP_TIMER_TASK;
+    timer_args.name = "StaConnect";
+
+    if (ESP_OK != esp_timer_create(&timer_args, &StaConnectTimer)) {
+      StaConnectTimer = NULL;
+      log->AddEvent(LogLevel_Warning, F("Timer for connect to STA failed, connect now"));
+      WiFiStaConnect();
+      return;
+    }
+  }
+
+  /* next request from the web restarts the timer */
+  esp_timer_stop(StaConnectTimer);
+  esp_timer_start_once(StaConnectTimer, (uint64_t)WEB_APPLY_CFG_DELAY * 1000);
+}
+
+/**
+   @brief Callback of the esp_timer. Connect to STA
+   @param void * - pointer to the WiFiMngt object
+   @return none
+*/
+void WiFiMngt::StaConnectTimerCallback(void *i_arg) {
+  ((WiFiMngt *)i_arg)->WiFiStaConnect();
 }
 
 /**
@@ -431,6 +531,7 @@ void WiFiMngt::WiFiWatchdog() {
     log->AddEvent(LogLevel_Verbose, "Time: " + String(currentMillis - TaskWdg_previousMillis) + "/" + String(WIFI_STA_WDG_TIMEOUT));
     
     if (false == StartStaWdg) {
+      /* without WiFi scan: the scan was only for the log message, and it did not fit in the stack of the WiFiWatchdog task (upstream PR #146) */
       log->AddEvent(LogLevel_Warning, F("WiFi STA connection lost. Start watchdog timer!"));
       StartStaWdg = true;
       TaskWdg_previousMillis = currentMillis;
@@ -439,6 +540,7 @@ void WiFiMngt::WiFiWatchdog() {
     if ((true == StartStaWdg) && (currentMillis - TaskWdg_previousMillis >= WIFI_STA_WDG_TIMEOUT)) {
       log->AddEvent(LogLevel_Warning, F("WiFi STA connection lost. WDG timer expired. Restart MCU!"));
       /* restart MCU, or disconnect and connect to WiFi again ? From my point of view, and testing, restart MCU is better */
+      log->LoggerFlush(LOGS_RESTART_FLUSH_TIMEOUT);
       ESP.restart();
     }
 
@@ -602,6 +704,21 @@ String WiFiMngt::TranslateWiFiEncrypion(wifi_auth_mode_t i_data) {
       break;
     case WIFI_AUTH_WAPI_PSK:
       ret = F("WAPI");
+      break;
+    case WIFI_AUTH_OWE:
+      ret = F("OWE");
+      break;
+    case WIFI_AUTH_WPA_ENTERPRISE:
+      ret = F("WPA-EAP");
+      break;
+    case WIFI_AUTH_WPA3_ENTERPRISE:
+      ret = F("WPA3-EAP");
+      break;
+    case WIFI_AUTH_WPA2_WPA3_ENTERPRISE:
+      ret = F("WPA2+WPA3-EAP");
+      break;
+    case WIFI_AUTH_WPA3_ENT_192:
+      ret = F("WPA3-EAP-192");
       break;
     default:
       ret = F("unknown");
@@ -884,6 +1001,84 @@ void WiFiMngt::SetNetIpMethod(uint8_t i_data) {
   config->SaveNetworkIpMethod(NetIpMethod);
 }
 
+/**
+   @brief function for get WiFi Enterprise (PEAP) enable status
+   @param none
+   @return bool - status
+*/
+bool WiFiMngt::GetStaEapEnable() {
+  return WifiEapEnable;
+}
+
+/**
+   @brief function for get WiFi Enterprise anonymous identity
+   @param none
+   @return String - identity
+*/
+String WiFiMngt::GetStaEapIdentity() {
+  return WifiEapIdentity;
+}
+
+/**
+   @brief function for get WiFi Enterprise username
+   @param none
+   @return String - username
+*/
+String WiFiMngt::GetStaEapUsername() {
+  return WifiEapUsername;
+}
+
+/**
+   @brief function for set WiFi Enterprise credentials. Connect only when WiFi Enterprise is enabled
+   @param String - anonymous identity, empty = username
+   @param String - username
+   @param String - password
+   @return none
+*/
+void WiFiMngt::SetStaEapCredentials(String i_identity, String i_user, String i_pass) {
+  WifiEapIdentity = i_identity;
+  config->SaveWifiEapIdentity(WifiEapIdentity);
+
+  WifiEapUsername = i_user;
+  config->SaveWifiEapUsername(WifiEapUsername);
+
+  WifiEapPassword = i_pass;
+  config->SaveWifiEapPassword(WifiEapPassword);
+
+  if (true == WifiEapEnable) {
+    WiFiStaConnectDelayed();
+  }
+}
+
+/**
+   @brief function for enable/disable WiFi Enterprise (PEAP) and connect to STA again
+   @param bool - true = enable
+   @return bool - false = enable refused, SSID, username or password is not saved
+*/
+bool WiFiMngt::SetStaEapEnable(bool i_data) {
+  if ((true == i_data) && ((WifiSsid.length() == 0) || (WifiEapUsername.length() == 0) || (WifiEapPassword.length() == 0))) {
+    log->AddEvent(LogLevel_Warning, F("WiFi Enterprise: SSID, username or password is not saved"));
+    return false;
+  }
+
+  if (i_data == WifiEapEnable) {
+    return true;
+  }
+
+  WifiEapEnable = i_data;
+  config->SaveWifiEapEnable(WifiEapEnable);
+
+  if (true == WifiEapEnable) {
+    config->SaveWifiCfgFlag(CFG_WIFI_SETTINGS_SAVED);
+  } else {
+    /* back to the WiFi password. The WiFi driver uses EAP until it is disabled */
+    esp_wifi_sta_enterprise_disable();
+  }
+  WiFiStaConnectDelayed();
+
+  return true;
+}
+
 /* ----------------------- Static function ----------------------- */
 
 /**
@@ -940,14 +1135,14 @@ void WiFiMngt_WiFiEventGotIP(WiFiEvent_t event, WiFiEventInfo_t info) {
   SystemLog.AddEvent(LogLevel_Info, "WiFi Got DNS 1: " + WiFi.dnsIP(0).toString());
   SystemLog.AddEvent(LogLevel_Info, "WiFi Got DNS 2: " + WiFi.dnsIP(1).toString());
   SystemWifiMngt.SetFirstConnection(true);
+  SystemWifiMngt.StaConnectDone();
 
   /* update device information */
   Connect.UpdateDeviceInformation();
 
-  /* check first NTP time sync after boot */
-  if (false == SystemWifiMngt.GetNtpFirstTimeSync()) {
-    SystemWifiMngt.SyncNtpTime();
-  }
+  /* first NTP time sync after boot is done in the WiFiMngt::WifiManagement() (WiFi management task).
+     In arduino-esp32 3.3.x the network event callbacks run with locked network event mutex,
+     and SyncNtpTime() blocks the callback up to 10s. */
 }
 
 /**
@@ -1000,6 +1195,7 @@ void WiFiMngt_WiFiEventLostIP(WiFiEvent_t event, WiFiEventInfo_t info) {
 void WiFiMngt_WiFiEventStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
   SystemLog.AddEvent(LogLevel_Warning, String("WiFi disconnected from access point. Reason: ") + String(info.wifi_sta_disconnected.reason));
   system_led.setTimer(STATUS_LED_ERROR);
+  SystemWifiMngt.StaConnectFailed(info.wifi_sta_disconnected.reason);
 }
 
 /**
@@ -1070,6 +1266,38 @@ void WiFiMngt_WiFiEventApStaIpAssigned(WiFiEvent_t event, WiFiEventInfo_t info) 
 */
 void WiFiMngt_WiFiEventApStaProbeReqRecved(WiFiEvent_t event, WiFiEventInfo_t info) {
   SystemLog.AddEvent(LogLevel_Info, F("WiFi AP STA receive probe request packet in soft-AP interface"));
+}
+
+/**
+ * @brief CB function for print all WiFi events
+ * 
+ * https://github.com/espressif/arduino-esp32/blob/9eb7dc6f7bddf98600f6e8de3ccc19cc8ba5281b/libraries/WiFi/examples/WiFiClientEvents/WiFiClientEvents.ino
+ * 
+ * @param event 
+ */
+void WiFiMngt_WiFiEvent(WiFiEvent_t event) {
+  SystemLog.AddEvent(LogLevel_Info, "[WiFi-event]: " + String(event) + ". ", false, true);
+
+  switch (event) {
+    case ARDUINO_EVENT_WIFI_READY:                SystemLog.AddEvent(LogLevel_Info, F("WiFi interface ready"), true, false); break;
+    case ARDUINO_EVENT_WIFI_SCAN_DONE:            SystemLog.AddEvent(LogLevel_Info, F("Completed scan for access points"), true, false); break;
+    case ARDUINO_EVENT_WIFI_STA_START:            SystemLog.AddEvent(LogLevel_Info, F("WiFi client started"), true, false); break;
+    case ARDUINO_EVENT_WIFI_STA_STOP:             SystemLog.AddEvent(LogLevel_Info, F("WiFi clients stopped"), true, false); break;
+    case ARDUINO_EVENT_WIFI_STA_CONNECTED:        SystemLog.AddEvent(LogLevel_Info, F("Connected to access point"), true, false); break;
+    case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:     SystemLog.AddEvent(LogLevel_Info, F("Disconnected from WiFi access point"), true, false); break;
+    case ARDUINO_EVENT_WIFI_STA_AUTHMODE_CHANGE:  SystemLog.AddEvent(LogLevel_Info, F("Authentication mode of access point has changed"), true, false); break;
+    case ARDUINO_EVENT_WIFI_STA_GOT_IP:           SystemLog.AddEvent(LogLevel_Info, F("Obtained IP address"), true, false); break;
+    case ARDUINO_EVENT_WIFI_STA_LOST_IP:          SystemLog.AddEvent(LogLevel_Info, F("Lost IP address and IP address is reset to 0"), true, false); break;
+    case ARDUINO_EVENT_WIFI_AP_START:             SystemLog.AddEvent(LogLevel_Info, F("WiFi access point started"), true, false); break;
+    case ARDUINO_EVENT_WIFI_AP_STOP:              SystemLog.AddEvent(LogLevel_Info, F("WiFi access point  stopped"), true, false); break;
+    case ARDUINO_EVENT_WIFI_AP_STACONNECTED:      SystemLog.AddEvent(LogLevel_Info, F("Client connected"), true, false); break;
+    case ARDUINO_EVENT_WIFI_AP_STADISCONNECTED:   SystemLog.AddEvent(LogLevel_Info, F("Client disconnected"), true, false); break;
+    case ARDUINO_EVENT_WIFI_AP_STAIPASSIGNED:     SystemLog.AddEvent(LogLevel_Info, F("Assigned IP address to client"), true, false); break;
+    case ARDUINO_EVENT_WIFI_AP_PROBEREQRECVED:    SystemLog.AddEvent(LogLevel_Info, F("Received probe request"), true, false); break;
+    case ARDUINO_EVENT_WIFI_AP_GOT_IP6:           SystemLog.AddEvent(LogLevel_Info, F("AP IPv6 is preferred"), true, false); break;
+    case ARDUINO_EVENT_WIFI_STA_GOT_IP6:          SystemLog.AddEvent(LogLevel_Info, F("STA IPv6 is preferred"), true, false); break;
+    default:                                      SystemLog.AddEvent(LogLevel_Info, F("Unknown event"), true, false); break;
+  }
 }
 
 /* EOF */

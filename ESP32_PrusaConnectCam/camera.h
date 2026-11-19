@@ -63,10 +63,15 @@ private:
 
   bool CameraCaptureSuccess; ///< camera capture success
   bool PhotoSending;         ///< photo sending
+  bool ReinitRequest;        ///< reinit of the camera module requested (frame size, photo quality), done by the photo task
+  bool CaptureRequest;       ///< photo requested from the web (Refresh Snapshot), captured by the photo task
 
   /* OV2640 camera module pinout and cfg*/
   camera_config_t CameraConfig;             ///< camera configuration
   camera_fb_t *FrameBuffer;                 ///< frame buffer
+  bool FrameBufferHeld;                     ///< FrameBuffer is taken from the camera driver (esp_camera_fb_get) and not returned yet
+  bool MegaCcmSensor;                       ///< sensor MEGA_CCM (PY260, M5Stack Unit CamS3 5MP), detected at the first init of the camera
+  uint16_t FrameSizeSupported;              ///< frame sizes supported by the sensor, bit = frame size value from the web (0 - 320x240, ..., 8 - 1920x1080)
   camera_fb_t *FrameBufferDuplicate;        ///< frame buffer duplicate
   camera_fb_t *FrameBufferExif;             ///< frame buffer with exif data
   sensor_t* sensor;                         ///< sensor
@@ -85,6 +90,8 @@ private:
   Logs *log;                                ///< pointer to Logs object
 
   void InitCameraModule();
+  void ReturnFrameBufferToDriver();
+  void MegaCcmSetup();
 
 public:
   Camera(Configuration*, Logs*, int8_t);
@@ -93,9 +100,12 @@ public:
   void ApplyCameraCfg();
   void LoadCameraCfgFromEeprom();
   void ReinitCameraModule();
+  void ProcessReinitRequest();
+  void SetCaptureRequest();
+  void ProcessCaptureRequest();
   void GetCameraModel();
   void CapturePhoto();
-  void CaptureStream(camera_fb_t *);
+  bool CaptureStream(camera_fb_t *);
   void CaptureReturnFrameBuffer();
   void SetStreamStatus(bool);
   bool GetStreamStatus();
@@ -112,6 +122,7 @@ public:
   void CopyPhoto(String*);
   void CopyPhoto(String*, int, int);
   void CopyPhoto(char*, int, int);
+  bool CopyPhoto(uint8_t **, size_t *, uint32_t);
   int GetPhotoSize();
   String GetPhoto();
   camera_fb_t *GetPhotoFb();
@@ -149,6 +160,8 @@ public:
 
   uint8_t GetPhotoQuality();
   uint8_t GetFrameSize();
+  uint16_t GetFrameSizeSupported();
+  bool GetFullCfgSupported();
   uint16_t GetFrameSizeWidth();
   uint16_t GetFrameSizeHeight();
   int8_t GetBrightness();

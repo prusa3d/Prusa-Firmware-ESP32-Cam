@@ -31,6 +31,7 @@ public:
   void Init();
   bool CheckActifeWifiCfgFlag();
   void CheckResetCfg();
+  void SetResetCfgRequest();
 
   void SaveRefreshInterval(uint8_t);
   void SaveToken(String);
@@ -76,6 +77,10 @@ public:
   void SaveTimeLapseFunctionStatus(bool);
   void SaveExternalTemperatureSensorEnable(bool);
   void SaveExternalTemperatureSensorUnit(uint8_t);
+  void SaveWifiEapEnable(bool);
+  void SaveWifiEapIdentity(String);
+  void SaveWifiEapUsername(String);
+  void SaveWifiEapPassword(String);
 
   uint8_t LoadRefreshInterval();
   String LoadToken();
@@ -120,6 +125,10 @@ public:
   bool LoadTimeLapseFunctionStatus();
   bool LoadExternalTemperatureSensorEnable();
   uint8_t LoadExternalTemperatureSensorUnit();
+  bool LoadWifiEapEnable();
+  String LoadWifiEapIdentity();
+  String LoadWifiEapUsername();
+  String LoadWifiEapPassword();
 
 private:
   Logs *Log;              ///< Pointer to Logs object

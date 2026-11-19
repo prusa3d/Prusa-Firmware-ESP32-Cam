@@ -9,17 +9,17 @@
    Board configuration in the arduino IDE 2.3.2
    Tools -> Board -> ESP32 Arduino -> ESP32S3 Dev Module
    Tools -> USB CDC on BOOT -> Enabled
-   Tools -> CPU Frequency -> 240MHz (WiFi/BT)
+   Tools -> CPU Frequency -> 240MHz (WiFi)
    Tools -> Core debug level -> None
    Tools -> USB DFU on BOOT -> Disable
    Tools -> Erase all Flash Before Sketch Upload -> Disable (first flash, new board = enable. otherwise = disable)
    Tools -> Events Run On -> Core 0
    Tools -> Flash Mode -> QIO 80MHz
-   Tools -> Flash Size -> 8MB
+   Tools -> Flash Size -> 8MB (64Mb)
    Tools -> Jtag Adapter -> Disable
    Tools -> Arduino Runs On -> Core 0
    Tools -> USB Firmware MSC On Boot -> Disable
-   Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)
+   Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/128KB SPIFFS)
    Tools -> PSRAM -> OPI PSRAM
    Tools -> Upload Mode -> UART0 / Hardware CDC
    Tools -> Upload Speed -> 921600
@@ -29,6 +29,7 @@
    https://docs.m5stack.com/en/unit/Unit_CamS3
    Board setup guide: doc/M5-Unit-CamS3/README.md
 
+   Serial console is on the USB of the Grove port (USB CDC on BOOT -> Enabled). LED on GPIO 14 is active LOW. GPIO 0 selects the download mode at power-on, so the reset CFG pin is GPIO 8 on the pin header.
    Known limitations are listed in the board setup guide.
 
 */
@@ -59,21 +60,21 @@
 
 /* ------------------ MCU CFG  ------------------*/
 #define BOARD_NAME                  F("ESP32 M5 Unit CamS3") ///< Board name
-#define ENABLE_BROWN_OUT_DETECTION  false  ///< Enable brown out detection
-#define ENABLE_PSRAM                true   ///< Enable PSRAM
+#define ENABLE_BROWN_OUT_DETECTION  false   ///< Enable brown out detection
+#define ENABLE_PSRAM                true    ///< Enable PSRAM
 
 /* --------------- OTA UPDATE CFG  --------------*/
 #define OTA_UPDATE_FW_FILE          PSTR("ESP32-M5-Unit-CamS3.bin") ///< OTA update firmware file name
-#define FW_STATUS_LED_PIN           14    ///< GPIO pin for status FW update LED
-#define FW_STATUS_LED_LEVEL_ON      LOW   ///< GPIO pin level for status LED ON
+#define FW_STATUS_LED_PIN           14      ///< GPIO pin for status FW update LED
+#define FW_STATUS_LED_LEVEL_ON      LOW     ///< GPIO pin level for status LED ON
 
 /* --------------- FLASH LED CFG  ---------------*/
 #define ENABLE_CAMERA_FLASH         false   ///< Enable camera flash function
 #define CAMERA_FLASH_DIGITAL_CTRL   true    ///< Enable camera flash digital control
 #define CAMERA_FLASH_PWM_CTRL       false   ///< Enable camera flash PWM control
-#define CAMERA_FLASH_NEOPIXEL       false   ///< Enable camera flash NeoPixel control
+#define CAMERA_FLASH_NEOPIXEL       false   ///< Enable camera flash NeoPixel control. The board has no NeoPixel, GPIO 48 is the microphone
 #define FLASH_GPIO_NUM              14      ///< Flash control pin
-#define FLASH_NEOPIXEL_LED_PIN      48      ///< External flash control pin. RGB LED NeoPixel
+#define FLASH_NEOPIXEL_LED_PIN      -1      ///< External flash control pin. RGB LED NeoPixel
 #define FLASH_OFF_STATUS            0       ///< PWM intensity LED for OFF. 0-2^FLASH_PWM_RESOLUTION = 0-255
 #define FLASH_ON_STATUS             205     ///< PWM intensity LED for ON. limitation to 80%. 2^FLASH_PWM_RESOLUTION * 0.8% = 204
 #define FLASH_PWM_FREQ              2000    ///< frequency of pwm [240MHz / (100 prescale * pwm cycles)] = frequency
@@ -82,14 +83,15 @@
 
 /* --------------- SD CARD CFG  ---------------*/
 #define ENABLE_SD_CARD              true    ///< Enable SD card function
+#define ENABLE_SD_CARD_HOTPLUG      true    ///< SD card hotplug, remount the card during runtime
 #define SD_PIN_CLK                  39      ///< GPIO pin for SD card clock
 #define SD_PIN_CMD                  38      ///< GPIO pin for SD card command
 #define SD_PIN_DATA0                40      ///< GPIO pin for SD card data 0
 
 /* ---------- RESET CFG CONFIGURATION  ----------*/
-#define CFG_RESET_PIN               8       ///< GPIO 8 is for reset CFG to default
+#define CFG_RESET_PIN               8       ///< GPIO 8 (pin header) is for reset CFG to default. GPIO 0 selects the download mode at power-on
 #define CFG_RESET_LED_PIN           14      ///< GPIO for indication of reset CFG
-#define CFG_RESET_LED_LEVEL_ON      LOW    ///< GPIO pin level for status LED ON
+#define CFG_RESET_LED_LEVEL_ON      LOW     ///< GPIO pin level for status LED ON
 
 /* -------------- STATUS LED CFG ----------------*/
 #define STATUS_LED_ENABLE           true    ///< enable/disable status LED

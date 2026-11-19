@@ -23,6 +23,7 @@ sys_led::sys_led(uint8_t i_pin, uint32_t i_on_duration) {
   pin = i_pin;
   time = 100;
   ledOnDuration = i_on_duration;
+  timer = NULL;
 }
 
 /**
@@ -37,15 +38,50 @@ sys_led::sys_led(uint8_t i_pin, uint32_t i_on_duration, Logs *i_log) {
   time = 100;
   log = i_log;
   ledOnDuration = i_on_duration;
+  timer = NULL;
 }
 
 /**
  * @brief Init system LED
- * 
+ *
  */
 void sys_led::init() {
   pinMode(pin, OUTPUT);
   digitalWrite(pin, STATUS_LED_OFF_PIN_LEVEL);
+}
+
+/**
+ * @brief Start blinking of the system LED. The LED is toggled from the esp_timer task, without own task
+ *
+ * @return bool - status
+ */
+bool sys_led::start() {
+  esp_timer_create_args_t timer_args = {};
+  timer_args.callback = &sys_led::timerCallback;
+  timer_args.arg = this;
+  timer_args.dispatch_method = ESP_TIMER_TASK;
+  timer_args.name = "SystemLed";
+
+  if (ESP_OK != esp_timer_create(&timer_args, &timer)) {
+    timer = NULL;
+    return false;
+  }
+
+  /* first toggle immediately, same as the previous SystemLed task */
+  toggle();
+  return (ESP_OK == esp_timer_start_once(timer, (uint64_t)getTimer() * 1000));
+}
+
+/**
+ * @brief Callback of the esp_timer. Toggle system LED and start the timer again with the next time
+ *
+ * @param void * - pointer to the sys_led object
+ */
+void sys_led::timerCallback(void *i_arg) {
+  sys_led *led = (sys_led *)i_arg;
+
+  led->toggle();
+  esp_timer_start_once(led->timer, (uint64_t)led->getTimer() * 1000);
 }
 
 /**

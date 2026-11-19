@@ -44,35 +44,27 @@ void Server_InitWebServer() {
       request->send(404, "text/plain", "Photo not found!");
       return;
     }
-    SystemCamera.SetPhotoSending(true);
 
-    SystemLog.AddEvent(LogLevel_Verbose, "Photo size: " + String(SystemCamera.GetPhotoFb()->len) + " bytes");
-
-    if (SystemCamera.GetPhotoExifData()->header != NULL) {
-      /* send photo with exif data */
-      SystemLog.AddEvent(LogLevel_Verbose, F("Send photo with EXIF data"));
-      size_t total_len = SystemCamera.GetPhotoExifData()->len + SystemCamera.GetPhotoFb()->len - SystemCamera.GetPhotoExifData()->offset;
-      auto response = request->beginChunkedResponse("image/jpg", [total_len](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
-        size_t len = 0;
-        if (index < SystemCamera.GetPhotoExifData()->len) {
-          len = min(maxLen, SystemCamera.GetPhotoExifData()->len - index);
-          memcpy(buffer, SystemCamera.GetPhotoExifData()->header + index, len);
-        } else {
-          size_t offset = index - SystemCamera.GetPhotoExifData()->len + SystemCamera.GetPhotoExifData()->offset;
-          len = min(maxLen, SystemCamera.GetPhotoFb()->len - offset);
-          memcpy(buffer, SystemCamera.GetPhotoFb()->buf + offset, len);
-        }
-        return len;
-      });
-      request->send(response);
-
-    } else {
-      /* send photo without exif data */
-      SystemLog.AddEvent(LogLevel_Verbose, F("Send photo without EXIF data"));
-      request->send(200, "image/jpg", SystemCamera.GetPhotoFb()->buf, SystemCamera.GetPhotoFb()->len);
+    /* copy of the photo (EXIF + JPEG) in PSRAM under the frame buffer semaphore. The response is sent later from async_tcp,
+       the photo task or the stream can capture a new photo into the frame buffer during sending */
+    uint8_t *photo = NULL;
+    size_t photo_len = 0;
+    if (false == SystemCamera.CopyPhoto(&photo, &photo_len, WEB_PHOTO_COPY_TIMEOUT)) {
+      request->send(503, "text/plain", "Photo is not available, try again");
+      return;
     }
+    SystemLog.AddEvent(LogLevel_Verbose, "Photo size: " + String(photo_len) + " bytes");
 
-    SystemCamera.SetPhotoSending(false);
+    /* the copy is released together with the response */
+    std::shared_ptr<uint8_t> photo_copy(photo, heap_caps_free);
+    request->send("image/jpg", photo_len, [photo_copy, photo_len](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
+      if (index >= photo_len) {
+        return 0;
+      }
+      size_t len = min(maxLen, photo_len - index);
+      memcpy(buffer, photo_copy.get() + index, len);
+      return len;
+    });
   });
 
   /* route to jquery */
@@ -110,7 +102,14 @@ void Server_InitWebServer_JsonData() {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: get json_input"));
     if (Server_CheckBasicAuth(request) == false)
       return;
-    request->send(200, F("text/plain"), Server_GetJsonData().c_str());
+    /* json is in the PSRAM, the response makes its own copy */
+    char *json = Server_GetJsonData();
+    if (NULL == json) {
+      request->send(503, "text/plain", "Not enough memory, try again");
+      return;
+    }
+    request->send(200, F("text/plain"), json);
+    heap_caps_free(json);
   });
 
   /* route for json with wifi networks */
@@ -268,7 +267,22 @@ void Server_InitWebServer_WebPages() {
       return;
 
     if (true == SystemLog.GetCardDetectedStatus()) {
-      request->send(SD_MMC, SystemLog.GetFilePath() + SystemLog.GetFileName(), "text/plain");
+      /* ESPAsyncWebServer 3.12 returns error 500 for missing or empty file. Keep previous behavior: 404 for missing file, empty response for empty file */
+      String LogFile = SystemLog.GetFilePath() + SystemLog.GetFileName();
+      int32_t FileSize = SystemLog.GetFileSizeBytes(SD_MMC, LogFile);
+      if (FileSize < 0) {
+        request->send(404);
+      } else if (0 == FileSize) {
+        request->send(200, "text/plain", "");
+      } else {
+        /* file is read in parts under the mutex for SD card. The logger task can unmount the removed card during sending */
+        request->sendChunked("text/plain", [LogFile, FileSize](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
+          if (index >= (size_t)FileSize) {
+            return 0;
+          }
+          return SystemLog.ReadFilePart(SD_MMC, LogFile, index, buffer, min(maxLen, (size_t)FileSize - index));
+        });
+      }
       //SystemLog.LogOpenFile();
     } else {
       request->send(404, "text/plain", "Micro SD card not found with FAT32 partition!");
@@ -438,7 +452,8 @@ void Server_InitWebServer_Actions() {
     SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: /action_capture Take photo"));
     if (Server_CheckBasicAuth(request) == false)
       return;
-    SystemCamera.CapturePhoto();
+    /* the photo task captures the photo, the page loads it later (actionButton() in scripts.js) */
+    SystemCamera.SetCaptureRequest();
     request->send(200, "text/plain", "Take Photo");
   });
 
@@ -515,8 +530,8 @@ void Server_InitWebServer_Actions() {
     if (Server_CheckBasicAuth(request) == false)
       return;
     request->send(200, F("text/html"), MSG_REBOOT_MCU);
-    delay(100); /* wait for sending data */
-    ESP.restart();
+    /* the response is sent after return from this handler, restart MCU later */
+    Server_RestartDelayed();
   });
 
   /* route for change LED status */
@@ -784,6 +799,16 @@ void Server_InitWebServer_Sets() {
       response = true;
     }
 
+    /* set WiFi Enterprise (PEAP) enable */
+    if (request->hasParam("wpa2_eap_enable")) {
+      SystemLog.AddEvent(LogLevel_Verbose, F("Set WiFi Enterprise enable"));
+      if (false == SystemWifiMngt.SetStaEapEnable(Server_TransfeStringToBool(request->getParam("wpa2_eap_enable")->value()))) {
+        request->send(200, F("text/html"), MSG_WIFI_EAP_NOT_CFG);
+        return;
+      }
+      response = true;
+    }
+
     /* set timelaps enable */
     if (request->hasParam("timelaps_enable")) {
       SystemLog.AddEvent(LogLevel_Verbose, F("Set timelaps enable"));
@@ -854,6 +879,14 @@ void Server_InitWebServer_Sets() {
       TmpPassword = request->getParam("wifi_pass")->value();
     }
 
+    /* WiFi Enterprise is enabled: the WiFi password is not used, empty password changes only SSID */
+    if ((true == SystemWifiMngt.GetStaEapEnable()) && (TmpPassword.length() == 0) && (TmpSsid.length() > 0) && (TmpSsid.length() < EEPROM_ADDR_WIFI_SSID_LENGTH)) {
+      request->send(200, F("text/html"), MSG_SAVE_OK_WIFI);
+      SystemWifiMngt.SetStaSsid(TmpSsid);
+      SystemWifiMngt.WiFiStaConnectDelayed();
+      return;
+    }
+
     /* check min and max length WI-FI ssid and password */
 #if (WIFI_DISABLE_UNENCRYPTED_STA_PASS_CHECK == false)
     if (((TmpPassword.length() > 0) && (TmpSsid.length() > 0)) && ((TmpPassword.length() < EEPROM_ADDR_WIFI_PASSWORD_LENGTH) && (TmpSsid.length() < EEPROM_ADDR_WIFI_SSID_LENGTH))) {
@@ -864,10 +897,39 @@ void Server_InitWebServer_Sets() {
       /* send OK response */
       request->send(200, F("text/html"), MSG_SAVE_OK_WIFI);
 
-      /* save ssid and password */
+      /* save ssid and password, connect after the response is sent */
       SystemWifiMngt.SetStaCredentials(TmpSsid, TmpPassword);
-      SystemWifiMngt.WiFiStaConnect();
+      SystemWifiMngt.WiFiStaConnectDelayed();
 
+    } else {
+      request->send(200, F("text/html"), MSG_SAVE_NOTOK);
+    }
+  });
+
+  /* route for set WiFi Enterprise (PEAP) credentials. SSID is from /wifi_cfg */
+  server.on("/wifi_wpa2_eap", HTTP_GET, [](AsyncWebServerRequest* request) {
+    SystemLog.AddEvent(LogLevel_Verbose, F("WEB server: set WiFi Enterprise credentials"));
+    if (Server_CheckBasicAuth(request) == false)
+      return;
+
+    String TmpIdentity = "";
+    String TmpUser = "";
+    String TmpPassword = "";
+    if (request->hasParam("identity")) {
+      TmpIdentity = request->getParam("identity")->value();
+    }
+    if (request->hasParam("user")) {
+      TmpUser = request->getParam("user")->value();
+    }
+    if (request->hasParam("pass")) {
+      TmpPassword = request->getParam("pass")->value();
+    }
+
+    /* check min and max length of the identity, username and password */
+    if ((TmpIdentity.length() < EEPROM_ADDR_WIFI_EAP_IDENTITY_LENGTH) && (TmpUser.length() > 0) && (TmpUser.length() < EEPROM_ADDR_WIFI_EAP_USERNAME_LENGTH) &&
+        (TmpPassword.length() > 0) && (TmpPassword.length() < EEPROM_ADDR_WIFI_EAP_PASSWORD_LENGTH)) {
+      request->send(200, F("text/html"), (true == SystemWifiMngt.GetStaEapEnable()) ? MSG_SAVE_OK_WIFI : MSG_SAVE_OK);
+      SystemWifiMngt.SetStaEapCredentials(TmpIdentity, TmpUser, TmpPassword);
     } else {
       request->send(200, F("text/html"), MSG_SAVE_NOTOK);
     }
@@ -985,6 +1047,11 @@ void Server_InitWebServer_Sets() {
     if (request->hasParam("size")) {
       SystemLog.AddEvent(LogLevel_Info, String(request->getParam("size")->value().toInt()));
       FirmwareUpdate.FirmwareSize = request->getParam("size")->value().toInt();
+
+      /* new update from file: status and progress from the previous update are not valid */
+      FirmwareUpdate.UpdatingStatus = String(SYSTEM_MSG_UPDATE_PROCESS);
+      FirmwareUpdate.PercentProcess = 0;
+      FirmwareUpdate.TransferedBytes = 0;
     }
   });
 
@@ -1056,14 +1123,16 @@ void Server_InitWebServer_Update() {
       }
 
       if (final) {
-        FirmwareUpdate.Processing = false;
         if (Update.end(true)) {
           FirmwareUpdate.UpdatingStatus = String(SYSTEM_MSG_UPDATE_DONE);
           SystemLog.AddEvent(LogLevel_Info, F("Update FW from file done. Reboot MCU"));
         } else {
           Update.printError(Serial);
+          FirmwareUpdate.UpdatingStatus = String(SYSTEM_MSG_UPDATE_FAIL);
           SystemLog.AddEvent(LogLevel_Error, String(SYSTEM_MSG_UPDATE_FAIL));
         }
+        /* update is done after Update.end(), the web page checks this flag */
+        FirmwareUpdate.Processing = false;
       }
     });
 
@@ -1127,13 +1196,27 @@ void Server_resume() {
 }
 
 /**
- * @brief Handle cache request
+ * @brief Handle cache request. HTML and CSS change with the firmware: the browser checks them every time (no-cache) and gets 304 Not Modified
+ *        for the same build (ETag = ELF SHA256), the new page right after the firmware update. Before, the browser used the old page
+ *        up to WEB_CACHE_INTERVAL after the update. Other files (jQuery, icons) are in the browser cache for WEB_CACHE_INTERVAL
  * 
  * @param AsyncWebServerRequest* - http request
  * @param const char* - content type
  * @param const char* - data
  */
 void Server_handleCacheRequest(AsyncWebServerRequest* request, const char* contentType, const char* data) {
+  bool revalidate = ((0 == strcmp(contentType, "text/html")) || (0 == strcmp(contentType, "text/css")));
+  String etag = "\"" + String(esp_app_get_elf_sha256_str()) + "\"";
+
+  /* the browser has the page from this build */
+  if ((true == revalidate) && (request->header("If-None-Match") == etag)) {
+    AsyncWebServerResponse* response = request->beginResponse(304);
+    response->addHeader("Cache-Control", "no-cache");
+    response->addHeader("ETag", etag);
+    request->send(response);
+    return;
+  }
+
   /*
   AsyncWebServerResponse* response = request->beginResponse(200, contentType, data);
   response->addHeader("Cache-Control", "public, max-age=" + String(WEB_CACHE_INTERVAL));
@@ -1147,7 +1230,12 @@ void Server_handleCacheRequest(AsyncWebServerRequest* request, const char* conte
     memcpy(buffer, dataStart, chunkSize); // copy chunk of data to buffer
     return chunkSize; // return chunk size
   });
-  response->addHeader("Cache-Control", "public, max-age=" + String(WEB_CACHE_INTERVAL));
+  if (true == revalidate) {
+    response->addHeader("Cache-Control", "no-cache");
+    response->addHeader("ETag", etag);
+  } else {
+    response->addHeader("Cache-Control", "public, max-age=" + String(WEB_CACHE_INTERVAL));
+  }
   request->send(response);
 }
 
@@ -1171,14 +1259,13 @@ void Server_handleNotFound(AsyncWebServerRequest* request) {
 }
 
 /**
-   @brief make json data for WEB page on the ESP32
+   @brief make json data for WEB page on the ESP32. JsonDocument and json are in the PSRAM
    @param none
-   @return String - json data
+   @return char * - json data, release with heap_caps_free(). NULL = not enough memory
 */
-String Server_GetJsonData() {
+char *Server_GetJsonData() {
   String uptime = "";
-  String string_json = "";
-  JsonDocument doc_json;
+  JsonDocument doc_json(&SystemJsonAllocator);
   Server_GetModuleUptime(uptime);
 
   doc_json["token"] = Connect.GetToken();
@@ -1186,6 +1273,8 @@ String Server_GetJsonData() {
   doc_json["refreshInterval"] = String(Connect.GetRefreshInterval());
   doc_json["photoquality"] = String(73 - SystemCamera.GetPhotoQuality());
   doc_json["framesize"] = String(SystemCamera.GetFrameSize());
+  doc_json["framesizes"] = SystemCamera.GetFrameSizeSupported();
+  doc_json["cam_full_cfg"] = Server_TranslateBoolToString(SystemCamera.GetFullCfgSupported());
   doc_json["brightness"] = String(SystemCamera.GetBrightness());
   doc_json["contrast"] = String(SystemCamera.GetContrast());
   doc_json["saturation"] = String(SystemCamera.GetSaturation());
@@ -1217,6 +1306,9 @@ String Server_GetJsonData() {
   doc_json["mdns"] = SystemWifiMngt.GetMdns();
   doc_json["service_ap_ssid"] = SystemWifiMngt.GetServiceApSsid();
   doc_json["serviceap"] = Server_TranslateBoolToString(SystemWifiMngt.GetEnableServiceAp());
+  doc_json["wpa2_eap"] = Server_TranslateBoolToString(SystemWifiMngt.GetStaEapEnable());
+  doc_json["wpa2_eap_identity"] = SystemWifiMngt.GetStaEapIdentity();
+  doc_json["wpa2_eap_user"] = SystemWifiMngt.GetStaEapUsername();
   doc_json["auth"] = Server_TranslateBoolToString(WebBasicAuth.EnableAuth);
   doc_json["auth_username"] = WebBasicAuth.UserName;
   doc_json["last_upload_status"] = Connect.GetBackendReceivedStatus();
@@ -1240,15 +1332,29 @@ String Server_GetJsonData() {
   doc_json["sw_build"] = SW_BUILD;
   doc_json["sw_ver"] = SW_VERSION;
   doc_json["sw_new_ver"] = FirmwareUpdate.NewVersionFw;
+  doc_json["fw_file"] = OTA_UPDATE_FW_FILE;
   doc_json["extsens_stat"] = ExternalTemperatureSensor.GetSensorStatus();
   doc_json["extsen_en"] = ExternalTemperatureSensor.GetUserEnableSensor();
   doc_json["ext_temp"] = ExternalTemperatureSensor.GetTemperatureString();
   doc_json["ext_hum"] = ExternalTemperatureSensor.GetHumidityString();
   doc_json["exttemp_unit"] = ExternalTemperatureSensor.GetTemperatureUnit();
 
-  serializeJson(doc_json, string_json);
-  SystemLog.AddEvent(LogLevel_Verbose, string_json);
-  return string_json;
+  /* json to the PSRAM with exact size, without String in the internal RAM */
+  size_t json_len = measureJson(doc_json);
+  char *json = (char *)heap_caps_malloc_prefer(json_len + 1, 2, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+  if (NULL == json) {
+    SystemLog.AddEvent(LogLevel_Error, F("WEB server: not enough memory for json"));
+    return NULL;
+  }
+  serializeJson(doc_json, json, json_len + 1);
+
+  /* the token is masked in the log, the copy of the json is created only when the message is printed */
+  if ((SystemLog.GetLogLevel() >= LogLevel_Verbose) || (true == CONSOLE_VERBOSE_DEBUG)) {
+    String log_json = json;
+    log_json.replace(Connect.GetToken(), SystemLog.MaskSensitiveData(Connect.GetToken()));
+    SystemLog.AddEvent(LogLevel_Verbose, log_json);
+  }
+  return json;
 }
 
 /**
@@ -1264,6 +1370,42 @@ bool Server_CheckBasicAuth(AsyncWebServerRequest* request) {
   }
 
   return true;
+}
+
+/**
+   @brief Restart MCU after WEB_APPLY_CFG_DELAY. The web response is sent after return from the request handler, restart in the handler stops it
+   @param none
+   @return none
+*/
+void Server_RestartDelayed() {
+  static esp_timer_handle_t restart_timer = NULL;
+
+  if (NULL == restart_timer) {
+    esp_timer_create_args_t timer_args = {};
+    timer_args.callback = &Server_RestartTimerCallback;
+    timer_args.arg = NULL;
+    timer_args.dispatch_method = ESP_TIMER_TASK;
+    timer_args.name = "WebRestart";
+
+    if (ESP_OK != esp_timer_create(&timer_args, &restart_timer)) {
+      restart_timer = NULL;
+      Server_RestartTimerCallback(NULL);
+      return;
+    }
+  }
+
+  esp_timer_stop(restart_timer);
+  esp_timer_start_once(restart_timer, (uint64_t)WEB_APPLY_CFG_DELAY * 1000);
+}
+
+/**
+   @brief Callback of the esp_timer. Write log messages and restart MCU
+   @param void * - not used
+   @return none
+*/
+void Server_RestartTimerCallback(void *i_arg) {
+  SystemLog.LoggerFlush(LOGS_RESTART_FLUSH_TIMEOUT);
+  ESP.restart();
 }
 
 /**
@@ -1349,4 +1491,3 @@ String Server_TranslateBoolToString(bool i_data) {
 }
 
 /* EOF */
-

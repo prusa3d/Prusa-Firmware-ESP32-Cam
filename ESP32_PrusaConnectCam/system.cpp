@@ -38,6 +38,7 @@ void System_Init() {
   SystemLog.AddEvent(LogLevel_Info, "Flash Size: " + String(ESP.getFlashChipSize()) + ", Flash Speed " + String(ESP.getFlashChipSpeed()) + ", Flash Mode: " + String(ESP.getFlashChipMode()));
   
   System_CheckIfPsramIsUsed();
+  System_SetMbedtlsMemoryAlloc();
 }
 
 /**
@@ -79,6 +80,78 @@ bool System_CheckIfPsramIsUsed() {
 }
 
 /**
+   @brief Function for set memory allocation for mbedTLS (TLS connection).
+          arduino-esp32 3.3.x allocates mbedTLS memory only from the internal RAM (CONFIG_MBEDTLS_INTERNAL_MEM_ALLOC).
+          With camera, web server and WiFi is internal RAM not enough for TLS connection, and certificate verification
+          fails with MBEDTLS_ERR_MPI_ALLOC_FAILED (X509 error -9984).
+          TLS buffers are allocated in the PSRAM, small allocations in the internal RAM.
+   @param none
+   @return none
+*/
+void System_SetMbedtlsMemoryAlloc() {
+  if (psramFound()) {
+    int ret = mbedtls_platform_set_calloc_free(System_MbedtlsCalloc, System_MbedtlsFree);
+    SystemLog.AddEvent(LogLevel_Info, "mbedTLS memory: PSRAM for allocations from " + String(TLS_PSRAM_ALLOC_MIN_SIZE) + " B. Ret: " + String(ret));
+  } else {
+    SystemLog.AddEvent(LogLevel_Info, F("mbedTLS memory: internal RAM"));
+  }
+}
+
+/**
+   @brief Calloc function for mbedTLS. Large allocations (TLS buffers) in PSRAM, small allocations in internal RAM.
+          When the preferred memory is full, the second memory is used.
+   @param size_t - number of elements
+   @param size_t - size of element
+   @return void* - pointer to allocated memory
+*/
+void *System_MbedtlsCalloc(size_t i_count, size_t i_size) {
+  if ((i_count * i_size) >= TLS_PSRAM_ALLOC_MIN_SIZE) {
+    return heap_caps_calloc_prefer(i_count, i_size, 2, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+  }
+
+  return heap_caps_calloc_prefer(i_count, i_size, 2, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+}
+
+/**
+   @brief Free function for mbedTLS
+   @param void* - pointer to allocated memory
+   @return none
+*/
+void System_MbedtlsFree(void *i_ptr) {
+  heap_caps_free(i_ptr);
+}
+
+JsonPsramAllocator SystemJsonAllocator;
+
+/**
+   @brief Allocate memory for JsonDocument. PSRAM, when the PSRAM is full, internal RAM
+   @param size_t - size
+   @return void* - pointer to allocated memory
+*/
+void *JsonPsramAllocator::allocate(size_t i_size) {
+  return heap_caps_malloc_prefer(i_size, 2, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+}
+
+/**
+   @brief Free memory of JsonDocument
+   @param void* - pointer to allocated memory
+   @return none
+*/
+void JsonPsramAllocator::deallocate(void *i_ptr) {
+  heap_caps_free(i_ptr);
+}
+
+/**
+   @brief Reallocate memory for JsonDocument. PSRAM, when the PSRAM is full, internal RAM
+   @param void* - pointer to allocated memory
+   @param size_t - new size
+   @return void* - pointer to reallocated memory
+*/
+void *JsonPsramAllocator::reallocate(void *i_ptr, size_t i_size) {
+  return heap_caps_realloc_prefer(i_ptr, i_size, 2, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+}
+
+/**
    @brief Function for init update functions from file
    @param none
    @return none
@@ -88,7 +161,7 @@ void System_UpdateInit() {
     /* update from file */
     SystemCamera.SetFlashStatus(true);
     digitalWrite(FW_STATUS_LED_PIN, FW_STATUS_LED_LEVEL_ON);
-    uint8_t updateProgress = (progress * 100) / FirmwareUpdate.FirmwareSize;
+    uint8_t updateProgress = (FirmwareUpdate.FirmwareSize > 0) ? ((progress * 100) / FirmwareUpdate.FirmwareSize) : 0;
     SystemLog.AddEvent(LogLevel_Info, "Updating: " + String(FirmwareUpdate.FirmwareSize) + "/" + String(progress) + " -> " + String(updateProgress) + "%");
     FirmwareUpdate.PercentProcess = updateProgress;
     FirmwareUpdate.TransferedBytes = progress;
@@ -127,6 +200,7 @@ void System_CheckNewVersion() {
     WiFiClientSecure client;
     client.setCACert(root_CAs_ota);
     //client.setInsecure();
+    client.setHandshakeTimeout(TLS_HANDSHAKE_TIMEOUT);
     FirmwareUpdate.CheckNewVersionFwStatus = F("N/A");
     FirmwareUpdate.NewVersionFw = F("Unknown");
     FirmwareUpdate.OtaUpdateFwUrl = "";
@@ -145,7 +219,13 @@ void System_CheckNewVersion() {
       client.println("Connection: close");
       client.println();
 
+      /* connected() can stay true while the server sends nothing: limit the reading of the headers and the data */
+      unsigned long ResponseStartTime = millis();
       while (client.connected()) {
+        if ((millis() - ResponseStartTime) > OTA_RESPONSE_TIMEOUT) {
+          SystemLog.AddEvent(LogLevel_Warning, F("Timeout for response headers from OTA server!"));
+          break;
+        }
         String line = client.readStringUntil('\n');
         if (line == "\r") {
           SystemLog.AddEvent(LogLevel_Verbose, "headers received: " + line);
@@ -157,16 +237,25 @@ void System_CheckNewVersion() {
       delay(350);
       String Data = "";
       while (client.connected()) {
+        if ((millis() - ResponseStartTime) > OTA_RESPONSE_TIMEOUT) {
+          SystemLog.AddEvent(LogLevel_Warning, F("Timeout for response data from OTA server!"));
+          break;
+        }
         while (client.available()) {
           Data += (char)client.read();
         }
+        delay(1);
+      }
+      /* data received before the server closed the connection */
+      while (client.available()) {
+        Data += (char)client.read();
       }
 
       SystemLog.AddEvent(LogLevel_Verbose, Data);
       client.stop();
 
       /* json analyzed */
-      JsonDocument jsonDoc;
+      JsonDocument jsonDoc(&SystemJsonAllocator);
       DeserializationError error = deserializeJson(jsonDoc, Data);
 
       if (error) {
@@ -250,7 +339,8 @@ bool System_OtaUpdateStart() {
   /* set certificat for secure connection, set timeout and follow redirect */
   client.setCACert(root_CAs_ota);
   // client.setInsecure();
-  client.setTimeout(12000 / SECOND_TO_MILISECOND);  /* timeout argument is defined in seconds for setTimeout */
+  client.setTimeout(12000);  /* timeout argument is defined in milliseconds for setTimeout */
+  client.setHandshakeTimeout(TLS_HANDSHAKE_TIMEOUT);
   httpUpdate.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS); /* HTTPC_FORCE_FOLLOW_REDIRECTS */
 
   /* set callback function */
@@ -299,7 +389,7 @@ bool System_OtaUpdateStart() {
 void System_OtaUpdateProgressCB(int cur, int total) {
   /* OTA update from server */
   FirmwareUpdate.FirmwareSize = total;
-  uint8_t updateProgress = (cur * 100) / FirmwareUpdate.FirmwareSize;
+  uint8_t updateProgress = (FirmwareUpdate.FirmwareSize > 0) ? ((cur * 100) / FirmwareUpdate.FirmwareSize) : 0;
   FirmwareUpdate.PercentProcess = updateProgress;
   FirmwareUpdate.TransferedBytes = cur;
   SystemLog.AddEvent(LogLevel_Info, "Downloaded: " + String(cur) + "/" + String(FirmwareUpdate.FirmwareSize) + " -> " + String(FirmwareUpdate.PercentProcess) + "%");
@@ -505,6 +595,10 @@ void System_TaskCaptureAndSendPhoto(void *pvParameters) {
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while (1) {
+    /* reinit camera module after the change of the frame size or the photo quality, and the photo requested from the web. Here, not during sending and saving the photo */
+    SystemCamera.ProcessReinitRequest();
+    SystemCamera.ProcessCaptureRequest();
+
     if (Connect.CheckSendingIntervalExpired()) {
       Connect.SetSendingIntervalCounter(0);
       /* send network information to backend */
@@ -537,8 +631,70 @@ void System_TaskCaptureAndSendPhoto(void *pvParameters) {
 }
 
 /**
+ * @brief Function for print free stack size of all tasks, also system and library tasks (loopTask, async_tcp, cam_task...). Only for log level verbose
+ *
+ * @param none
+ * @return none
+ */
+void System_PrintTasksStackFreeSize() {
+  if (SystemLog.GetLogLevel() < LogLevel_Verbose) {
+    return;
+  }
+
+  /* array of task states is in PSRAM, the stack of the telemetry task is small. +2 for tasks created in the meantime */
+  UBaseType_t task_count = uxTaskGetNumberOfTasks() + 2;
+  TaskStatus_t *tasks = (TaskStatus_t *)heap_caps_malloc_prefer(task_count * sizeof(TaskStatus_t), 2, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+  if (NULL == tasks) {
+    return;
+  }
+
+  task_count = uxTaskGetSystemState(tasks, task_count, NULL);
+  String msg = "Tasks stack free size: ";
+  for (UBaseType_t i = 0; i < task_count; i++) {
+    msg += String(tasks[i].pcTaskName) + " " + String(tasks[i].usStackHighWaterMark) + "B";
+    if ((i + 1) < task_count) {
+      msg += ", ";
+    }
+  }
+  heap_caps_free(tasks);
+
+  SystemLog.AddEvent(LogLevel_Verbose, msg);
+}
+
+/**
+ * @brief Function for logger task. Only this task prints log messages to the console and writes them to the log file on the micro SD card
+ *
+ * @param void *pvParameters
+ * @return none
+ */
+void System_TaskLogger(void *pvParameters) {
+  /* without queue for log messages, the messages are printed directly to the console */
+  if (false == SystemLog.LoggerStart()) {
+    vTaskDelete(NULL);
+  }
+
+  /* task is created before WDG init in setup(), therefore it adds itself to the WDG */
+  esp_task_wdt_add(NULL);
+  SystemLog.AddEvent(LogLevel_Info, F("Logger task. core: "), String(xPortGetCoreID()));
+  uint32_t LastStackReport = millis();
+
+  while (1) {
+    /* print and write log messages, waiting for next message is max LOGS_FLUSH_TIMEOUT */
+    SystemLog.LoggerProcess();
+
+    /* reset wdg */
+    esp_task_wdt_reset();
+
+    if ((millis() - LastStackReport) >= TASK_LOGGER) {
+      LastStackReport = millis();
+      SystemLog.AddEvent(LogLevel_Verbose, F("Logger task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + "B");
+    }
+  }
+}
+
+/**
  * @brief Function for micro SD card check task
- * 
+ *
  * @param void *pvParameters
  * @return none
  */
@@ -548,33 +704,12 @@ void System_TaskSdCardCheck(void *pvParameters) {
 
   while (1) {
     esp_task_wdt_reset();
-    /* check micro SD card */
-    if ((true == SystemLog.GetCardDetectAfterBoot()) && (false == SystemLog.GetCardDetectedStatus())) {
-      SystemLog.LogCloseFile();
-      SystemLog.ReinitCard();
-      SystemLog.LogOpenFile();
-      SystemLog.AddEvent(LogLevel_Warning, F("Reinit micro SD card done!"));
-    }
+    /* reinit micro SD card, log file size and opening of the log file are checked by the logger task */
 
     /* check card free space */
     if (true == SystemLog.GetCardDetectedStatus()) {
       SystemLog.AddEvent(LogLevel_Verbose, F("Check card free space"));
       SystemLog.CheckCardSpace();
-    }
-
-    /* check maximum log file size */
-    if (true == SystemLog.GetCardDetectedStatus()) {
-      SystemLog.AddEvent(LogLevel_Verbose, F("Check maximum log file size"));
-      SystemLog.CheckMaxLogFileSize();
-    }
-
-    /* check if log file is opened */
-    if (true == SystemLog.GetCardDetectedStatus()) {
-      SystemLog.LogCheckOpenedFile();
-      if (false == SystemLog.GetLogFileOpened()) {
-        SystemLog.LogOpenFile();
-        SystemLog.AddEvent(LogLevel_Warning, F("Log file is not opened!"));
-      }
     }
 
     SystemLog.AddEvent(LogLevel_Info, "CardStatus: " + String(SystemLog.GetCardDetectedStatus()) + " FileStatus: " + String(SystemLog.GetLogFileOpened()));
@@ -624,6 +759,7 @@ void System_TaskSystemTelemetry(void *pvParameters) {
   while (1) {
     esp_task_wdt_reset();
     SystemLog.AddEvent(LogLevel_Verbose, F("SystemTelemetry task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + "B");
+    System_PrintTasksStackFreeSize();
     if (SystemCamera.GetStreamStatus()) {
       char buf[80] = { '\0' };
       sprintf(buf, "Stream, average data in %dsec. FPS: %.1f, Size: %uKB", (TASK_SYSTEM_TELEMETRY / SECOND_TO_MILISECOND), SystemCamera.StreamGetFrameAverageFps(), SystemCamera.StreamGetFrameAverageSize());
@@ -631,7 +767,8 @@ void System_TaskSystemTelemetry(void *pvParameters) {
       SystemCamera.StreamClearFrameData();
     }
 
-    SystemLog.AddEvent(LogLevel_Info, "Free RAM: " + String(ESP.getFreeHeap()) + " B" + ", Min: " + String(ESP.getMinFreeHeap()));
+    SystemLog.AddEvent(LogLevel_Info, "Free RAM: " + String(ESP.getFreeHeap()) + " B" + ", Min: " + String(ESP.getMinFreeHeap()) + ", Max block: " + String(ESP.getMaxAllocHeap()));
+    SystemLog.AddEvent(LogLevel_Info, "Free DRAM (8-bit): " + String(heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT)) + " B" + ", Min: " + String(heap_caps_get_minimum_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT)) + ", Max block: " + String(heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT)));
     SystemLog.AddEvent(LogLevel_Info, "Free PSRAM: " + String(ESP.getFreePsram()) + " B" + ", Min: " + String(ESP.getMinFreePsram()));
     SystemLog.AddEvent(LogLevel_Info, "MCU Temperature: " + String(McuTemperature.TemperatureCelsius) + " *C");
 
@@ -644,27 +781,6 @@ void System_TaskSystemTelemetry(void *pvParameters) {
     vTaskDelayUntil(&xLastWakeTime, TASK_SYSTEM_TELEMETRY / portTICK_PERIOD_MS);
   }
 }
-
-/**
- * @brief Function for system led task
- * 
- * @param void *pvParameters
- * @return none
- */
-void System_TaskSysLed(void *pvParameters) {
-  SystemLog.AddEvent(LogLevel_Info, F("SystemLed task. core: "), String(xPortGetCoreID()));
-  TickType_t xLastWakeTime = xTaskGetTickCount();
-
-  while (1) {
-    system_led.toggle();
-    /* reset wdg */
-    esp_task_wdt_reset();
-    SystemLog.AddEvent(LogLevel_Verbose, F("SystemLed task. Stack free size: "), String(uxTaskGetStackHighWaterMark(NULL)) + "B"); 
-
-    /* next start task */
-    vTaskDelayUntil(&xLastWakeTime, system_led.getTimer() / portTICK_PERIOD_MS);
-  }
-} 
 
 /**
  * @brief Function for WiFi watchdog task

@@ -7,15 +7,19 @@
    Contact: hello@timvanderheide.com
 
    https://docs.m5stack.com/en/unit/timercam
+   https://docs.m5stack.com/en/unit/timercam_f
 
    Board configuration in the arduino IDE 2.3.2
-   Tools -> Board -> ESP32 Arduino -> M5TimerCAM 
+   Tools -> Board -> ESP32 Arduino -> M5TimerCAM
    Tools -> CPU Frequency -> 240MHz (WiFi/BT)
    Tools -> Core debug level -> None
    Tools -> Flash frequency -> 80MHz
    Tools -> Flash Mode -> DIO
    Tools -> PSRAM -> Enabled
-   Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)
+   Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/128KB SPIFFS)
+
+   LED is on GPIO 2. GPIO 33 is BAT_HOLD (battery power hold), it is not used: the camera runs only with USB power.
+   The board has no micro SD card slot.
 
    @bug: no know bug
 
@@ -47,18 +51,18 @@
 
 /* ------------------ MCU CFG  ------------------*/
 #define BOARD_NAME                  F("M5Stack TimerCamera") ///< Board name
-#define ENABLE_BROWN_OUT_DETECTION  true   ///< Enable brown out detection
-#define ENABLE_PSRAM                true  ///< Enable PSRAM
+#define ENABLE_BROWN_OUT_DETECTION  true    ///< Enable brown out detection
+#define ENABLE_PSRAM                true    ///< Enable PSRAM
 
 /* --------------- OTA UPDATE CFG  --------------*/
 #define OTA_UPDATE_FW_FILE          PSTR("M5STACK_TIMERCAM.bin") ///< OTA update firmware file name
-#define FW_STATUS_LED_PIN           2      ///< GPIO pin for status FW update LED
-#define FW_STATUS_LED_LEVEL_ON      HIGH   ///< GPIO pin level for status LED ON
+#define FW_STATUS_LED_PIN           2       ///< GPIO pin for status FW update LED
+#define FW_STATUS_LED_LEVEL_ON      HIGH    ///< GPIO pin level for status LED ON
 
 /* --------------- FLASH LED CFG  ---------------*/
-#define ENABLE_CAMERA_FLASH         false    ///< Enable camera flash function
+#define ENABLE_CAMERA_FLASH         false   ///< Enable camera flash function
 #define CAMERA_FLASH_DIGITAL_CTRL   false   ///< Enable camera flash digital control
-#define CAMERA_FLASH_PWM_CTRL       false    ///< Enable camera flash PWM control
+#define CAMERA_FLASH_PWM_CTRL       false   ///< Enable camera flash PWM control
 #define CAMERA_FLASH_NEOPIXEL       false   ///< Enable camera flash NeoPixel control
 #define FLASH_GPIO_NUM              4       ///< Flash control pin
 #define FLASH_NEOPIXEL_LED_PIN      -1      ///< External flash control pin. RGB LED NeoPixel
@@ -69,20 +73,21 @@
 #define FLASH_PWM_RESOLUTION        8       ///< range 1-20bit. 8bit = 0-255 range
 
 /* --------------- SD CARD CFG  ---------------*/
-#define ENABLE_SD_CARD              false    ///< Enable SD card function
+#define ENABLE_SD_CARD              false   ///< Enable SD card function. The board has no micro SD card slot
+#define ENABLE_SD_CARD_HOTPLUG      false   ///< SD card hotplug. ESP32: false, SD card init during runtime breaks the camera
 #define SD_PIN_CLK                  -1      ///< GPIO pin for SD card clock
 #define SD_PIN_CMD                  -1      ///< GPIO pin for SD card command
-#define SD_PIN_DATA0                -1       ///< GPIO pin for SD card data 0
+#define SD_PIN_DATA0                -1      ///< GPIO pin for SD card data 0
 
 /* ---------- RESET CFG CONFIGURATION  ----------*/
-#define CFG_RESET_PIN               4      ///< GPIO 12 is for reset CFG to default
+#define CFG_RESET_PIN               4       ///< GPIO 4 (Grove port) is for reset CFG to default. GPIO 37 (PWR button) has no pull-up
 #define CFG_RESET_LED_PIN           2       ///< GPIO for indication of reset CFG
 #define CFG_RESET_LED_LEVEL_ON      HIGH    ///< GPIO pin level for status LED ON
 
 /* -------------- STATUS LED CFG ----------------*/
 #define STATUS_LED_ENABLE           true    ///< enable/disable status LED
 #define STATUS_LED_GPIO_NUM         2       ///< GPIO pin for status LED
-#define STATUS_LED_OFF_PIN_LEVEL    LOW     ///< GPIO pin level for status LED ON
+#define STATUS_LED_OFF_PIN_LEVEL    HIGH    ///< GPIO pin level for status LED ON
 
 /* -------------- DHT SENSOR CFG ----------------*/
 #define DHT_SENSOR_ENABLE           false   ///< enable/disable DHT sensor

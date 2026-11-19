@@ -242,8 +242,11 @@ size_t AsyncJpegStreamResponse::_content(uint8_t *buffer, size_t maxLen, size_t 
 
     /* get frame */
     _frame.index = 0;
-    camera->CaptureStream(&_dframe);
-    _frame.fb = &_dframe;
+    if (true == camera->CaptureStream(&_dframe)) {
+      _frame.fb = &_dframe;
+    } else {
+      _frame.fb = NULL;
+    }
 
     if (_frame.fb == NULL) {
       log->AddEvent(LogLevel_Error, F("Stream capture frame failed"));

@@ -13,6 +13,9 @@
 
 Configuration SystemConfig(&SystemLog);
 
+/* reset cfg requested from the serial console. RTC memory is kept during the software restart, after the power-on the value is random */
+RTC_NOINIT_ATTR static uint32_t ResetCfgRequest;
+
 /**
    @info Constructor
    @param Logs* - pointer to log module
@@ -177,6 +180,10 @@ void Configuration::DefaultCfg() {
   SaveTimeLapseFunctionStatus(FACTORY_CFG_TIMELAPS_ENABLE);
   SaveExternalTemperatureSensorEnable(FACTORY_CFG_ENABLE_EXT_SENSOR);
   SaveExternalTemperatureSensorUnit(FACTORY_CFG_EXT_SENSOR_UNIT);
+  SaveWifiEapEnable(FACTORY_CFG_WIFI_EAP_ENABLE);
+  SaveWifiEapIdentity(FACTORY_CFG_WIFI_EAP_IDENTITY);
+  SaveWifiEapUsername(FACTORY_CFG_WIFI_EAP_USERNAME);
+  SaveWifiEapPassword(FACTORY_CFG_WIFI_EAP_PASSWORD);
   Log->AddEvent(LogLevel_Warning, F("+++++++++++++++++++++++++++"));
 }
 
@@ -205,6 +212,17 @@ bool Configuration::CheckActifeWifiCfgFlag() {
 */
 void Configuration::CheckResetCfg() {
   Log->AddEvent(LogLevel_Verbose, F("Check reset MCU cfg"));
+
+  /* reset cfg requested from the serial console before the software restart. The same reset as with the reset pin, before the tasks and WiFi */
+  bool ConsoleRequest = (CFG_RESET_REQUEST_MAGIC == ResetCfgRequest) && (ESP_RST_SW == esp_reset_reason());
+  ResetCfgRequest = 0;
+  if (true == ConsoleRequest) {
+    Log->AddEvent(LogLevel_Warning, F("Reset MCU to factory CFG! Requested from the console"));
+    DefaultCfg();
+    Log->LoggerFlush(LOGS_RESTART_FLUSH_TIMEOUT);
+    ESP.restart();
+  }
+
   bool ResetPinStatus = digitalRead(CFG_RESET_PIN);
 
   /* wait 10s to pressed reset pin */
@@ -235,11 +253,21 @@ void Configuration::CheckResetCfg() {
     digitalWrite(CFG_RESET_LED_PIN, !CFG_RESET_LED_LEVEL_ON);
 
     DefaultCfg();
+    Log->LoggerFlush(LOGS_RESTART_FLUSH_TIMEOUT);
     ESP.restart();
 
   } else {
     Log->AddEvent(LogLevel_Verbose, F("Reset MCU cfg false"));
   }
+}
+
+/**
+   @info Request of the reset cfg from the serial console. The reset is done by CheckResetCfg() after the software restart
+   @param none
+   @return none
+*/
+void Configuration::SetResetCfgRequest() {
+  ResetCfgRequest = CFG_RESET_REQUEST_MAGIC;
 }
 
 /**
@@ -447,7 +475,7 @@ void Configuration::SaveRefreshInterval(uint8_t i_interval) {
    @return none
 */
 void Configuration::SaveToken(String i_token) {
-  Log->AddEvent(LogLevel_Verbose, F("Save Token["), String(i_token.length()) + "]: " + i_token);
+  Log->AddEvent(LogLevel_Verbose, F("Save Token["), String(i_token.length()) + "]: " + Log->MaskSensitiveData(i_token));
   SaveString(EEPROM_ADDR_TOKEN_START, EEPROM_ADDR_TOKEN_LENGTH, i_token);
 }
 
@@ -872,6 +900,46 @@ void Configuration::SaveExternalTemperatureSensorEnable(bool i_data) {
 void Configuration::SaveExternalTemperatureSensorUnit(uint8_t i_data) {
   Log->AddEvent(LogLevel_Verbose, F("Save external temperature sensor unit: "), String(i_data)); 
   SaveUint8(EEPROM_ADDR_EXT_SENS_UNIT_START, i_data);
+}
+
+/**
+   @info Save WiFi Enterprise (PEAP) enable
+   @param bool - value
+   @return none
+*/
+void Configuration::SaveWifiEapEnable(bool i_data) {
+  Log->AddEvent(LogLevel_Verbose, F("Save WiFi Enterprise enable: "), String(i_data));
+  SaveBool(EEPROM_ADDR_WIFI_EAP_ENABLE_START, i_data);
+}
+
+/**
+   @info Save WiFi Enterprise anonymous identity
+   @param String - identity
+   @return none
+*/
+void Configuration::SaveWifiEapIdentity(String i_data) {
+  Log->AddEvent(LogLevel_Verbose, F("Save WiFi Enterprise identity["), String(i_data.length()) + "]: " + i_data);
+  SaveString(EEPROM_ADDR_WIFI_EAP_IDENTITY_START, EEPROM_ADDR_WIFI_EAP_IDENTITY_LENGTH, i_data);
+}
+
+/**
+   @info Save WiFi Enterprise username
+   @param String - username
+   @return none
+*/
+void Configuration::SaveWifiEapUsername(String i_data) {
+  Log->AddEvent(LogLevel_Verbose, F("Save WiFi Enterprise username["), String(i_data.length()) + "]: " + i_data);
+  SaveString(EEPROM_ADDR_WIFI_EAP_USERNAME_START, EEPROM_ADDR_WIFI_EAP_USERNAME_LENGTH, i_data);
+}
+
+/**
+   @info Save WiFi Enterprise password
+   @param String - password
+   @return none
+*/
+void Configuration::SaveWifiEapPassword(String i_data) {
+  Log->AddEvent(LogLevel_Verbose, F("Save WiFi Enterprise password["), String(i_data.length()) + "]"); /* SENSITIVE DATA! */
+  SaveString(EEPROM_ADDR_WIFI_EAP_PASSWORD_START, EEPROM_ADDR_WIFI_EAP_PASSWORD_LENGTH, i_data);
 }
 
 /**
@@ -1416,6 +1484,55 @@ uint8_t Configuration::LoadExternalTemperatureSensorUnit() {
 
   return ret;
 
+}
+
+/**
+ * @brief Load WiFi Enterprise (PEAP) enable. Only value 1 is enabled, 255 (new item after FW update) is disabled
+ *
+ * @return bool - status
+ */
+bool Configuration::LoadWifiEapEnable() {
+  uint8_t tmp = EEPROM.read(EEPROM_ADDR_WIFI_EAP_ENABLE_START);
+  bool ret = (1 == tmp);
+  Log->AddEvent(LogLevel_Info, F("WiFi Enterprise enable: "), String(ret));
+
+  return ret;
+}
+
+/**
+ * @brief Load WiFi Enterprise anonymous identity
+ *
+ * @return String - identity
+ */
+String Configuration::LoadWifiEapIdentity() {
+  Log->AddEvent(LogLevel_Info, F("WiFi Enterprise identity: "), false);
+  String ret = LoadString(EEPROM_ADDR_WIFI_EAP_IDENTITY_START, EEPROM_ADDR_WIFI_EAP_IDENTITY_LENGTH, true);
+
+  return ret;
+}
+
+/**
+ * @brief Load WiFi Enterprise username
+ *
+ * @return String - username
+ */
+String Configuration::LoadWifiEapUsername() {
+  Log->AddEvent(LogLevel_Info, F("WiFi Enterprise username: "), false);
+  String ret = LoadString(EEPROM_ADDR_WIFI_EAP_USERNAME_START, EEPROM_ADDR_WIFI_EAP_USERNAME_LENGTH, true);
+
+  return ret;
+}
+
+/**
+ * @brief Load WiFi Enterprise password
+ *
+ * @return String - password
+ */
+String Configuration::LoadWifiEapPassword() {
+  Log->AddEvent(LogLevel_Info, F("WiFi Enterprise password: "), false);
+  String ret = LoadString(EEPROM_ADDR_WIFI_EAP_PASSWORD_START, EEPROM_ADDR_WIFI_EAP_PASSWORD_LENGTH, CONSOLE_VERBOSE_DEBUG);
+
+  return ret;
 }
 
 /* EOF */

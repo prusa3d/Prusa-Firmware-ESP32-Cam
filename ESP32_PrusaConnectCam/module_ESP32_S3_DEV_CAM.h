@@ -9,20 +9,20 @@
    Board configuration in the arduino IDE 2.3.2
    Tools -> Board -> ESP32 Arduino -> ESP32S3 Dev Module
    Tools -> USB CDC on BOOT -> Enabled
-   Tools -> CPU Frequency -> 160MHz (WiFi/BT)
+   Tools -> CPU Frequency -> 160MHz (WiFi)
    Tools -> Core debug level -> None
    Tools -> USB DFU on BOOT -> Disable
    Tools -> Events Run On -> Core 0
    Tools -> Flash Mode -> DIO 80MHz
-   Tools -> Flash Size -> 16MB
+   Tools -> Flash Size -> 16MB (128Mb)
    Tools -> Jtag Adapter -> Disable
    Tools -> Arduino Runs On -> Core 0
    Tools -> USB Firmware MSC On Boot -> Disable
-   Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)
+   Tools -> Partition scheme -> Minimal SPIFFS (1.9MB APP with OTA/128KB SPIFFS)
    Tools -> PSRAM -> OPI PSRAM
    Tools -> Upload Mode -> USB-OTG CDC (TinyUSB)
    Tools -> Upload Speed -> 921600
-   Tools -> USB Mode -> Hardware CDC & JTAG
+   Tools -> USB Mode -> Hardware CDC and JTAG
    Tools -> Zigbee mode -> Disable
 
    Right USB-C connector is for programming and serial monitor
@@ -79,6 +79,7 @@
 
 /* --------------- SD CARD CFG  ---------------*/
 #define ENABLE_SD_CARD              true    ///< Enable SD card function
+#define ENABLE_SD_CARD_HOTPLUG      true    ///< SD card hotplug, remount the card during runtime
 #define SD_PIN_CLK                  42      ///< GPIO pin for SD card clock
 #define SD_PIN_CMD                  39      ///< GPIO pin for SD card command
 #define SD_PIN_DATA0                41      ///< GPIO pin for SD card data 0

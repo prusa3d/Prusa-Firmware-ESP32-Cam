@@ -4,16 +4,16 @@
    It's neccesary install support for ESP32 board to the arduino IDE. In the board manager we need add next link
    https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
    Then we can install "ESP32 by Espressif Systems" board in the board manager.
-   ESP32 lib version: 3.0.2 (ESP-IDF v5.1.4) by Espressif Systems
+   ESP32 lib version: 3.3.12 (ESP-IDF v5.5.5) by Espressif Systems
 
    This project uses other libraries. It is necessary to install them in the arduino IDE.
    - Library           - License  - Version - Link
-   - ESPAsyncWebServer - LGPL 3.0 - 3.4.5   - https://github.com/mathieucarbou/ESPAsyncWebServer
-   - AsyncTCP          - LGPL 3.0 - 3.3.1   - https://github.com/mathieucarbou/AsyncTCP
-   - ArduinoJson       - MIT      - 7.3.0   - https://github.com/bblanchon/ArduinoJson
+   - ESPAsyncWebServer - LGPL 3.0 - 3.12.1  - https://github.com/mathieucarbou/ESPAsyncWebServer moved to https://github.com/ESP32Async/ESPAsyncWebServer
+   - AsyncTCP          - LGPL 3.0 - 3.5.0   - https://github.com/mathieucarbou/AsyncTCP moved to https://github.com/ESP32Async/AsyncTCP
+   - ArduinoJson       - MIT      - 7.4.3   - https://github.com/bblanchon/ArduinoJson
    - ArduinoUniqueID   - MIT      - 1.3.0   - https://github.com/ricaun/ArduinoUniqueID
-   - arduino-esp32     - LGPL 2.1 - 3.1.0   - https://github.com/espressif/arduino-esp32
-   - DHTnew            - MIT      - 0.5.2   - https://github.com/RobTillaart/DHTNew
+   - arduino-esp32     - LGPL 2.1 - 3.3.12  - https://github.com/espressif/arduino-esp32
+   - DHTnew            - MIT      - 0.5.5   - https://github.com/RobTillaart/DHTNew
 
    Arduino IDE configuration for the MCU are stored in the module_XXX.h file.
 
@@ -32,6 +32,7 @@
 /* includes */
 #include "Arduino.h"
 #include <esp_task_wdt.h>
+#include <esp_app_desc.h>
 #include <ESPmDNS.h>
 #include "esp32-hal-cpu.h"
 
@@ -49,6 +50,15 @@
 void setup() {
   /* Serial port for debugging purposes */
   Serial.begin(SERIAL_PORT_SPEED);
+#if (ARDUINO_USB_MODE && ARDUINO_USB_CDC_ON_BOOT)
+  /* console over USB CDC. When the PC does not read data, Serial.write waits 20x TX timeout and slows down the logger task */
+  Serial.setTxTimeoutMs(SERIAL_USB_CDC_TX_TIMEOUT);
+#endif
+  /* build: date and time of var.cpp and ELF SHA256 (the same as in the panic output). The date and time are old,
+     when var.cpp was not compiled again (Arduino IDE), the ELF SHA256 is different for every build */
+  strlcat(SwBuild, ", ELF ", sizeof(SwBuild));
+  strlcat(SwBuild, esp_app_get_elf_sha256_str(), sizeof(SwBuild));
+
   Serial.println(F("----------------------------------------------------------------"));
   Serial.println(F("Start MCU!"));
   Serial.println(F("Prusa ESP32-cam https://prusa3d.cz"));
@@ -69,6 +79,7 @@ void setup() {
   /* init micro SD card and logs */
   SystemLog.SetLogLevel((LogLevel_enum)EEPROM.read(EEPROM_ADDR_LOG_LEVEL));
   SystemLog.Init();
+  xTaskCreatePinnedToCore(System_TaskLogger, "Logger", 3840, NULL, 2, &Task_Logger, 0); /*function, description, stack size, parameters, priority, task handle, core*/
 
   /* init System lib */
   System_Init();
@@ -103,43 +114,63 @@ void setup() {
   SystemLog.AddEvent(LogLevel_Info, F("Init WDG"));
   esp_task_wdt_config_t twdt_config;
   twdt_config.timeout_ms = WDG_TIMEOUT;
-  twdt_config.idle_core_mask = (1 << portNUM_PROCESSORS) - 1,    /* Bitmask of all cores */
-  twdt_config.trigger_panic = true;
-	
-  esp_task_wdt_init(&twdt_config);          /* enable panic so ESP32 restarts */
+  twdt_config.idle_core_mask = (1 << portNUM_PROCESSORS) - 1, /* Bitmask of all cores */
+    twdt_config.trigger_panic = true;
+
+  esp_task_wdt_init(&twdt_config); /* enable panic so ESP32 restarts */
   esp_task_wdt_reconfigure(&twdt_config);
-  ESP_ERROR_CHECK(esp_task_wdt_add(NULL));  /* add current thread to WDT watch */
-  esp_task_wdt_reset();                     /* reset wdg */
+  ESP_ERROR_CHECK(esp_task_wdt_add(NULL)); /* add current thread to WDT watch */
+  esp_task_wdt_reset();                    /* reset wdg */
 
   /* init tasks */
   SystemLog.AddEvent(LogLevel_Info, F("Start tasks"));
-  xTaskCreatePinnedToCore(System_TaskMain, "SystemNtpOtaUpdate", 5200, NULL, 1, &Task_SystemMain, 0);                           /*function, description, stack size, parameters, priority, task handle, core*/
+  /* SystemNtpOtaUpdate: the OTA download from GitHub (TLS, HTTPUpdate) needs the most stack, with 5600 B only 428 B free */
+  xTaskCreatePinnedToCore(System_TaskMain, "SystemNtpOtaUpdate", 6400, NULL, 1, &Task_SystemMain, 0); /*function, description, stack size, parameters, priority, task handle, core*/
   ESP_ERROR_CHECK(esp_task_wdt_add(Task_SystemMain));
-  xTaskCreatePinnedToCore(System_TaskCaptureAndSendPhoto, "CaptureAndSendPhoto", 4400, NULL, 2, &Task_CapturePhotoAndSend, 0);  /*function, description, stack size, parameters, priority, task handle, core*/
+  xTaskCreatePinnedToCore(System_TaskCaptureAndSendPhoto, "CaptureAndSendPhoto", 5200, NULL, 2, &Task_CapturePhotoAndSend, 0); /*function, description, stack size, parameters, priority, task handle, core*/
   ESP_ERROR_CHECK(esp_task_wdt_add(Task_CapturePhotoAndSend));
-  xTaskCreatePinnedToCore(System_TaskWifiManagement, "WiFiManagement", 2700, NULL, 3, &Task_WiFiManagement, 0);                 /*function, description, stack size, parameters, priority, task handle, core*/
+  xTaskCreatePinnedToCore(System_TaskWifiManagement, "WiFiManagement", 3000, NULL, 3, &Task_WiFiManagement, 0); /*function, description, stack size, parameters, priority, task handle, core*/
   ESP_ERROR_CHECK(esp_task_wdt_add(Task_WiFiManagement));
-#if (true == ENABLE_SD_CARD)  
-  xTaskCreatePinnedToCore(System_TaskSdCardCheck, "CheckMicroSdCard", 3000, NULL, 4, &Task_SdCardCheck, 0);                     /*function, description, stack size, parameters, priority, task handle, core*/
+#if (true == ENABLE_SD_CARD)
+  xTaskCreatePinnedToCore(System_TaskSdCardCheck, "CheckMicroSdCard", 2800, NULL, 4, &Task_SdCardCheck, 0); /*function, description, stack size, parameters, priority, task handle, core*/
   ESP_ERROR_CHECK(esp_task_wdt_add(Task_SdCardCheck));
 #endif
-  xTaskCreatePinnedToCore(System_TaskSerialCfg, "CheckSerialConfiguration", 2300, NULL, 5, &Task_SerialCfg, 0);                 /*function, description, stack size, parameters, priority, task handle, core*/
+  xTaskCreatePinnedToCore(System_TaskSerialCfg, "CheckSerialConfiguration", 2800, NULL, 5, &Task_SerialCfg, 0); /*function, description, stack size, parameters, priority, task handle, core*/
   ESP_ERROR_CHECK(esp_task_wdt_add(Task_SerialCfg));
-  xTaskCreatePinnedToCore(System_TaskSystemTelemetry, "PrintSystemTelemetry", 2200, NULL, 6, &Task_SystemTelemetry, 0);         /*function, description, stack size, parameters, priority, task handle, core*/
+  xTaskCreatePinnedToCore(System_TaskSystemTelemetry, "PrintSystemTelemetry", 3000, NULL, 6, &Task_SystemTelemetry, 0); /*function, description, stack size, parameters, priority, task handle, core*/
   ESP_ERROR_CHECK(esp_task_wdt_add(Task_SystemTelemetry));
-  xTaskCreatePinnedToCore(System_TaskSysLed, "SystemLed", 2000, NULL, 7, &Task_SysLed, 0);                                      /*function, description, stack size, parameters, priority, task handle, core*/
-  ESP_ERROR_CHECK(esp_task_wdt_add(Task_SysLed));
-  xTaskCreatePinnedToCore(System_TaskWiFiWatchdog, "WiFiWatchdog", 4096, NULL, 8, &Task_WiFiWatchdog, 0);                       /*function, description, stack size, parameters, priority, task handle, core*/
+  /* system LED blinks from the esp_timer task, without own task */
+  if (false == system_led.start()) {
+    SystemLog.AddEvent(LogLevel_Error, F("System LED timer start failed"));
+  }
+  xTaskCreatePinnedToCore(System_TaskWiFiWatchdog, "WiFiWatchdog", 2900, NULL, 8, &Task_WiFiWatchdog, 0); /*function, description, stack size, parameters, priority, task handle, core*/
   ESP_ERROR_CHECK(esp_task_wdt_add(Task_WiFiWatchdog));
   //xTaskCreatePinnedToCore(System_TaskSdCardRemove, "SdCardRemove", 3000, NULL, 9, &Task_SdCardFileRemove, 0);                   /*function, description, stack size, parameters, priority, task handle, core*/
   //esp_task_wdt_add(Task_SdCardFileRemove);
+  /* stack size of the async_tcp task (web server) is set in the build_opt.h: -DCONFIG_ASYNC_TCP_STACK_SIZE */
 
   SystemLog.AddEvent(LogLevel_Info, F("MCU configuration done"));
+
+#if (false == CERT_DIAGNOSTIC)
+  /* loop() is used only for the certificate diagnostic. The loopTask is deleted and its stack (8 KB) is free for other tasks */
+  esp_task_wdt_delete(NULL);
+  vTaskDelete(NULL);
+#endif
 }
 
 void loop() {
   /* reset wdg */
   esp_task_wdt_reset();
+
+#if (true == CERT_DIAGNOSTIC)
+  /* one-time diagnostic of the Prusa Connect TLS certificate chain after WiFi connection */
+  static bool CertDiagnosticDone = false;
+  if ((false == CertDiagnosticDone) && (WL_CONNECTED == WiFi.status())) {
+    CertDiagnosticDone = true;
+    Connect.CertificateDiagnostic();
+  }
+#endif
+
   delay(1000);
 }
 

@@ -13,6 +13,9 @@
 */
 #include "camera.h"
 
+/* SCCB_Write16() from the esp32-camera driver (private sccb.h). The driver of the MEGA_CCM sensor has no set_reg() */
+extern "C" int SCCB_Write16(uint8_t slv_addr, uint16_t reg, uint8_t data);
+
 Camera SystemCamera(&SystemConfig, &SystemLog, FLASH_GPIO_NUM);
 
 /**
@@ -28,6 +31,9 @@ Camera::Camera(Configuration* i_conf, Logs* i_log, int8_t i_FlashPin) {
 
   CameraFlashPin = i_FlashPin;
   StreamOnOff = false;
+  FrameBufferHeld = false;
+  MegaCcmSensor = false;
+  FrameSizeSupported = 0x1FF;  /* all frame sizes from the web, until the sensor is detected */
   frameBufferSemaphore = xSemaphoreCreateMutex();
 
   /* Allocate memory for the frame buffer */
@@ -48,6 +54,8 @@ Camera::Camera(Configuration* i_conf, Logs* i_log, int8_t i_FlashPin) {
   PhotoExifData.len = 0;
   PhotoExifData.offset = 0;
   PhotoSending = false;
+  ReinitRequest = false;
+  CaptureRequest = false;
   CameraCaptureFailedCounter = 0;
 }
 
@@ -123,7 +131,7 @@ void Camera::InitCameraModule() {
     CAMERA_GRAB_LATEST     - Except when 1 frame buffer is used, queue will always contain the last 'fb_count' frames
   */
 
-  CameraConfig.frame_size = TFrameSize;             /* FRAMESIZE_ + QVGA|CIF|VGA|SVGA|XGA|SXGA|UXGA */
+  CameraConfig.frame_size = TFrameSize;             /* FRAMESIZE_ + QVGA|CIF|VGA|SVGA|XGA|HD|SXGA|UXGA|FHD */
   CameraConfig.jpeg_quality = PhotoQuality;         /* 10-63 lower number means higher quality */
   CameraConfig.fb_count = 1;                        /* picture frame buffer alocation */
   CameraConfig.grab_mode = CAMERA_GRAB_LATEST;      /* CAMERA_GRAB_WHEN_EMPTY or CAMERA_GRAB_LATEST */
@@ -141,13 +149,90 @@ void Camera::InitCameraModule() {
     log->AddEvent(LogLevel_Verbose, F("Camera frame buffer location: Unknown"));
   }
 
+  /* MEGA_CCM sends bigger JPEG frames than the driver buffer for the frame size (width * height / 5) and the photo is lost (cam_hal: FB-OVF).
+     JPEG buffer 1 B per pixel, the JPEG from the sensor has up to ~0.7 B per pixel. The M5Stack demo uses buffer 2592 * 1944 for 5MP */
+  if (true == MegaCcmSensor) {
+    CameraConfig.jpeg_buffer_size = resolution[TFrameSize].width * resolution[TFrameSize].height;
+  }
+
   /* Camera init */
   err = esp_camera_init(&CameraConfig);
+
+  /* OV2640 sometimes does not acknowledge the register write after the register 0x39 in set_framesize() of the driver (SCCB_Write Failed, ret 259).
+     The next init with the same frame size usually works, esp_camera_init() calls esp_camera_deinit() after the error */
+  for (uint8_t i = 1; (err == ESP_ERR_CAMERA_FAILED_TO_SET_FRAME_SIZE) && (i < CAMERA_INIT_ATTEMPTS); i++) {
+    log->AddEvent(LogLevel_Warning, F("Camera failed to set frame size, init again. Attempt: "), String(i + 1));
+    delay(CAMERA_INIT_RETRY_DELAY);
+    err = esp_camera_init(&CameraConfig);
+  }
+
+  /* the sensor does not support the frame size from the configuration (MEGA_CCM supports only some of them). Use the factory frame size, otherwise the MCU restarts after every start */
+  if ((err == ESP_ERR_CAMERA_FAILED_TO_SET_FRAME_SIZE) && (FrameSize != FACTORY_CFG_FRAME_SIZE)) {
+    log->AddEvent(LogLevel_Warning, F("Camera does not support frame size: "), String(FrameSize));
+    FrameSize = FACTORY_CFG_FRAME_SIZE;
+    TFrameSize = TransformFrameSizeDataType(FrameSize);
+    config->SaveFrameSize(FrameSize);
+    CameraConfig.frame_size = TFrameSize;
+    err = esp_camera_init(&CameraConfig);
+  }
+
+  /* first init with the MEGA_CCM sensor: init again with the bigger JPEG buffer */
+  if ((err == ESP_OK) && (false == MegaCcmSensor) && (MEGA_CCM_PID == esp_camera_sensor_get()->id.PID)) {
+    MegaCcmSensor = true;
+    esp_camera_deinit();
+    CameraConfig.jpeg_buffer_size = resolution[TFrameSize].width * resolution[TFrameSize].height;
+    log->AddEvent(LogLevel_Info, F("Camera MEGA_CCM: init with JPEG buffer: "), String(CameraConfig.jpeg_buffer_size));
+    err = esp_camera_init(&CameraConfig);
+  }
+
   if (err != ESP_OK) {
     log->AddEvent(LogLevel_Warning, F("Camera init failed. Error: "), String(err, HEX));
     log->AddEvent(LogLevel_Warning, F("Reset ESP32-cam!"));
+    log->LoggerFlush(LOGS_RESTART_FLUSH_TIMEOUT);
     ESP.restart();
   } 
+
+  if (true == MegaCcmSensor) {
+    MegaCcmSetup();
+  }
+}
+
+/**
+   @brief Setup of the MEGA_CCM sensor (PY260, M5Stack Unit CamS3 5MP) after the driver init, same as the M5Stack demo for the sensor.
+          Software reset with the delay, without the delay the old hardware version of the sensor does not send frames.
+          The reset sets the default resolution 320x240, the resolution from the configuration is set in the sensor again.
+          The sensor supports only 320x240, 640x480, 1280x720, 1600x1200 and 1920x1080 from the web.
+   @param none
+   @return none
+*/
+void Camera::MegaCcmSetup() {
+  uint8_t slv_addr = esp_camera_sensor_get()->slv_addr;
+  uint8_t resolution_reg = 0x01;  /* RESOLUTION_REG: 0x01 - 320x240, 0x02 - 640x480, 0x03 - 1280x720, 0x04 - 1600x1200, 0x05 - 1920x1080 */
+
+  if (FRAMESIZE_VGA == TFrameSize) {
+    resolution_reg = 0x02;
+  } else if (FRAMESIZE_HD == TFrameSize) {
+    resolution_reg = 0x03;
+  } else if (FRAMESIZE_UXGA == TFrameSize) {
+    resolution_reg = 0x04;
+  } else if (FRAMESIZE_FHD == TFrameSize) {
+    resolution_reg = 0x05;
+  } else if (FRAMESIZE_QVGA != TFrameSize) {
+    /* factory frame size is 320x240 */
+    log->AddEvent(LogLevel_Warning, F("Camera does not support frame size: "), String(FrameSize));
+    FrameSize = FACTORY_CFG_FRAME_SIZE;
+    TFrameSize = TransformFrameSizeDataType(FrameSize);
+    config->SaveFrameSize(FrameSize);
+  }
+
+  /* CAMERA_RST_REG 0x0102: 0, 100 ms, 1, 1 s for the sensor init. The reset sets the default values */
+  int ret = SCCB_Write16(slv_addr, 0x0102, 0x00);
+  delay(100);
+  ret += SCCB_Write16(slv_addr, 0x0102, 0x01);
+  delay(1000);
+  ret += SCCB_Write16(slv_addr, 0x0120, 0x01);            /* PIXEL_FMT_REG: JPEG */
+  ret += SCCB_Write16(slv_addr, 0x0121, resolution_reg);  /* RESOLUTION_REG */
+  log->AddEvent(LogLevel_Info, F("Camera MEGA_CCM setup. Ret: "), String(ret));
 }
 
 /**
@@ -211,6 +296,12 @@ framesize_t Camera::TransformFrameSizeDataType(uint8_t i_data) {
       break;
     case 6:
       ret = FRAMESIZE_UXGA;
+      break;
+    case 7:
+      ret = FRAMESIZE_HD;
+      break;
+    case 8:
+      ret = FRAMESIZE_FHD;
       break;
     default:
       ret = FRAMESIZE_QVGA;
@@ -300,6 +391,27 @@ void Camera::ApplyCameraCfg() {
 
   /* sensor configuration */
   sensor = esp_camera_sensor_get();
+
+  /* NULL without the initialized camera driver, e.g. a setting from the web during ReinitCameraModule() in the photo task */
+  if (NULL == sensor) {
+    log->AddEvent(LogLevel_Error, F("Camera sensor is NULL. Skip camera CFG"));
+    return;
+  }
+
+  /* MEGA_CCM: levels are 0-based with the neutral value in the middle (brightness 4, contrast 3, saturation 3), JPEG quality only 0 - high, 1 - default, 2 - low.
+     Exposure and gain are automatic in the sensor, the manual settings of the driver (aec_value, agc_gain) are not used. Other settings are not supported by the sensor */
+  if (true == MegaCcmSensor) {
+    sensor->set_brightness(sensor, brightness + 4);
+    sensor->set_contrast(sensor, contrast + 3);
+    sensor->set_saturation(sensor, saturation + 3);
+    sensor->set_special_effect(sensor, 0);
+    sensor->set_wb_mode(sensor, wb_mode);
+    sensor->set_hmirror(sensor, hmirror);
+    sensor->set_vflip(sensor, vflip);
+    sensor->set_quality(sensor, (PhotoQuality <= 20) ? 0 : ((PhotoQuality <= 40) ? 1 : 2));
+    return;
+  }
+
   sensor->set_brightness(sensor, brightness);         // -2 to 2
   sensor->set_contrast(sensor, contrast);             // -2 to 2
   sensor->set_saturation(sensor, saturation);         // -2 to 2
@@ -325,18 +437,63 @@ void Camera::ApplyCameraCfg() {
 }
 
 /**
-   @brief Function for reinit camera module
+   @brief Function for reinit camera module. Under frameBufferSemaphore: deinit frees the queues and frame buffers of the driver,
+          esp_camera_fb_get() in another task (photo, stream, web) would use them (assert in xQueueReceive).
+          The caller must not hold frameBufferSemaphore, it is not recursive.
    @param none
    @return none
 */
 void Camera::ReinitCameraModule() {
+  xSemaphoreTake(frameBufferSemaphore, portMAX_DELAY);
   esp_err_t err = esp_camera_deinit();
   if (err != ESP_OK) {
     log->AddEvent(LogLevel_Warning, F("Camera error deinit camera module. Error: "), String(err, HEX));
   }
+  /* deinit released the frame buffers of the driver */
+  FrameBufferHeld = false;
   delay(100);
   InitCameraModule();
   ApplyCameraCfg();
+  xSemaphoreGive(frameBufferSemaphore);
+}
+
+/**
+   @brief Reinit the camera module after the change of the frame size or the photo quality (web, serial console). Called by the photo task
+          before sending the photo. The photo task sends the photo to Prusa Connect and saves it to the SD card from the frame buffer
+          of the driver without frameBufferSemaphore, the reinit from the web (async_tcp) released the frame buffer during it (crash in SavePhotoToSdCard()).
+   @param none
+   @return none
+*/
+void Camera::ProcessReinitRequest() {
+  if (true == ReinitRequest) {
+    ReinitRequest = false;
+    log->AddEvent(LogLevel_Info, F("Reinit camera module, new frame size or photo quality"));
+    ReinitCameraModule();
+  }
+}
+
+/**
+   @brief Request the photo from the web (Refresh Snapshot), the photo task captures it (ProcessCaptureRequest()).
+          The capture in the web server (async_tcp) during sending the photo of the photo task cleared CameraCaptureSuccess (the photo was not sent),
+          and the reinit after the failed captures released the frame buffer used by the photo task
+   @param none
+   @return none
+*/
+void Camera::SetCaptureRequest() {
+  CaptureRequest = true;
+}
+
+/**
+   @brief Capture the photo requested from the web. Called by the photo task, not during sending and saving the photo
+   @param none
+   @return none
+*/
+void Camera::ProcessCaptureRequest() {
+  if (true == CaptureRequest) {
+    CaptureRequest = false;
+    log->AddEvent(LogLevel_Verbose, F("Capture photo requested from the web"));
+    CapturePhoto();
+  }
 }
 
 /**
@@ -359,11 +516,35 @@ void Camera::GetCameraModel() {
 
   CameraType = (camera_pid_t) sensor->id.PID;
   CameraName = info->name;
+
+  /* frame sizes from the web supported by the sensor, the same rule as in the driver: frame size <= max_size of the sensor.
+     MEGA_CCM supports only 320x240, 640x480, 1280x720, 1600x1200 and 1920x1080 (MegaCcmSetup()) */
+  if (true == MegaCcmSensor) {
+    FrameSizeSupported = (1 << 0) | (1 << 2) | (1 << 6) | (1 << 7) | (1 << 8);
+  } else {
+    FrameSizeSupported = 0;
+    for (uint8_t i = 0; i <= 8; i++) {
+      if (TransformFrameSizeDataType(i) <= info->max_size) {
+        FrameSizeSupported |= (1 << i);
+      }
+    }
+  }
+
+  /* EXIF make and model from the detected sensor. Make is known only for OmniVision (OV) and GalaxyCore (GC) sensors */
+  const char *make = "";
+  if (0 == strncmp(info->name, "OV", 2)) {
+    make = "OmniVision";
+  } else if (0 == strncmp(info->name, "GC", 2)) {
+    make = "GalaxyCore";
+  }
+  update_exif_camera(make, info->name);
+
   log->AddEvent(LogLevel_Info, F("Camera type: "), String(CameraType));
   log->AddEvent(LogLevel_Info, F("Camera name: "), String(CameraName));
   log->AddEvent(LogLevel_Info, F("Camera model: "), String(info->model));
   log->AddEvent(LogLevel_Info, F("Camera PID: "), String(info->pid));
   log->AddEvent(LogLevel_Info, F("Camera MAX framesize: "), String(info->max_size));
+  log->AddEvent(LogLevel_Info, F("Camera supported framesizes: "), String(FrameSizeSupported, BIN));
   log->AddEvent(LogLevel_Info, F("Camera support jpeg: "), String(info->support_jpeg));
 }
 
@@ -394,14 +575,14 @@ void Camera::CapturePhoto() {
       delay(CameraFlashTime);
     }
 
-    if (FrameBuffer) {
-      esp_camera_fb_return(FrameBuffer);
-    }
+    /* return the photo from the previous cycle, only when it is still held */
+    ReturnFrameBufferToDriver();
 
     /* Capturing a training photo. Without this sequence, the camera will not obtain the current photo but photo from the previous cycle. */
     FrameBuffer = esp_camera_fb_get();
+    FrameBufferHeld = (NULL != FrameBuffer);
     if (FrameBuffer) {
-      esp_camera_fb_return(FrameBuffer);
+      ReturnFrameBufferToDriver();
       log->AddEvent(LogLevel_Verbose, F("Camera capture training photo"));
     } else {
       esp_camera_fb_return(FrameBuffer);
@@ -413,14 +594,21 @@ void Camera::CapturePhoto() {
     const int maxAttempts = 5;
     PhotoExifData.header = NULL;
     do {
+      /* return invalid frame buffer from the previous attempt to the camera driver. Camera has only one frame buffer */
+      if ((attempts > 0) && (FrameBuffer != NULL)) {
+        ReturnFrameBufferToDriver();
+        FrameBuffer = NULL;
+      }
+
       log->AddEvent(LogLevel_Info, F("Taking photo..."));
 
       FrameBuffer = esp_camera_fb_get();
+      FrameBufferHeld = (NULL != FrameBuffer);
       if (!FrameBuffer) {
         CameraCaptureFailedCounter++;
         log->AddEvent(LogLevel_Error, F("Camera capture failed! photo. Attempt: "), String(CameraCaptureFailedCounter));
-        xSemaphoreGive(frameBufferSemaphore);  // Release semaphore before returning
-        return;
+        /* without return: below is disabled flash, released semaphore and checked counter for reinit camera module */
+        break;
       }
 
       char buf[150] = { '\0' };
@@ -481,17 +669,35 @@ void Camera::CapturePhoto() {
 /**
    @brief Capture Stream
    @param camera_fb_t * - pointer to camera_fb_t
-   @return none
+   @return bool - true = frame captured, false = capture failed
 */
-void Camera::CaptureStream(camera_fb_t* i_buf) {
+bool Camera::CaptureStream(camera_fb_t* i_buf) {
   if (xSemaphoreTake(frameBufferSemaphore, portMAX_DELAY)) {
+    int attempts = 0;
+    const int maxAttempts = 5;
     do {
+      /* return invalid frame buffer from the previous attempt to the camera driver. Camera has only one frame buffer */
+      if ((attempts > 0) && (FrameBuffer != NULL)) {
+        ReturnFrameBufferToDriver();
+        FrameBuffer = NULL;
+      }
+
       /* capture final photo */
       FrameBuffer = esp_camera_fb_get();
+      FrameBufferHeld = (NULL != FrameBuffer);
       if (!FrameBuffer) {
         log->AddEvent(LogLevel_Error, F("Camera capture failed! stream"));
-        i_buf = NULL;
-        return;
+        xSemaphoreGive(frameBufferSemaphore);  // Release semaphore before returning
+        return false;
+      }
+
+      attempts++;
+      if ((FrameBuffer->len <= 100) && (attempts >= maxAttempts)) {
+        log->AddEvent(LogLevel_Error, F("Failed to capture a valid stream frame after max attempts"));
+        ReturnFrameBufferToDriver();
+        FrameBuffer = NULL;
+        xSemaphoreGive(frameBufferSemaphore);  // Release semaphore before returning
+        return false;
       }
 
       /* check if photo is correctly saved */
@@ -528,7 +734,8 @@ void Camera::CaptureStream(camera_fb_t* i_buf) {
         FrameBufferExif->buf = (uint8_t*)heap_caps_malloc(totalSize, MALLOC_CAP_SPIRAM);
         if (FrameBufferExif->buf == NULL) {
           log->AddEvent(LogLevel_Error, F("Failed to allocate memory for EXIF buffer"));
-          return;
+          xSemaphoreGive(frameBufferSemaphore);  // Release semaphore before returning
+          return false;
         }
 
         /* copy the EXIF data to the buffer */
@@ -590,6 +797,7 @@ void Camera::CaptureStream(camera_fb_t* i_buf) {
       if (!FrameBufferDuplicate->buf) {
         /* Handle error */
         free(FrameBufferDuplicate);
+        FrameBufferDuplicate = NULL; /* Set to NULL after freeing */
         Serial.println("Failed to allocate memory for the duplicate frame buffer");
       } else {
         /* Copy the image data */
@@ -603,7 +811,10 @@ void Camera::CaptureStream(camera_fb_t* i_buf) {
     }
 
     xSemaphoreGive(frameBufferSemaphore);
+    return true;
   }
+
+  return false;
 }
 
 /**
@@ -612,7 +823,24 @@ void Camera::CaptureStream(camera_fb_t* i_buf) {
    @return none
 */
 void Camera::CaptureReturnFrameBuffer() {
-  esp_camera_fb_return(FrameBuffer);
+  xSemaphoreTake(frameBufferSemaphore, portMAX_DELAY);
+  ReturnFrameBufferToDriver();
+  xSemaphoreGive(frameBufferSemaphore);
+}
+
+/**
+   @brief Return the frame buffer to the camera driver, only when it is held (taken by esp_camera_fb_get() and not returned yet).
+          The driver marks a returned buffer as free and writes the next frame into it. When a buffer, which is not held, is returned
+          again, the driver overwrites the frame waiting in its queue, and the next esp_camera_fb_get() gets a corrupted frame
+          (camera has only one frame buffer). Call with frameBufferSemaphore taken.
+   @param none
+   @return none
+*/
+void Camera::ReturnFrameBufferToDriver() {
+  if ((true == FrameBufferHeld) && (NULL != FrameBuffer)) {
+    esp_camera_fb_return(FrameBuffer);
+  }
+  FrameBufferHeld = false;
 }
 
 /**
@@ -621,10 +849,10 @@ void Camera::CaptureReturnFrameBuffer() {
    @return none
 */
 void Camera::SetStreamStatus(bool i_status) {
+  xSemaphoreTake(frameBufferSemaphore, portMAX_DELAY);
   StreamOnOff = i_status;
-  if (FrameBuffer) {
-    esp_camera_fb_return(FrameBuffer);
-  }
+  ReturnFrameBufferToDriver();
+  xSemaphoreGive(frameBufferSemaphore);
   log->AddEvent(LogLevel_Info, F("Camera video stream: "), String(StreamOnOff));
 }
 
@@ -746,6 +974,45 @@ void Camera::CopyPhoto(camera_fb_t* i_data) {
 }
 
 /**
+   @brief Copy the last photo (EXIF header + JPEG data) to PSRAM under the frame buffer semaphore.
+          The copy is sent by the web server, the photo task can capture a new photo during sending
+   @param uint8_t ** - pointer to the copy of the photo. The caller releases it with heap_caps_free()
+   @param size_t * - length of the copy
+   @param uint32_t - maximum waiting for the frame buffer semaphore [ms]
+   @return bool - true = copy created
+*/
+bool Camera::CopyPhoto(uint8_t **o_buf, size_t *o_len, uint32_t i_timeout) {
+  *o_buf = NULL;
+  *o_len = 0;
+
+  if (pdTRUE != xSemaphoreTake(frameBufferSemaphore, pdMS_TO_TICKS(i_timeout))) {
+    return false;
+  }
+
+  /* only a held frame buffer, a returned one is overwritten by the camera driver */
+  if ((true == CameraCaptureSuccess) && (true == FrameBufferHeld) && (NULL != FrameBuffer) && (NULL != FrameBuffer->buf) && (FrameBuffer->len > 0)) {
+    /* EXIF header replaces the beginning of the JPEG data (up to offset) */
+    bool exif = ((NULL != PhotoExifData.header) && (PhotoExifData.offset <= FrameBuffer->len));
+    size_t exif_len = (true == exif) ? PhotoExifData.len : 0;
+    size_t jpeg_offset = (true == exif) ? PhotoExifData.offset : 0;
+    size_t len = exif_len + FrameBuffer->len - jpeg_offset;
+
+    uint8_t *buf = (uint8_t *)heap_caps_malloc(len, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    if (NULL != buf) {
+      if (true == exif) {
+        memcpy(buf, PhotoExifData.header, exif_len);
+      }
+      memcpy(buf + exif_len, FrameBuffer->buf + jpeg_offset, FrameBuffer->len - jpeg_offset);
+      *o_buf = buf;
+      *o_len = len;
+    }
+  }
+
+  xSemaphoreGive(frameBufferSemaphore);
+  return (NULL != *o_buf);
+}
+
+/**
    @brief Copy Photo
    @param String* - pointer to string
    @return none
@@ -797,18 +1064,18 @@ int Camera::GetPhotoSize() {
 }
 
 /**
-   @brief Set Photo Quality
+   @brief Set Photo Quality. The camera module is reinitialized by the photo task (ProcessReinitRequest())
    @param uint8_t - photo quality
    @return none
 */
 void Camera::SetPhotoQuality(uint8_t i_data) {
   config->SavePhotoQuality(i_data);
   PhotoQuality = i_data;
-  ReinitCameraModule();
+  ReinitRequest = true;
 }
 
 /**
-   @brief Set Frame Size
+   @brief Set Frame Size. The camera module is reinitialized by the photo task (ProcessReinitRequest())
    @param uint8_t - frame size
    @return none
 */
@@ -816,7 +1083,7 @@ void Camera::SetFrameSize(uint8_t i_data) {
   config->SaveFrameSize(i_data);
   FrameSize = i_data;
   TFrameSize = TransformFrameSizeDataType(i_data);
-  ReinitCameraModule();
+  ReinitRequest = true;
 }
 
 /**
@@ -1061,6 +1328,24 @@ uint8_t Camera::GetFrameSize() {
 }
 
 /**
+   @brief Get frame sizes supported by the sensor
+   @param none
+   @return uint16_t - bit mask, bit = frame size value from the web (0 - 320x240, ..., 8 - 1920x1080)
+*/
+uint16_t Camera::GetFrameSizeSupported() {
+  return FrameSizeSupported;
+}
+
+/**
+   @brief Get support of all camera settings by the sensor. MEGA_CCM supports only some of them (ApplyCameraCfg())
+   @param none
+   @return bool - true = all settings supported
+*/
+bool Camera::GetFullCfgSupported() {
+  return !MegaCcmSensor;
+}
+
+/**
  * @brief transform framesize_t to uint16_t width
  * 
     FRAMESIZE_QVGA (320 x 240)
@@ -1070,6 +1355,8 @@ uint8_t Camera::GetFrameSize() {
     FRAMESIZE_XGA (1024 x 768)
     FRAMESIZE_SXGA (1280 x 1024)
     FRAMESIZE_UXGA (1600 x 1200)
+    FRAMESIZE_HD (1280 x 720)
+    FRAMESIZE_FHD (1920 x 1080)
  * 
  * @return uint16_t 
  */
@@ -1098,6 +1385,12 @@ uint16_t Camera::GetFrameSizeWidth() {
     case 6:
       ret = 1600;
       break;
+    case 7:
+      ret = 1280;
+      break;
+    case 8:
+      ret = 1920;
+      break;
     default:
       ret = 320;
       break;
@@ -1116,6 +1409,8 @@ uint16_t Camera::GetFrameSizeWidth() {
     FRAMESIZE_XGA (1024 x 768)
     FRAMESIZE_SXGA (1280 x 1024)
     FRAMESIZE_UXGA (1600 x 1200)
+    FRAMESIZE_HD (1280 x 720)
+    FRAMESIZE_FHD (1920 x 1080)
  * 
  * @return uint16_t 
  */
@@ -1142,6 +1437,12 @@ uint16_t Camera::GetFrameSizeHeight() {
       break;
     case 6:
       ret = 1200;
+      break;
+    case 7:
+      ret = 720;
+      break;
+    case 8:
+      ret = 1080;
       break;
     default:
       ret = 240;

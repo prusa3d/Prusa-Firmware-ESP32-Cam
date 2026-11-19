@@ -13,10 +13,12 @@
 #pragma once
 
 #include <Arduino.h>
+#include <memory>
 #include <WiFi.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
+#include <esp_app_desc.h>
 
 #include "micro_sd.h"
 #include "log.h"
@@ -50,8 +52,10 @@ void Server_resume();
 
 void Server_handleCacheRequest(AsyncWebServerRequest*, const char*, const char*);
 void Server_handleNotFound(AsyncWebServerRequest *);
-String Server_GetJsonData();
+char *Server_GetJsonData();
 bool Server_CheckBasicAuth(AsyncWebServerRequest *);
+void Server_RestartDelayed();
+void Server_RestartTimerCallback(void *);
 
 void Server_streamJpg(AsyncWebServerRequest *);
 
